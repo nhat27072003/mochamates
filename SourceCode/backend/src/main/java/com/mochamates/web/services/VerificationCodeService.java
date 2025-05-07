@@ -20,14 +20,23 @@ public class VerificationCodeService {
 	}
 
 	public String genarateVerificatonCode(String email) {
+		String code = createCode();
+		LocalDateTime expireTime = LocalDateTime.now().plusMinutes(EXPIRE_MINUTES);
+		if (verifications.get(email) == null) {
+			verifications.put(email, new VerificationEntry(code, expireTime));
+		} else {
+			verifications.replace(email, new VerificationEntry(code, expireTime));
+		}
+		return code;
+	}
+
+	private String createCode() {
 		StringBuilder codeBuilder = new StringBuilder(CODE_LENGTH);
 		for (int i = 0; i < CODE_LENGTH; i++) {
 			int index = secureRandom.nextInt(CHARACTERS.length());
 			codeBuilder.append(CHARACTERS.charAt(index));
 		}
 		String code = codeBuilder.toString();
-		LocalDateTime expireTime = LocalDateTime.now().plusMinutes(EXPIRE_MINUTES);
-		verifications.put(email, new VerificationEntry(code, expireTime));
 		return code;
 	}
 

@@ -22,6 +22,7 @@ public class User {
 	private String role;
 	private Date create_at;
 	private Date update_at;
+	private boolean isVerify;
 
 	public User() {
 
@@ -96,6 +97,14 @@ public class User {
 
 	public void setUpdate_at(Date update_at) {
 		this.update_at = update_at;
+	}
+
+	public boolean isVerify() {
+		return isVerify;
+	}
+
+	public void setVerify(boolean isVerify) {
+		this.isVerify = isVerify;
 	}
 
 }

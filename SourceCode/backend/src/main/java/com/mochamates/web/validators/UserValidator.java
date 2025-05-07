@@ -2,11 +2,14 @@ package com.mochamates.web.validators;
 
 import org.springframework.stereotype.Component;
 
-import com.mochamates.web.dto.UserRegistrationRequest;
+import com.mochamates.web.dto.auth.UserRegistrationRequest;
 import com.mochamates.web.exception.InvalidUserInfoException;
 
 @Component
 public class UserValidator {
+	public UserValidator() {
+
+	}
 
 	public void validateUser(UserRegistrationRequest userRegistrationRequest) {
 		if (!validateUsername(userRegistrationRequest.getUsername()))

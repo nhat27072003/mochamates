@@ -1,37 +1,42 @@
-package com.mochamates.web.entities;
+package com.mochamates.web.entities.products;
 
 import java.util.Date;
 
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.DiscriminatorType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "products")
-public class Product {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
+public class CoffeeProduct {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	private String name;
 	private String description;
 	private Double price;
-	private Integer stock;
 	private String imageUrl;
-	private String metadata;
 	private Date create_at;
 	private Date update_at;
 
-	public Product(String name, String description, Double price, Integer stock, String imageUrl, String metadata,
-			Date create_at, Date update_at) {
-		super();
+	public CoffeeProduct() {
+
+	}
+
+	public CoffeeProduct(String name, String description, Double price, String imageUrl, Date create_at,
+			Date update_at) {
 		this.name = name;
 		this.description = description;
 		this.price = price;
-		this.stock = stock;
 		this.imageUrl = imageUrl;
-		this.metadata = metadata;
 		this.create_at = create_at;
 		this.update_at = update_at;
 	}
@@ -64,28 +69,12 @@ public class Product {
 		this.price = price;
 	}
 
-	public Integer getStock() {
-		return stock;
-	}
-
-	public void setStock(Integer stock) {
-		this.stock = stock;
-	}
-
 	public String getImageUrl() {
 		return imageUrl;
 	}
 
 	public void setImageUrl(String imageUrl) {
 		this.imageUrl = imageUrl;
-	}
-
-	public String getMetadata() {
-		return metadata;
-	}
-
-	public void setMetadata(String metadata) {
-		this.metadata = metadata;
 	}
 
 	public Date getCreate_at() {

@@ -1,19 +1,16 @@
-package com.mochamates.web.dto;
+package com.mochamates.web.dto.auth;
 
-public class UserRegistrationRequest {
+public class VerificaionRequest {
 	private String username;
 	private String password;
 	private String email;
+	private String code;
 
-	public UserRegistrationRequest() {
-
-	}
-
-	public UserRegistrationRequest(String username, String password, String email) {
-		super();
+	public VerificaionRequest(String username, String password, String email, String code) {
 		this.username = username;
 		this.password = password;
 		this.email = email;
+		this.code = code;
 	}
 
 	public String getUsername() {
@@ -38,6 +35,14 @@ public class UserRegistrationRequest {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
 	}
 
 }
