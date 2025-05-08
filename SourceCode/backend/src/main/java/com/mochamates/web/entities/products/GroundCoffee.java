@@ -2,6 +2,8 @@ package com.mochamates.web.entities.products;
 
 import java.util.Date;
 
+import com.mochamates.web.dto.product.ProductDTO;
+
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
@@ -46,6 +48,16 @@ public class GroundCoffee extends CoffeeProduct {
 
 	public void setWholeBean(boolean isWholeBean) {
 		this.isWholeBean = isWholeBean;
+	}
+
+	@Override
+	public void updateFromDTO(ProductDTO productDTO) {
+		if (productDTO.getWeight() != null && productDTO.getWeight() > 0)
+			this.setWeight(productDTO.getWeight());
+
+		if (productDTO.getRoastLevel() != null)
+			this.setRoastLevel(productDTO.getRoastLevel());
+
 	}
 
 }

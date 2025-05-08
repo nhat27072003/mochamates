@@ -6,7 +6,7 @@ import com.mochamates.web.entities.products.CoffeeProduct;
 
 public class GetProductsResponseForAdmin {
 	private List<CoffeeProduct> products;
-
+	private int currentPage;
 	private int totalPage;
 	private long totalItems;
 
@@ -36,6 +36,14 @@ public class GetProductsResponseForAdmin {
 
 	public void setTotalItems(long totalItems) {
 		this.totalItems = totalItems;
+	}
+
+	public int getCurrentPage() {
+		return currentPage;
+	}
+
+	public void setCurrentPage(int currentPage) {
+		this.currentPage = currentPage;
 	}
 
 }

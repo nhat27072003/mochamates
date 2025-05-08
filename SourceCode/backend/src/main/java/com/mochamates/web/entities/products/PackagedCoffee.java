@@ -2,6 +2,8 @@ package com.mochamates.web.entities.products;
 
 import java.util.Date;
 
+import com.mochamates.web.dto.product.ProductDTO;
+
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
@@ -47,4 +49,12 @@ public class PackagedCoffee extends CoffeeProduct {
 	public void setStock(int stock) {
 		this.stock = stock;
 	}
+
+	@Override
+	public void updateFromDTO(ProductDTO productDTO) {
+		this.setWeight(productDTO.getWeight());
+		this.setBrand(productDTO.getBrand());
+		this.setStock(productDTO.getStock());
+	}
+
 }

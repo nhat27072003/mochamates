@@ -37,13 +37,13 @@ public class ProductValidator {
 		}
 
 		switch (product.getType()) {
-		case "READY_TO_DRINK_COFFEE":
+		case "READY_TO_DRINK":
 			if (product.getVolume() == null || product.getVolume() <= 0) {
 				throw new InvalidProductInfoException("Volume must be greater than 0 for Ready-to-Drink Coffee");
 			}
 			break;
-		case "PACKAGED_COFFEE":
-		case "GROUND_COFFEE":
+		case "PACKAGED":
+		case "GROUND":
 			if (product.getWeight() == null || product.getWeight() <= 0) {
 				throw new InvalidProductInfoException("Weight must be greater than 0 for Packaged or Ground Coffee");
 			}

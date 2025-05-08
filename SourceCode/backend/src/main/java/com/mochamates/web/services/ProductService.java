@@ -1,9 +1,11 @@
 package com.mochamates.web.services;
 
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.mochamates.web.dto.product.GetProductsResponseForAdmin;
@@ -14,9 +16,14 @@ import com.mochamates.web.entities.products.GroundFactory;
 import com.mochamates.web.entities.products.PackagedCoffeeFactory;
 import com.mochamates.web.entities.products.ReadyToDrinkCoffeeFactory;
 import com.mochamates.web.exception.InvalidProductInfoException;
+import com.mochamates.web.exception.ProductNotFoundException;
 import com.mochamates.web.repository.ProductRepository;
 import com.mochamates.web.validators.ProductValidator;
 
+/**
+ * Service class that handles business logic related to CoffeeProduct operation
+ * includeing listing, creating, updating, and deleting products.
+ */
 @Service
 public class ProductService {
 	private ProductRepository productRepository;
@@ -27,37 +34,67 @@ public class ProductService {
 		this.productRepository = productRepository;
 	}
 
-	public GetProductsResponseForAdmin getProductsForAdmin() {
-		List<CoffeeProduct> products = productRepository.findAll();
-
+	/**
+	 * Retrieves a paginated list of products for admin view.
+	 * 
+	 * @param page
+	 * @param size
+	 * @return a GetProductsResponseForAdmin object containing the paginated
+	 *         products
+	 * @throws InvalidProductInfoException if page or size is invalid
+	 */
+	public GetProductsResponseForAdmin getProductsForAdmin(int page, int size) {
+		if (page < 0 || size <= 0)
+			throw new InvalidProductInfoException("Page index must be >= 0 and size > 0.");
 		GetProductsResponseForAdmin response = new GetProductsResponseForAdmin();
-		response.setProducts(products);
+
+		try {
+			Pageable pageable = PageRequest.of(page, size);
+			Page<CoffeeProduct> coffePage = productRepository.findAll(pageable);
+
+			response.setProducts(coffePage.getContent());
+			response.setCurrentPage(coffePage.getNumber());
+			response.setTotalItems(coffePage.getTotalElements());
+			response.setTotalPage(coffePage.getTotalPages());
+		} catch (IllegalArgumentException e) {
+			throw new InvalidProductInfoException("Invalid pagination parameters");
+		} catch (Exception e) {
+			throw new InvalidProductInfoException("Failed to retrieve products");
+		}
 
 		return response;
 	}
 
-	public Optional<CoffeeProduct> getProductById(Long id) {
-		Optional<CoffeeProduct> product = productRepository.findById(id);
+	/**
+	 * Retrieves a CoffeeProduct by its ID.
+	 * 
+	 * @param id
+	 * @return the CoffeeProduct if found
+	 * @throws InvalidProductInfoException if the product with the given ID does not
+	 *                                     exist
+	 */
+	public CoffeeProduct getProductById(Long id) {
+		CoffeeProduct product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException());
 
 		return product;
 	}
 
-	public List<CoffeeProduct> searchProducts() {
-		List<CoffeeProduct> listProduct = new ArrayList<CoffeeProduct>();
+//	public List<CoffeeProduct> searchProducts() {
+//		List<CoffeeProduct> listProduct = new ArrayList<CoffeeProduct>();
+//
+//		return listProducts;
+//	}
 
-		return listProducts;
-	}
-
-	public boolean checkStockAvailability(Long id) {
-		Optional<CoffeeProduct> productOptional = productRepository.findById(id);
-
-		if (!productOptional.isPresent()) {
-			return false;
-		}
-		CoffeeProduct product = productOptional.get();
-
-		return true;
-	}
+//	public boolean checkStockAvailability(Long id) {
+//		Optional<CoffeeProduct> productOptional = productRepository.findById(id);
+//
+//		if (!productOptional.isPresent()) {
+//			return false;
+//		}
+//		CoffeeProduct product = productOptional.get();
+//
+//		return true;
+//	}
 
 	/**
 	 * Creates a CoffeeProduct based on the provided ProductDTO. This method
@@ -92,21 +129,42 @@ public class ProductService {
 	}
 
 	/**
+	 * Updates an existing CoffeeProduct.
 	 * 
-	 * 
-	 * @param product
+	 * @param product product the CoffeeProduct to be updated
 	 * @return
 	 */
-	public CoffeeProduct updateProduct(CoffeeProduct product) {
+	public CoffeeProduct updateProduct(Long id, ProductDTO productDTO) {
+		System.out.println("comehere");
+		CoffeeProduct product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException());
+		productValidator = new ProductValidator(productDTO);
+		if (!productValidator.validateProduct()) {
+			throw new InvalidProductInfoException();
+		}
+		product.setName(productDTO.getName());
+		product.setDescription(productDTO.getDescription());
+		product.setPrice(productDTO.getPrice());
+		product.setUpdate_at(new Date());
+		product.setImageUrl(productDTO.getImageUrl());
+
+		product.updateFromDTO(productDTO);
+
+		productRepository.save(product);
 		return product;
 	}
 
-	public void deleteProduct(Long id) {
-		Optional<CoffeeProduct> product = productRepository.findById(id);
-		if (!product.isPresent()) {
+	/**
+	 * Deletes a product by its ID
+	 * 
+	 * @param id
+	 * @throws ProductNotfoundException if the product does not exist
+	 */
+	public CoffeeProduct deleteProduct(Long id) {
+		CoffeeProduct product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException());
 
-		}
 		productRepository.deleteById(id);
+
+		return product;
 	}
 
 }

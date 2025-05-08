@@ -2,6 +2,9 @@ package com.mochamates.web.entities.products;
 
 import java.util.Date;
 
+import com.mochamates.web.dto.product.ProductDTO;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
 import jakarta.persistence.Entity;
@@ -16,7 +19,7 @@ import jakarta.persistence.Table;
 @Table(name = "products")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
-public class CoffeeProduct {
+public abstract class CoffeeProduct {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -26,6 +29,8 @@ public class CoffeeProduct {
 	private String imageUrl;
 	private Date create_at;
 	private Date update_at;
+	@Column(name = "type", insertable = false, updatable = false)
+	private String type;
 
 	public CoffeeProduct() {
 
@@ -93,4 +98,9 @@ public class CoffeeProduct {
 		this.update_at = update_at;
 	}
 
+	public String getType() {
+		return type;
+	}
+
+	public abstract void updateFromDTO(ProductDTO productDTO);
 }
