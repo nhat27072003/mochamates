@@ -1,13 +1,13 @@
 package com.mochamates.web.controllers.auth;
 
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.mochamates.web.dto.auth.RefreshTokenResponse;
 import com.mochamates.web.dto.auth.UserLoginRequest;
 import com.mochamates.web.dto.auth.UserLoginResponse;
 import com.mochamates.web.dto.auth.UserRegistrationRequest;
@@ -45,15 +45,18 @@ public class AuthController {
 	@PostMapping("/login")
 	public ResponseEntity<ApiResponse<UserLoginResponse>> login(@RequestBody UserLoginRequest userLoginRequest,
 			HttpServletResponse response) {
-		UserLoginResponse userLoginResponse = authService.login(userLoginRequest);
+		Map<String, String> tokens = authService.login(userLoginRequest);
 
-		Cookie cookie = new Cookie("refresh_token", userLoginResponse.getRefreshToken());
+		Cookie cookie = new Cookie("refresh_token", tokens.get("refreshToken"));
 		cookie.setHttpOnly(true);
 		cookie.setSecure(true);
 		cookie.setMaxAge(7 * 24 * 60 * 60);
 		cookie.setPath("api/v1/auth");
 		cookie.setAttribute("SameSite", "Strict");
 		response.addCookie(cookie);
+
+		UserLoginResponse userLoginResponse = new UserLoginResponse();
+		userLoginResponse.setRefreshToken(tokens.get("accessToken"));
 
 		ApiResponse<UserLoginResponse> apiResponse = new ApiResponse<UserLoginResponse>("1000", "Ok",
 				userLoginResponse);
@@ -82,15 +85,15 @@ public class AuthController {
 	 * @param refreshToken the refresh token from the HTTP cookie
 	 * @return a new access token and optional updated refresh token
 	 */
-	@PostMapping("/refresh")
-	public ResponseEntity<ApiResponse<RefreshTokenResponse>> refreshToken(
-			@CookieValue(name = "refresh_token") String refreshToken) {
-		RefreshTokenResponse response = authService.refreshToken(refreshToken);
-
-		ApiResponse<RefreshTokenResponse> apiResponse = new ApiResponse<RefreshTokenResponse>("1000", "OK", response);
-
-		return ResponseEntity.status(200).body(apiResponse);
-	}
+//	@PostMapping("/refresh")
+//	public ResponseEntity<ApiResponse<RefreshTokenResponse>> refreshToken(
+//			@CookieValue(name = "refresh_token") String refreshToken) {
+//		RefreshTokenResponse response = authService.refreshToken(refreshToken);
+//
+//		ApiResponse<RefreshTokenResponse> apiResponse = new ApiResponse<RefreshTokenResponse>("1000", "OK", response);
+//
+//		return ResponseEntity.status(200).body(apiResponse);
+//	}
 
 	/**
 	 * Verifies a user's email using the verification code sent to them.
@@ -114,7 +117,7 @@ public class AuthController {
 	@PostMapping("/getVerify")
 	public ResponseEntity<ApiResponse<String>> getVerificationEntity(
 			@RequestBody VerificaionRequest verificaionRequest) {
-		authService.reGenerateCode(verificaionRequest.getEmail());
+		authService.reGenerateCode(verificaionRequest.getUsernameOrEmail());
 
 		ApiResponse<String> response = new ApiResponse<String>("1000", "OK", null);
 

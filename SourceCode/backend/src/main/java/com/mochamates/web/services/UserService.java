@@ -27,4 +27,8 @@ public class UserService {
 
 		return userRes;
 	}
+
+	public boolean isUserExist(Long userId) {
+		return userRepository.findById(userId).isPresent();
+	}
 }

@@ -1,0 +1,133 @@
+.category-page {
+  padding: 60px 0;
+}
+
+.category-page .home-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 2rem;
+  color: #6F4E37;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.category-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: flex-start;
+}
+
+.category-page .product-card {
+  transition: all 0.3s ease;
+  overflow: hidden;
+  cursor: pointer;
+  width: 100%;
+  height: 450px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 10px;
+}
+
+.category-page .product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.category-page .product-image {
+  transition: all 0.5s ease;
+  height: 250px;
+  object-fit: cover;
+}
+
+.category-page .product-card:hover .product-image {
+  transform: scale(1.05);
+}
+
+.category-page .badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.category-page .price {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #6F4E37;
+}
+
+.category-page .btn-custom {
+  background: linear-gradient(45deg, #6F4E37, #4A7043);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.category-page .btn-custom:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(75, 48, 37, 0.4);
+}
+
+.category-page .product-title {
+  font-size: 1.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.category-page .product-description {
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+  .category-page .product-card {
+    height: 400px;
+  }
+
+  .category-page .product-image {
+    height: 200px;
+  }
+
+  .col-md-4 {
+    flex: 0 0 48%;
+    max-width: 48%;
+  }
+}
+
+@media (max-width: 767px) {
+  .category-page .product-card {
+    height: 350px;
+  }
+
+  .category-page .product-image {
+    height: 180px;
+  }
+
+  .category-page .price {
+    font-size: 1.2rem;
+  }
+
+  .category-page .product-title {
+    font-size: 1.1rem;
+  }
+
+  .category-page .product-description {
+    font-size: 0.8rem;
+  }
+
+  .category-page .btn-custom {
+    padding: 8px 12px;
+    font-size: 0.9rem;
+  }
+
+  .col-md-4 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}

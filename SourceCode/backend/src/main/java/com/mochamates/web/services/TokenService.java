@@ -33,27 +33,28 @@ public class TokenService {
 		if (secret == null || secret.length() < 32) {
 			throw new IllegalArgumentException("JWT Secret key must be at least 32 characters long!");
 		}
-		byte[] decodedKey = Base64.getDecoder().decode(secret); // Giải mã Base64 nếu secret là chuỗi mã hóa
+		byte[] decodedKey = Base64.getDecoder().decode(secret);
 		this.key = Keys.hmacShaKeyFor(decodedKey);
 		this.refreshTokenRepository = refreshTokenRepository;
 	}
 
-	public String generateAccessToken(String username) {
+	public String generateAccessToken(String username, String role) {
 		Instant nowInstant = Instant.now();
 		Instant expiration = nowInstant.plus(15, ChronoUnit.MINUTES);
 
-		String tokenString = Jwts.builder().subject(username).issuedAt(Date.from(nowInstant))
-				.expiration(Date.from(expiration)).signWith(key).compact();
+		String tokenString = Jwts.builder().subject(username).claim("role", role) // Thêm role vào payload
+				.issuedAt(Date.from(nowInstant)).expiration(Date.from(expiration)).signWith(key).compact();
 		return tokenString;
 	}
 
 	@Transactional
-	public String generateRefreshToken(String username) {
+	public String generateRefreshToken(String username, String role) {
 		Instant now = Instant.now();
 		Instant expiration = now.plus(7, ChronoUnit.DAYS);
 
-		String tokenString = Jwts.builder().subject(username).id(UUID.randomUUID().toString()).issuedAt(Date.from(now))
-				.expiration(Date.from(expiration)).signWith(key).compact();
+		String tokenString = Jwts.builder().subject(username).claim("role", role) // Thêm role vào payload
+				.id(UUID.randomUUID().toString()).issuedAt(Date.from(now)).expiration(Date.from(expiration))
+				.signWith(key).compact();
 		RefreshToken refreshToken = new RefreshToken();
 		refreshToken.setToken(tokenString);
 		refreshToken.setUsername(username);
@@ -63,21 +64,20 @@ public class TokenService {
 		return tokenString;
 	}
 
-	public String verifyToken(String token) {
+	public Claims verifyToken(String token) {
 		try {
 			Jws<Claims> jws = Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
-			String jwtString = jws.toString();
-			System.out.println("check jwt " + jwtString);
-			return jwtString;
+			Claims claims = jws.getPayload();
+			System.out.println("check jwt claims: " + claims);
+			return claims; // Trả về Claims để client có thể truy xuất role
 		} catch (SignatureException e) {
 			throw new IllegalArgumentException("Invalid JWT signature");
-
 		} catch (Exception e) {
 			throw new IllegalArgumentException("Invalid or expired JWT token");
 		}
 	}
 
-	public RefreshToken geRefreshToken(String token) {
+	public RefreshToken getRefreshToken(String token) {
 		return refreshTokenRepository.findByToken(token)
 				.orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
 	}

@@ -1,21 +1,19 @@
 package com.mochamates.web.services;
 
 import java.util.Date;
-import java.util.Optional;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.mochamates.web.dto.auth.RefreshTokenResponse;
 import com.mochamates.web.dto.auth.UserLoginRequest;
-import com.mochamates.web.dto.auth.UserLoginResponse;
 import com.mochamates.web.dto.auth.UserRegistrationRequest;
 import com.mochamates.web.dto.auth.VerificaionRequest;
-import com.mochamates.web.entities.RefreshToken;
 import com.mochamates.web.entities.User;
+import com.mochamates.web.exception.EmailNotVerifiedException;
 import com.mochamates.web.exception.InvalidPasswordException;
-import com.mochamates.web.exception.InvalidRefreshTokenException;
 import com.mochamates.web.exception.InvalidVerificationCode;
 import com.mochamates.web.exception.UserAlreadyExistException;
 import com.mochamates.web.exception.UserNotFoundException;
@@ -59,25 +57,26 @@ public class AuthService {
 	 * @param userRequest login request containing username/email and password
 	 * @return a response containing access and refresh tokens, username, and role
 	 */
-	public UserLoginResponse login(UserLoginRequest userRequest) {
-		User user = userRepository.findByUsernameOrEmail(userRequest.getUsername(), userRequest.getEmail());
+	public Map<String, String> login(UserLoginRequest userRequest) {
+		User user = userRepository.findByUsernameOrEmail(userRequest.getUsernameOrEmail(),
+				userRequest.getUsernameOrEmail());
 		if (user == null)
 			throw new UserNotFoundException();
 
 		if (!isPasswordValid(userRequest.getPassword(), user.getPassword())) {
 			throw new InvalidPasswordException();
 		}
+		if (!user.isVerify())
+			throw new EmailNotVerifiedException();
 
-		String accessToken = tokenService.generateAccessToken(user.getUsername());
-		String refreshToken = tokenService.generateRefreshToken(user.getUsername());
+		String accessToken = tokenService.generateAccessToken(user.getUsername(), user.getRole());
+		String refreshToken = tokenService.generateRefreshToken(user.getUsername(), user.getRole());
 
-		UserLoginResponse userLoginResponse = new UserLoginResponse();
-		userLoginResponse.setAccessToken(accessToken);
-		userLoginResponse.setRefreshToken(refreshToken);
-		userLoginResponse.setUsername(user.getUsername());
-		userLoginResponse.setRole(user.getRole());
+		Map<String, String> tokens = new HashMap<>();
+		tokens.put("accessToken", accessToken);
+		tokens.put("refreshToken", refreshToken);
+		return tokens;
 
-		return userLoginResponse;
 	}
 
 	/**
@@ -121,9 +120,13 @@ public class AuthService {
 	 *
 	 * @param email the user's email address
 	 */
-	public void reGenerateCode(String email) {
-		String codeString = verificationCodeService.genarateVerificatonCode(email);
-		emailService.sendVerificationCode(email, codeString);
+	public void reGenerateCode(String usernameOrEmail) {
+		User user = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail);
+		if (user == null)
+			throw new UserNotFoundException();
+
+		String codeString = verificationCodeService.genarateVerificatonCode(user.getEmail());
+		emailService.sendVerificationCode(user.getEmail(), codeString);
 	}
 
 	/**
@@ -133,20 +136,20 @@ public class AuthService {
 	 *                           verification code
 	 */
 	public void verification(VerificaionRequest verificaionRequest) {
-		if (verificaionRequest.getEmail() == null || verificaionRequest.getUsername() == null
-				|| verificaionRequest.getPassword() == null || verificaionRequest.getCode() == null)
+		if (verificaionRequest.getUsernameOrEmail() == null || verificaionRequest.getCode() == null)
 			throw new VerificationCodeException();
 
-		User user = userRepository.findByEmail(verificaionRequest.getEmail());
+		User user = userRepository.findByUsernameOrEmail(verificaionRequest.getUsernameOrEmail(),
+				verificaionRequest.getUsernameOrEmail());
 		if (user == null) {
 			throw new UserNotFoundException();
 		}
 
-		boolean verify = verificationCodeService.verifyCode(verificaionRequest.getEmail(),
-				verificaionRequest.getCode());
+		boolean verify = verificationCodeService.verifyCode(user.getEmail(), verificaionRequest.getCode());
 
 		if (verify) {
 			user.setVerify(true);
+			userRepository.save(user);
 		} else {
 			throw new InvalidVerificationCode();
 		}
@@ -168,22 +171,22 @@ public class AuthService {
 	 * @param refreshTokenString the refresh token string
 	 * @return a response containing a new access token and the username
 	 */
-	public RefreshTokenResponse refreshToken(String refreshTokenString) {
-		Optional<RefreshToken> refeshTokenOptional = refreshTokenRepository.findByToken(refreshTokenString);
-
-		if (refeshTokenOptional.isEmpty()) {
-			throw new InvalidRefreshTokenException();
-		}
-
-		RefreshToken refreshToken = refeshTokenOptional.get();
-
-		if (refreshToken.getExpiryDate().before(new Date())) {
-			refreshTokenRepository.deleteByToken(refreshTokenString);
-			throw new InvalidRefreshTokenException();
-		}
-
-		String newAccessToken = tokenService.generateAccessToken(refreshToken.getUsername());
-
-		return new RefreshTokenResponse(newAccessToken, refreshToken.getUsername());
-	}
+//	public RefreshTokenResponse refreshToken(String refreshTokenString) {
+//		Optional<RefreshToken> refeshTokenOptional = refreshTokenRepository.findByToken(refreshTokenString);
+//
+//		if (refeshTokenOptional.isEmpty()) {
+//			throw new InvalidRefreshTokenException();
+//		}
+//
+//		RefreshToken refreshToken = refeshTokenOptional.get();
+//
+//		if (refreshToken.getExpiryDate().before(new Date())) {
+//			refreshTokenRepository.deleteByToken(refreshTokenString);
+//			throw new InvalidRefreshTokenException();
+//		}
+//
+//		String newAccessToken = tokenService.generateAccessToken(refreshToken.getUsername());
+//
+//		return new RefreshTokenResponse(newAccessToken, refreshToken.getUsername());
+//	}
 }

@@ -1,0 +1,95 @@
+.verify-otp-bg {
+  min-height: 100vh;
+  background-image: url('../../../public/img/banner2.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+}
+
+.verify-otp-bg::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+  z-index: 0;
+}
+
+.verify-otp-card {
+  position: relative;
+  z-index: 1;
+  background-color: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: 15px;
+}
+
+.verify-otp-card .card-title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+}
+
+.verify-otp-card .form-label {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+}
+
+.verify-otp-card .form-control {
+  border-radius: 10px;
+  border-color: #E0E0E0;
+  padding: 10px;
+}
+
+.verify-otp-card .form-control:focus {
+  border-color: #4A7043;
+  box-shadow: 0 0 5px rgba(74, 112, 67, 0.5);
+}
+
+.verify-otp-card .card-text {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+}
+
+.verify-otp-card .verify-btn-custom {
+  background: linear-gradient(45deg, #6F4E37, #4A7043);
+  color: #FFFFFF;
+  border: none;
+  transition: all 0.3s ease;
+  padding: 0.75rem 1.5rem;
+}
+
+.verify-otp-card .verify-btn-custom:hover {
+  background: linear-gradient(45deg, #5A3D2B, #386D36);
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(75, 48, 37, 0.4);
+}
+
+.verify-otp-card .btn-outline-custom {
+  font-family: 'Poppins', sans-serif;
+  color: #6F4E37;
+  border: 2px solid #6F4E37;
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.verify-otp-card .btn-outline-custom:hover {
+  color: #FFFFFF;
+  background: linear-gradient(45deg, #6F4E37, #4A7043);
+  border-color: #4A7043;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(75, 48, 37, 0.4);
+}
+
+.verify-otp-card .btn-link {
+  color: #6F4E37;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.9rem;
+}
+
+.verify-otp-card .btn-link:hover {
+  color: #4A7043;
+}
