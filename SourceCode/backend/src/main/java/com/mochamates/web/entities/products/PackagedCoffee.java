@@ -1,6 +1,7 @@
 package com.mochamates.web.entities.products;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.mochamates.web.dto.product.ProductDTO;
 
@@ -12,14 +13,15 @@ import jakarta.persistence.Entity;
 public class PackagedCoffee extends CoffeeProduct {
 	private String packType;
 	private String instructions;
-	private String expireDate;
+	private LocalDate expireDate;
 
 	public PackagedCoffee() {
 		super();
 	}
 
-	public PackagedCoffee(String name, String description, Double price, String imageUrl, String type, Date create_at,
-			Date update_at, String packType, String instructions, String expireDate) {
+	public PackagedCoffee(String name, String description, Double price, String imageUrl, String type,
+			LocalDateTime create_at, LocalDateTime update_at, String packType, String instructions,
+			LocalDate expireDate) {
 		super(name, description, price, imageUrl, create_at, update_at);
 		this.packType = packType;
 		this.instructions = instructions;
@@ -42,19 +44,19 @@ public class PackagedCoffee extends CoffeeProduct {
 		this.instructions = instructions;
 	}
 
-	public String getExpireDate() {
+	public LocalDate getExpireDate() {
 		return expireDate;
 	}
 
-	public void setExpireDate(String expireDate) {
+	public void setExpireDate(LocalDate expireDate) {
 		this.expireDate = expireDate;
 	}
 
 	@Override
 	public void updateFromDTO(ProductDTO productDTO) {
-		this.setPackType(productDTO.getPackType());
-		this.setExpireDate(productDTO.getExpireDate());
-		this.setInstructions(productDTO.getInstructions());
+		this.setPackType(productDTO.getSpecificAttributesDTO().getPackType());
+		this.setExpireDate(productDTO.getSpecificAttributesDTO().getExpireDate());
+		this.setInstructions(productDTO.getSpecificAttributesDTO().getInstructions());
 	}
 
 }

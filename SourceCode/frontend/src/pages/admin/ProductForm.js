@@ -2,10 +2,6 @@ import React, { useState, useEffect, useRef, memo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { fetchProductById, createProduct, updateProduct, uploadImage } from '../../services/ProductService';
 
-// Simple UUID generator for stable keys
-let idCounter = 0;
-const generateId = () => `id-${idCounter++}`;
-
 const Input = memo(({ label, name, type = 'text', required = false, short = false, medium = false, value, onChange, ...props }) => {
   const inputRef = useRef(null);
 
@@ -52,7 +48,7 @@ const ProductForm = () => {
     price: '',
     description: '',
     imageUrl: '',
-    specificAttributes: {
+    specificAttributesDTO: {
       drinkType: '',
       ingredients: '',
       preparationTime: '',
@@ -81,25 +77,27 @@ const ProductForm = () => {
           setProduct({
             ...data,
             price: data.price ? data.price.toString() : '',
-            specificAttributes: {
-              drinkType: data.specificAttributes?.drinkType || '',
-              ingredients: data.specificAttributes?.ingredients?.join(', ') || '',
-              preparationTime: data.specificAttributes?.preparationTime?.toString() || '',
-              roastLevel: data.specificAttributes?.roastLevel || '',
-              origin: data.specificAttributes?.origin || '',
-              roastDate: data.specificAttributes?.roastDate || '',
-              packType: data.specificAttributes?.packType || '',
-              instructions: data.specificAttributes?.instructions || '',
-              expireDate: data.specificAttributes?.expireDate || '',
+            specificAttributesDTO: {
+              drinkType: data.specificAttributesDTO?.drinkType || '',
+              ingredients: data.specificAttributesDTO?.ingredients || '',
+              preparationTime: data.specificAttributesDTO?.preparationTime?.toString() || '',
+              roastLevel: data.specificAttributesDTO?.roastLevel || '',
+              origin: data.specificAttributesDTO?.origin || '',
+              roastDate: data.specificAttributesDTO?.roastDate || '',
+              packType: data.specificAttributesDTO?.packType || '',
+              instructions: data.specificAttributesDTO?.instructions || '',
+              expireDate: data.specificAttributesDTO?.expireDate || '',
             },
             options: Array.isArray(data.options) ? data.options.map(opt => ({
-              ...opt,
-              id: opt.id || generateId(),
+              id: opt.id, // Giữ id từ backend
+              name: opt.name,
+              type: opt.type,
               values: Array.isArray(opt.values) ? opt.values.map(val => ({
-                ...val,
-                id: val.id || generateId(),
+                id: val.id, // Giữ id từ backend
+                value: val.value,
+                additionalPrice: val.additionalPrice,
               })) : [],
-              isRequired: opt.isRequired ?? true,
+              isRequired: opt.required ?? true,
             })) : [],
           });
           setImagePreview(data.imageUrl || null);
@@ -122,7 +120,7 @@ const ProductForm = () => {
     const { name, value } = e.target;
     setProduct((prev) => ({
       ...prev,
-      specificAttributes: { ...prev.specificAttributes, [name]: value },
+      specificAttributesDTO: { ...prev.specificAttributesDTO, [name]: value },
     }));
   };
 
@@ -135,7 +133,7 @@ const ProductForm = () => {
         const imageUrl = await uploadImage(file);
         console.log("check image url", imageUrl);
         setProduct((prev) => ({ ...prev, imageUrl }));
-        setImagePreview(imageUrl); // Dùng URL Cloudinary thay vì URL.createObjectURL
+        setImagePreview(imageUrl);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -167,10 +165,9 @@ const ProductForm = () => {
     setProduct((prev) => ({
       ...prev,
       options: [...prev.options, {
-        id: generateId(),
         name: '',
         type: 'DROPDOWN',
-        values: [{ id: generateId(), value: '', additionalPrice: 0 }],
+        values: [{ value: '', additionalPrice: 0 }],
         isRequired: true,
       }],
     }));
@@ -179,7 +176,7 @@ const ProductForm = () => {
   const addOptionValue = (optionIndex) => {
     setProduct((prev) => {
       const newOptions = [...prev.options];
-      newOptions[optionIndex].values.push({ id: generateId(), value: '', additionalPrice: 0 });
+      newOptions[optionIndex].values.push({ value: '', additionalPrice: 0 });
       return { ...prev, options: newOptions };
     });
   };
@@ -214,16 +211,23 @@ const ProductForm = () => {
       const productData = {
         ...product,
         price: Number(product.price),
-        specificAttributes: {
-          ...product.specificAttributes,
-          ingredients: product.specificAttributes.ingredients ? product.specificAttributes.ingredients.split(',').map(i => i.trim()) : [],
-          preparationTime: product.specificAttributes.preparationTime ? Number(product.specificAttributes.preparationTime) : undefined,
-          roastDate: product.specificAttributes.roastDate || undefined,
-          expireDate: product.specificAttributes.expireDate || undefined,
+        specificAttributesDTO: {
+          ...product.specificAttributesDTO,
+          ingredients: product.specificAttributesDTO.ingredients || '',
+          preparationTime: product.specificAttributesDTO.preparationTime ? Number(product.specificAttributesDTO.preparationTime) : undefined,
+          roastDate: product.specificAttributesDTO.roastDate || undefined,
+          expireDate: product.specificAttributesDTO.expireDate || undefined,
         },
-        options: product.options.map(({ id, ...option }) => ({
-          ...option,
-          values: option.values.map(({ id, ...value }) => value),
+        options: product.options.map(option => ({
+          id: option.id, // Giữ id của Option
+          name: option.name,
+          type: option.type,
+          values: option.values.map(value => ({
+            id: value.id, // Giữ id của OptionValue
+            value: value.value,
+            additionalPrice: value.additionalPrice,
+          })),
+          isRequired: option.isRequired,
         })),
       };
       console.log('Submitting productData:', JSON.stringify(productData, null, 2));
@@ -234,13 +238,12 @@ const ProductForm = () => {
       }
       navigate('/admin/products');
     } catch (err) {
-      console.log(err.response.data);
-      if (err.response.data != null) {
-        setError(err.response.data.message)
-        console.log('come heerere')
+      console.error('Error:', err);
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else {
+        setError('Có lỗi xảy ra, vui lòng thử lại sau ít phút');
       }
-      else
-        setError('Có lỗi xảy ra, vui lòng thử lại sau ít phút')
     } finally {
       setLoading(false);
     }
@@ -336,7 +339,7 @@ const ProductForm = () => {
                         label="Loại"
                         name="drinkType"
                         medium
-                        value={product.specificAttributes.drinkType}
+                        value={product.specificAttributesDTO.drinkType}
                         onChange={handleSpecificAttrChange}
                         placeholder="Loại đồ uống"
                       />
@@ -344,8 +347,7 @@ const ProductForm = () => {
                         label="Thời Gian Pha (phút)"
                         name="preparationTime"
                         type="number"
-                        short
-                        value={product.specificAttributes.preparationTime}
+                        value={product.specificAttributesDTO.preparationTime}
                         onChange={handleSpecificAttrChange}
                         placeholder="Phút"
                         min="0"
@@ -354,7 +356,7 @@ const ProductForm = () => {
                         label="Thành Phần"
                         name="ingredients"
                         rows={1}
-                        value={product.specificAttributes.ingredients}
+                        value={product.specificAttributesDTO.ingredients}
                         onChange={handleSpecificAttrChange}
                         placeholder="Thành phần, cách nhau bởi dấu phẩy"
                       />
@@ -366,7 +368,7 @@ const ProductForm = () => {
                         label="Rang"
                         name="roastLevel"
                         medium
-                        value={product.specificAttributes.roastLevel}
+                        value={product.specificAttributesDTO.roastLevel}
                         onChange={handleSpecificAttrChange}
                         placeholder="Mức độ rang"
                       />
@@ -374,7 +376,7 @@ const ProductForm = () => {
                         label="Nguồn Gốc"
                         name="origin"
                         medium
-                        value={product.specificAttributes.origin}
+                        value={product.specificAttributesDTO.origin}
                         onChange={handleSpecificAttrChange}
                         placeholder="Xuất xứ"
                       />
@@ -383,7 +385,7 @@ const ProductForm = () => {
                         name="roastDate"
                         type="date"
                         short
-                        value={product.specificAttributes.roastDate}
+                        value={product.specificAttributesDTO.roastDate}
                         onChange={handleSpecificAttrChange}
                         placeholder="Ngày rang"
                       />
@@ -395,7 +397,7 @@ const ProductForm = () => {
                         label="Bao Bì"
                         name="packType"
                         medium
-                        value={product.specificAttributes.packType}
+                        value={product.specificAttributesDTO.packType}
                         onChange={handleSpecificAttrChange}
                         placeholder="Loại bao bì"
                       />
@@ -404,15 +406,15 @@ const ProductForm = () => {
                         name="expireDate"
                         type="date"
                         short
-                        value={product.specificAttributes.expireDate}
+                        value={product.specificAttributesDTO.expireDate}
                         onChange={handleSpecificAttrChange}
                         placeholder="Hạn sử dụng"
                       />
                       <Textarea
                         label="Hướng Dẫn"
                         name="instructions"
-                        rows={1}
-                        value={product.specificAttributes.instructions}
+                        rows={3}
+                        value={product.specificAttributesDTO.instructions}
                         onChange={handleSpecificAttrChange}
                         placeholder="Hướng dẫn sử dụng"
                       />
@@ -423,7 +425,7 @@ const ProductForm = () => {
                 <div className="option-section mt-3">
                   <label className="form-label small me-3">Tùy Chọn</label>
                   {product.options.map((option, optionIndex) => (
-                    <div key={option.id} className="option-section border p-2 mb-2 rounded">
+                    <div key={option.id || `option-${optionIndex}`} className="option-section border p-2 mb-2 rounded">
                       <div className="option-header row">
                         <Input
                           label="Tên Tùy Chọn"
@@ -434,9 +436,9 @@ const ProductForm = () => {
                           placeholder="VD: Size"
                         />
                         <div className="col short">
-                          <label htmlFor={`type-${option.id}`} className="form-label small">Loại</label>
+                          <label htmlFor={`type-${option.id || optionIndex}`} className="form-label small">Loại</label>
                           <select
-                            id={`type-${option.id}`}
+                            id={`type-${option.id || optionIndex}`}
                             value={option.type}
                             onChange={(e) => handleOptionChange(optionIndex, 'type', e.target.value)}
                             className="form-select form-select-sm"
@@ -457,7 +459,7 @@ const ProductForm = () => {
                         </div>
                       </div>
                       {option.values.map((val, valueIndex) => (
-                        <div key={val.id} className="option-value row">
+                        <div key={val.id || `value-${valueIndex}`} className="option-value row">
                           <Input
                             label="Giá Trị"
                             name="value"
@@ -491,7 +493,7 @@ const ProductForm = () => {
                       ))}
                       <button
                         type="button"
-                        className="btn btn-outline-primary btn-sm mt-2"
+                        className="btn btn-outline-sm btn-sm mt-2"
                         onClick={() => addOptionValue(optionIndex)}
                       >
                         Thêm Giá Trị

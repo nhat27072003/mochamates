@@ -1,6 +1,6 @@
 package com.mochamates.web.entities.products;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import com.mochamates.web.dto.product.ProductDTO;
 
@@ -12,7 +12,6 @@ import jakarta.persistence.Entity;
 public class ReadyToDrinkCoffee extends CoffeeProduct {
 	private String ingredients;
 	private String preparationTime;
-
 	private String drinkType;
 
 	public ReadyToDrinkCoffee() {
@@ -20,7 +19,8 @@ public class ReadyToDrinkCoffee extends CoffeeProduct {
 	}
 
 	public ReadyToDrinkCoffee(String name, String description, Double price, String imageUrl, String type,
-			Date create_at, Date update_at, String drinkType, String ingredients, String preparationTime) {
+			LocalDateTime create_at, LocalDateTime update_at, String drinkType, String ingredients,
+			String preparationTime) {
 		super(name, description, price, imageUrl, create_at, update_at);
 		this.drinkType = drinkType;
 		this.preparationTime = preparationTime;
@@ -53,9 +53,9 @@ public class ReadyToDrinkCoffee extends CoffeeProduct {
 
 	@Override
 	public void updateFromDTO(ProductDTO productDTO) {
-		this.setDrinkType(productDTO.getDrinkType());
-		this.setIngredients(productDTO.getIngredients());
-		this.setPreparationTime(productDTO.getPreparationTime());
+		this.setDrinkType(productDTO.getSpecificAttributesDTO().getDrinkType());
+		this.setIngredients(productDTO.getSpecificAttributesDTO().getIngredients());
+		this.setPreparationTime(productDTO.getSpecificAttributesDTO().getPreparationTime());
 	}
 
 }

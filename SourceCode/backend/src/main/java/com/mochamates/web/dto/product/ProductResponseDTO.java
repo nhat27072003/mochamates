@@ -1,8 +1,7 @@
 package com.mochamates.web.dto.product;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 public class ProductResponseDTO {
 	private Long id;
@@ -10,9 +9,9 @@ public class ProductResponseDTO {
 	private String description;
 	private Double price;
 	private String imageUrl;
-	private Date updateAt;
+	private LocalDateTime updateAt;
 	private String type;
-	private Map<String, Object> specificAttributes;
+	private SpecificAttributesDTO specificAttributesDTO;
 	private List<OptionDTO> options;
 
 	// Getters and Setters
@@ -56,11 +55,11 @@ public class ProductResponseDTO {
 		this.imageUrl = imageUrl;
 	}
 
-	public Date getUpdateAt() {
+	public LocalDateTime getUpdateAt() {
 		return updateAt;
 	}
 
-	public void setUpdateAt(Date updateAt) {
+	public void setUpdateAt(LocalDateTime updateAt) {
 		this.updateAt = updateAt;
 	}
 
@@ -72,12 +71,12 @@ public class ProductResponseDTO {
 		this.type = type;
 	}
 
-	public Map<String, Object> getSpecificAttributes() {
-		return specificAttributes;
+	public SpecificAttributesDTO getSpecificAttributesDTO() {
+		return specificAttributesDTO;
 	}
 
-	public void setSpecificAttributes(Map<String, Object> specificAttributes) {
-		this.specificAttributes = specificAttributes;
+	public void setSpecificAttributesDTO(SpecificAttributesDTO specificAttributesDTO) {
+		this.specificAttributesDTO = specificAttributesDTO;
 	}
 
 	public List<OptionDTO> getOptions() {

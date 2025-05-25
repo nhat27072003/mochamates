@@ -2,10 +2,8 @@ package com.mochamates.web.dto.product;
 
 import java.util.List;
 
-import com.mochamates.web.entities.products.CoffeeProduct;
-
 public class GetProductsResponseForAdmin {
-	private List<CoffeeProduct> products;
+	private List<ProductDTO> products;
 	private int currentPage;
 	private int totalPage;
 	private long totalItems;
@@ -14,11 +12,11 @@ public class GetProductsResponseForAdmin {
 
 	}
 
-	public List<CoffeeProduct> getProducts() {
+	public List<ProductDTO> getProducts() {
 		return products;
 	}
 
-	public void setProducts(List<CoffeeProduct> products) {
+	public void setProducts(List<ProductDTO> products) {
 		this.products = products;
 	}
 

@@ -1,90 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { fetchProducts, deleteProduct } from '../../services/ProductService';
 
 const ManageProducts = () => {
-  const [products, setProducts] = useState([
-    {
-      id: 'PROD001',
-      name: 'Cà Phê Phin Đặc Biệt',
-      category: 'Cà Phê Phin',
-      price: 75000,
-      stock: 100,
-      description: 'Cà phê phin truyền thống, hương vị đậm đà.',
-      volume: '200ml',
-      flavor: 'Đậm',
-    },
-    {
-      id: 'PROD002',
-      name: 'Cà Phê Latte Mật Ong',
-      category: 'Latte',
-      price: 90000,
-      stock: 50,
-      description: 'Kết hợp latte với mật ong tự nhiên, vị ngọt nhẹ.',
-      volume: '250ml',
-      flavor: 'Ngọt Nhẹ',
-    },
-    {
-      id: 'PROD003',
-      name: 'Cà Phê Gói Cao Cấp',
-      category: 'Cà Phê Đóng Gói',
-      price: 120000,
-      stock: 30,
-      description: 'Cà phê gói cao cấp, tiện lợi.',
-      weight: '500g',
-      packageType: 'Hộp',
-    },
-    {
-      id: 'PROD004',
-      name: 'Cà Phê Đen Đá',
-      category: 'Cà Phê Phin',
-      price: 65000,
-      stock: 80,
-      description: 'Cà phê đen đá nguyên chất.',
-      volume: '180ml',
-      flavor: 'Đậm',
-    },
-    {
-      id: 'PROD005',
-      name: 'Cà Phê Cappuccino',
-      category: 'Latte',
-      price: 85000,
-      stock: 60,
-      description: 'Cappuccino béo ngậy.',
-      volume: '220ml',
-      flavor: 'Nhẹ',
-    },
-    {
-      id: 'PROD006',
-      name: 'Cà Phê Gói Tiêu Chuẩn',
-      category: 'Cà Phê Đóng Gói',
-      price: 90000,
-      stock: 40,
-      description: 'Cà phê gói tiêu chuẩn.',
-      weight: '250g',
-      packageType: 'Túi Zip',
-    },
-  ]);
-
-  const [filteredProducts, setFilteredProducts] = useState(products);
+  const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('');
   const [sortOption, setSortOption] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [productsPerPage] = useState(5); // Số sản phẩm mỗi trang
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/50?text=No+Image';
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await fetchProducts(currentPage - 1, 10);
+        setProducts(data.products || []);
+        setFilteredProducts(data.products || []);
+        setTotalPages(data.totalPage || 1);
+      } catch (err) {
+        console.log(err)
+        setError('Lỗi khi tải danh sách sản phẩm');
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
+  }, [currentPage]);
 
   useEffect(() => {
     let result = [...products];
 
-    // Tìm kiếm theo tên
+    // Lọc theo tên
     if (searchTerm) {
       result = result.filter((product) =>
         product.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
-    // Lọc theo danh mục
+    // Lọc theo danh mục (type)
     if (filterCategory) {
-      result = result.filter((product) => product.category === filterCategory);
+      result = result.filter((product) => product.type === filterCategory);
     }
 
     // Sắp xếp
@@ -92,23 +54,25 @@ const ManageProducts = () => {
       result.sort((a, b) => {
         if (sortOption === 'price-asc') return a.price - b.price;
         if (sortOption === 'price-desc') return b.price - a.price;
-        if (sortOption === 'stock-asc') return a.stock - b.stock;
-        if (sortOption === 'stock-desc') return b.stock - a.stock;
         return 0;
       });
     }
 
     setFilteredProducts(result);
-    setCurrentPage(1); // Reset về trang 1 khi lọc hoặc sắp xếp
   }, [searchTerm, filterCategory, sortOption, products]);
 
-  // Logic phân trang
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
-  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+  const handleDelete = async (id) => {
+    if (window.confirm('Bạn có chắc muốn xóa sản phẩm này?')) {
+      try {
+        await deleteProduct(id);
+        setProducts(products.filter((p) => p.id !== id));
+        setFilteredProducts(filteredProducts.filter((p) => p.id !== id));
+        setError(null);
+      } catch (err) {
+        setError('Lỗi khi xóa sản phẩm');
+      }
+    }
+  };
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -122,10 +86,31 @@ const ManageProducts = () => {
     setSortOption(e.target.value);
   };
 
+  const paginate = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
+
+  // Kiểm tra tên sản phẩm hợp lệ
+  const isValidName = (name) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return !emailRegex.test(name);
+  };
+
+  // Kiểm tra URL ảnh hợp lệ (Cloudinary hoặc URL hợp lệ)
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl || imageUrl.startsWith('/') || !imageUrl.startsWith('http')) {
+      return PLACEHOLDER_IMAGE;
+    }
+    return `${imageUrl}?w=50&h=50&c=fill`;
+  };
+
   return (
     <div className="manage-products-page">
       <div className="container">
         <h4 className="admin-page-title text-center mb-3">Quản Lý Sản Phẩm</h4>
+        {error && <div className="alert alert-danger small">{error}</div>}
         <div className="mb-3">
           <div className="row g-3">
             <div className="col-md-4">
@@ -139,10 +124,10 @@ const ManageProducts = () => {
             </div>
             <div className="col-md-3">
               <select className="form-select" value={filterCategory} onChange={handleFilterChange}>
-                <option value="">Lọc theo danh mục</option>
-                <option value="Cà Phê Phin">Cà Phê Phin</option>
-                <option value="Latte">Latte</option>
-                <option value="Cà Phê Đóng Gói">Cà Phê Đóng Gói</option>
+                <option value="">Tất cả danh mục</option>
+                <option value="READY_TO_DRINK_COFFEE">Cà phê pha sẵn</option>
+                <option value="GROUND_COFFEE">Cà phê hạt/xay</option>
+                <option value="PACKAGED_COFFEE">Cà phê đóng gói</option>
               </select>
             </div>
             <div className="col-md-3">
@@ -150,77 +135,111 @@ const ManageProducts = () => {
                 <option value="">Sắp xếp</option>
                 <option value="price-asc">Giá: Tăng dần</option>
                 <option value="price-desc">Giá: Giảm dần</option>
-                <option value="stock-asc">Kho: Tăng dần</option>
-                <option value="stock-desc">Kho: Giảm dần</option>
               </select>
             </div>
             <div className="col-md-2">
-              <Link to="/admin/products/add" className="btn btn-custom w-100">
+              <Link to="/admin/products/add" className="btn btn-custom btn-primary w-100">
                 Thêm Sản Phẩm
               </Link>
             </div>
           </div>
         </div>
-        <div className="table-container">
-          <div className="table-responsive">
-            <table className="table table-striped table-hover">
-              <thead>
-                <tr>
-                  <th>Mã Sản Phẩm</th>
-                  <th>Tên Sản Phẩm</th>
-                  <th>Danh Mục</th>
-                  <th>Giá (VNĐ)</th>
-                  <th>Kho</th>
-                  <th>Hành Động</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentProducts.map((product) => (
-                  <tr key={product.id}>
-                    <td>{product.id}</td>
-                    <td>{product.name}</td>
-                    <td>{product.category}</td>
-                    <td>{product.price.toLocaleString('vi-VN')}</td>
-                    <td>{product.stock}</td>
-                    <td>
-                      <Link
-                        to={`/admin/products/edit/${product.id}`}
-                        className="btn btn-outline-custom me-2"
-                      >
-                        Sửa
-                      </Link>
-                      <button className="btn btn-danger-custom">Xóa</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {loading ? (
+          <div className="text-center">
+            <div className="spinner-border" role="status">
+              <span className="visually-hidden">Đang tải...</span>
+            </div>
           </div>
-          {/* Phân trang */}
-          <nav aria-label="Page navigation">
-            <ul className="pagination justify-content-center mt-4 pagination-custom">
-              <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
-                <button className="page-link" onClick={() => paginate(currentPage - 1)}>
-                  Previous
-                </button>
-              </li>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
-                <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
-                  <button className="page-link" onClick={() => paginate(number)}>
-                    {number}
+        ) : (
+          <>
+            <div className="table-container">
+              <div className="table-responsive">
+                <table className="table table-striped table-hover">
+                  <thead>
+                    <tr>
+                      <th>Mã</th>
+                      <th>Ảnh</th>
+                      <th>Tên</th>
+                      <th>Danh Mục</th>
+                      <th>Giá (VNĐ)</th>
+                      <th>Hành Động</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredProducts.length === 0 ? (
+                      <tr>
+                        <td colSpan="6" className="text-center">Không có sản phẩm nào</td>
+                      </tr>
+                    ) : (
+                      filteredProducts.map((product) => (
+                        <tr key={product.id}>
+                          <td>{product.id}</td>
+                          <td>
+                            <img
+                              src={getImageUrl(product.imageUrl)}
+                              alt={product.name}
+                              style={{ width: '50px', height: '50px', objectFit: 'cover' }}
+                            />
+                          </td>
+                          <td>
+                            {isValidName(product.name) ? (
+                              product.name
+                            ) : (
+                              <span className="text-danger">
+                                {product.name} <small>(Tên không hợp lệ)</small>
+                              </span>
+                            )}
+                          </td>
+                          <td>
+                            {product.type === 'READY_TO_DRINK_COFFEE' ? 'Cà phê pha sẵn' :
+                              product.type === 'GROUND_COFFEE' ? 'Cà phê hạt/xay' :
+                                'Cà phê đóng gói'}
+                          </td>
+                          <td>{product.price.toLocaleString('vi-VN')}</td>
+                          <td>
+                            <Link
+                              to={`/admin/products/edit/${product.id}`}
+                              className="btn btn-outline-primary btn-sm me-2"
+                            >
+                              Sửa
+                            </Link>
+                            <button
+                              className="btn btn-danger btn-sm"
+                              onClick={() => handleDelete(product.id)}
+                            >
+                              Xóa
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <nav aria-label="Page navigation">
+              <ul className="pagination justify-content-center mt-4">
+                <li className={`page-item ${currentPage === 1 ? 'disabled' : ''}`}>
+                  <button className="page-link" onClick={() => paginate(currentPage - 1)}>
+                    Previous
                   </button>
                 </li>
-              ))}
-              <li
-                className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}
-              >
-                <button className="page-link" onClick={() => paginate(currentPage + 1)}>
-                  Next
-                </button>
-              </li>
-            </ul>
-          </nav>
-        </div>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((number) => (
+                  <li key={number} className={`page-item ${currentPage === number ? 'active' : ''}`}>
+                    <button className="page-link" onClick={() => paginate(number)}>
+                      {number}
+                    </button>
+                  </li>
+                ))}
+                <li className={`page-item ${currentPage === totalPages ? 'disabled' : ''}`}>
+                  <button className="page-link" onClick={() => paginate(currentPage + 1)}>
+                    Next
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </>
+        )}
       </div>
     </div>
   );

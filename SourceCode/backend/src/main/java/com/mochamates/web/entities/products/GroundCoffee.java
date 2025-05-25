@@ -1,6 +1,7 @@
 package com.mochamates.web.entities.products;
 
-import java.util.Date;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 import com.mochamates.web.dto.product.ProductDTO;
 
@@ -12,14 +13,14 @@ import jakarta.persistence.Entity;
 public class GroundCoffee extends CoffeeProduct {
 	private String origin;
 	private String roastLevel;
-	private String roastDate;
+	private LocalDate roastDate;
 
 	public GroundCoffee() {
 		super();
 	}
 
-	public GroundCoffee(String name, String description, Double price, String imageUrl, String type, Date create_at,
-			Date update_at, String origin, String roastLevel, String roastDate) {
+	public GroundCoffee(String name, String description, Double price, String imageUrl, String type,
+			LocalDateTime create_at, LocalDateTime update_at, String origin, String roastLevel, LocalDate roastDate) {
 		super(name, description, price, imageUrl, create_at, update_at);
 		this.roastLevel = roastLevel;
 		this.origin = origin;
@@ -42,19 +43,19 @@ public class GroundCoffee extends CoffeeProduct {
 		this.origin = origin;
 	}
 
-	public String getRoastDate() {
+	public LocalDate getRoastDate() {
 		return roastDate;
 	}
 
-	public void setRoastDate(String roastDate) {
+	public void setRoastDate(LocalDate roastDate) {
 		this.roastDate = roastDate;
 	}
 
 	@Override
 	public void updateFromDTO(ProductDTO productDTO) {
-		this.setOrigin(productDTO.getOrigin());
-		this.setRoastDate(productDTO.getRoastDate());
-		this.setRoastLevel(productDTO.getRoastLevel());
+		this.setOrigin(productDTO.getSpecificAttributesDTO().getOrigin());
+		this.setRoastDate(productDTO.getSpecificAttributesDTO().getRoastDate());
+		this.setRoastLevel(productDTO.getSpecificAttributesDTO().getRoastLevel());
 
 	}
 

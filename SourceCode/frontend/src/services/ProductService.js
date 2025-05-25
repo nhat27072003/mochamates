@@ -32,46 +32,31 @@ const createProduct = async (data) => {
   const response = await axiosClient.post('/api/v1/admin/products', data);
   return response;
 }
-const updateProduct = async (data) => {
-  const response = await axiosClient.put('/api/v1/admin/products', data);
+const updateProduct = async (id, data) => {
+  const response = await axiosClient.put(`/api/v1/admin/products/${id}`, data);
   return response;
 }
-const fetchProductById = async (id) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        id: 'PROD001',
-        name: 'Latte Mochamates',
-        description: 'Creamy latte',
-        price: 30000,
-        imageUrl: 'http://example.com/latte.jpg',
-        updateAt: '2025-05-23T14:53:00',
-        type: 'READY_TO_DRINK_COFFEE',
-        specificAttributes: {
-          drinkType: 'Latte',
-          preparationTime: 5,
-          ingredients: 'Espresso, Milk',
-        },
-        options: [
-          {
-            name: 'Size',
-            type: 'DROPDOWN',
-            values: [
-              { id: 1, value: 'Small', additionalPrice: 0 },
-              { id: 2, value: 'Large', additionalPrice: 10000 },
-              { id: 3, value: 'Medium', additionalPrice: 10000 }, // Fixed duplicate ID
-            ],
-          },
-        ],
-      });
-    }, 500);
-  });
+const fetchProducts = async (page, size) => {
+  const response = await axiosClient.get(`/api/v1/admin/products?page=${page}&size=${size}`);
+  console.log(response);
+  return response.data;
+
 };
+const fetchProductById = async (id) => {
+  const response = await axiosClient.get(`api/v1/admin/products/${id}`);
+  console.log(response);
+  return response.data;
+}
 
 
+const deleteProduct = async () => {
+
+}
 export {
-  fetchProductById,
   createProduct,
   updateProduct,
-  uploadImage
+  uploadImage,
+  fetchProducts,
+  fetchProductById,
+  deleteProduct
 }

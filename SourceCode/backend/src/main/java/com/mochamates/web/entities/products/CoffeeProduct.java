@@ -1,6 +1,6 @@
 package com.mochamates.web.entities.products;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.mochamates.web.dto.product.ProductDTO;
@@ -32,8 +32,8 @@ public abstract class CoffeeProduct {
 	private String description;
 	private Double price;
 	private String imageUrl;
-	private Date create_at;
-	private Date update_at;
+	private LocalDateTime create_at;
+	private LocalDateTime update_at;
 
 	@Column(name = "type", insertable = false, updatable = false)
 	private String type;
@@ -44,8 +44,8 @@ public abstract class CoffeeProduct {
 	public CoffeeProduct() {
 	}
 
-	public CoffeeProduct(String name, String description, Double price, String imageUrl, Date create_at,
-			Date update_at) {
+	public CoffeeProduct(String name, String description, Double price, String imageUrl, LocalDateTime create_at,
+			LocalDateTime update_at) {
 		this.name = name;
 		this.description = description;
 		this.price = price;
@@ -90,19 +90,19 @@ public abstract class CoffeeProduct {
 		this.imageUrl = imageUrl;
 	}
 
-	public Date getCreate_at() {
+	public LocalDateTime getCreate_at() {
 		return create_at;
 	}
 
-	public void setCreate_at(Date create_at) {
+	public void setCreate_at(LocalDateTime create_at) {
 		this.create_at = create_at;
 	}
 
-	public Date getUpdate_at() {
+	public LocalDateTime getUpdate_at() {
 		return update_at;
 	}
 
-	public void setUpdate_at(Date update_at) {
+	public void setUpdate_at(LocalDateTime update_at) {
 		this.update_at = update_at;
 	}
 

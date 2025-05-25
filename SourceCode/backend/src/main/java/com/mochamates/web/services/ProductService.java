@@ -1,9 +1,7 @@
 package com.mochamates.web.services;
 
-import java.util.Date;
-import java.util.HashMap;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -16,6 +14,7 @@ import com.mochamates.web.dto.product.OptionDTO;
 import com.mochamates.web.dto.product.OptionValueDTO;
 import com.mochamates.web.dto.product.ProductDTO;
 import com.mochamates.web.dto.product.ProductResponseDTO;
+import com.mochamates.web.dto.product.SpecificAttributesDTO;
 import com.mochamates.web.entities.products.CoffeeFactory;
 import com.mochamates.web.entities.products.CoffeeProduct;
 import com.mochamates.web.entities.products.GroundCoffee;
@@ -69,22 +68,27 @@ public class ProductService {
 	 * @throws InvalidProductInfoException if page or size is invalid
 	 */
 	public GetProductsResponseForAdmin getProductsForAdmin(int page, int size) {
-		if (page < 0 || size <= 0)
-			throw new InvalidProductInfoException("Page index must be >= 0 and size > 0.");
+		if (page < 0 || size <= 0) {
+			throw new IllegalArgumentException("Page index must be >= 0 and size > 0.");
+		}
 		GetProductsResponseForAdmin response = new GetProductsResponseForAdmin();
 
 		try {
 			Pageable pageable = PageRequest.of(page, size);
-			Page<CoffeeProduct> coffePage = productRepository.findAll(pageable);
+			Page<CoffeeProduct> coffeePage = productRepository.findAll(pageable);
 
-			response.setProducts(coffePage.getContent());
-			response.setCurrentPage(coffePage.getNumber());
-			response.setTotalItems(coffePage.getTotalElements());
-			response.setTotalPage(coffePage.getTotalPages());
+			// Ánh xạ CoffeeProduct sang ProductDTO
+			List<ProductDTO> productDTOs = coffeePage.getContent().stream().map(this::mapToDTO)
+					.collect(Collectors.toList());
+
+			response.setProducts(productDTOs);
+			response.setCurrentPage(coffeePage.getNumber());
+			response.setTotalItems(coffeePage.getTotalElements());
+			response.setTotalPage(coffeePage.getTotalPages());
 		} catch (IllegalArgumentException e) {
-			throw new InvalidProductInfoException("Invalid pagination parameters");
+			throw new IllegalArgumentException("Invalid pagination parameters");
 		} catch (Exception e) {
-			throw new InvalidProductInfoException("Failed to retrieve products");
+			throw new IllegalArgumentException("Failed to retrieve products: " + e.getMessage());
 		}
 
 		return response;
@@ -136,22 +140,21 @@ public class ProductService {
 		dto.setType(product instanceof PackagedCoffee ? "PACKAGED_COFFEE"
 				: product instanceof ReadyToDrinkCoffee ? "READY_TO_DRINK_COFFEE" : "GROUND_COFFEE");
 
-		// Specific attributes
-		Map<String, Object> specificAttributes = new HashMap<>();
+		SpecificAttributesDTO specificAttributesDTO = new SpecificAttributesDTO();
 		if (product instanceof ReadyToDrinkCoffee coffee) {
-			specificAttributes.put("drinkType", coffee.getDrinkType());
-			specificAttributes.put("preparationTime", coffee.getPreparationTime());
-			specificAttributes.put("ingredients", coffee.getIngredients());
+			specificAttributesDTO.setDrinkType(coffee.getDrinkType());
+			specificAttributesDTO.setPreparationTime(coffee.getPreparationTime());
+			specificAttributesDTO.setIngredients(coffee.getIngredients());
 		} else if (product instanceof GroundCoffee coffee) {
-			specificAttributes.put("origin", coffee.getOrigin());
-			specificAttributes.put("roastLevel", coffee.getRoastLevel());
-			specificAttributes.put("roastDate", coffee.getRoastDate());
+			specificAttributesDTO.setOrigin(coffee.getOrigin());
+			specificAttributesDTO.setRoastDate(coffee.getRoastDate());
+			specificAttributesDTO.setRoastLevel(coffee.getRoastLevel());
 		} else if (product instanceof PackagedCoffee coffee) {
-			specificAttributes.put("packType", coffee.getPackType());
-			specificAttributes.put("instructions", coffee.getInstructions());
-			specificAttributes.put("expiryDate", coffee.getExpireDate());
+			specificAttributesDTO.setPackType(coffee.getPackType());
+			specificAttributesDTO.setInstructions(coffee.getInstructions());
+			specificAttributesDTO.setExpireDate(coffee.getExpireDate());
 		}
-		dto.setSpecificAttributes(specificAttributes);
+		dto.setSpecificAttributesDTO(specificAttributesDTO);
 
 		// Options
 		List<ProductOption> productOptions = productOptionRepository.findByCoffeeProductId(product.getId());
@@ -227,7 +230,7 @@ public class ProductService {
 		product.setName(productDTO.getName());
 		product.setDescription(productDTO.getDescription());
 		product.setPrice(productDTO.getPrice());
-		product.setUpdate_at(new Date());
+		product.setUpdate_at(LocalDateTime.now());
 		product.setImageUrl(productDTO.getImageUrl());
 
 		product.updateFromDTO(productDTO);
@@ -274,44 +277,107 @@ public class ProductService {
 	/**
 	 * Helper method to process options for a product.
 	 */
-	private void processOptions(CoffeeProduct product, List<OptionDTO> optionDTOs) {
-		for (OptionDTO optionDTO : optionDTOs) {
-			Option option;
-			if (optionDTO.getId() != null) {
 
-				option = optionRepository.findById(optionDTO.getId())
+	@Transactional
+	private void processOptions(CoffeeProduct product, List<OptionDTO> optionDTOs) {
+		List<ProductOption> existingProductOptions = productOptionRepository.findByCoffeeProductId(product.getId());
+		java.util.Map<Long, String> optionIdToName = existingProductOptions.stream().collect(Collectors
+				.toMap(po -> po.getOption().getId(), po -> po.getOption().getName(), (name1, name2) -> name1));
+
+		for (OptionDTO optionDTO : optionDTOs) {
+			String newName = optionDTO.getName();
+			Long currentOptionId = optionDTO.getId();
+			boolean nameExists = optionIdToName.entrySet().stream()
+					.anyMatch(entry -> entry.getValue().equals(newName) && !entry.getKey().equals(currentOptionId));
+			if (nameExists) {
+				throw new InvalidProductInfoException(
+						"Option with name '" + newName + "' is already linked to this product");
+			}
+
+			final Option option;
+			if (optionDTO.getId() != null) {
+				Option existingOption = optionRepository.findById(optionDTO.getId())
 						.orElseThrow(() -> new InvalidProductInfoException("Option not found: " + optionDTO.getId()));
 
-			} else {
-				// New option
-				if (optionDTO.getName() == null || optionDTO.getType() == null || optionDTO.getValues() == null) {
-					throw new InvalidProductInfoException("New option must have name, type, and values");
-				}
+				existingOption.setName(optionDTO.getName());
+				existingOption.setType(OptionType.valueOf(optionDTO.getType()));
+				// Clear existing OptionValues (orphanRemoval will delete them)
+				existingOption.getValues().clear();
+				option = optionRepository.save(existingOption);
 
-				option = new Option();
-				option.setName(optionDTO.getName());
-				option.setType(OptionType.valueOf(optionDTO.getType()));
-				option = optionRepository.save(option);
-
-				// Save option values
 				for (OptionValueDTO valueDTO : optionDTO.getValues()) {
 					OptionValue optionValue = new OptionValue();
 					optionValue.setOption(option);
 					optionValue.setValue(valueDTO.getValue());
 					optionValue.setAdditionalPrice(valueDTO.getAdditionalPrice());
+					option.getValues().add(optionValue); // Add to collection
 					optionValueRepository.save(optionValue);
+				}
+			} else {
+				if (optionDTO.getName() == null || optionDTO.getType() == null || optionDTO.getValues() == null) {
+					throw new InvalidProductInfoException("New option must have name, type, and values");
+				}
 
+				Option newOption = new Option();
+				newOption.setName(optionDTO.getName());
+				newOption.setType(OptionType.valueOf(optionDTO.getType()));
+				option = optionRepository.save(newOption);
+
+				for (OptionValueDTO valueDTO : optionDTO.getValues()) {
+					OptionValue optionValue = new OptionValue();
+					optionValue.setOption(option);
+					optionValue.setValue(valueDTO.getValue());
+					optionValue.setAdditionalPrice(valueDTO.getAdditionalPrice());
+					option.getValues().add(optionValue); // Add to collection
+					optionValueRepository.save(optionValue);
 				}
 			}
 
-			// Link option to product
-			ProductOption productOption = new ProductOption();
-			productOption.setCoffeeProduct(product);
-			productOption.setOption(option);
+			ProductOption productOption = existingProductOptions.stream()
+					.filter(po -> po.getOption().getId().equals(option.getId())).findFirst().orElseGet(() -> {
+						ProductOption newPo = new ProductOption();
+						newPo.setCoffeeProduct(product);
+						newPo.setOption(option);
+						return newPo;
+					});
 			productOption.setRequired(optionDTO.isRequired());
 			productOptionRepository.save(productOption);
 
+			optionIdToName.put(option.getId(), option.getName());
 		}
+	}
+
+	private ProductDTO mapToDTO(CoffeeProduct product) {
+		ProductDTO dto = new ProductDTO();
+		dto.setId(product.getId());
+		dto.setName(product.getName());
+		dto.setDescription(product.getDescription());
+		dto.setPrice(product.getPrice());
+		dto.setImageUrl(product.getImageUrl());
+		dto.setType(product instanceof GroundCoffee ? "GROUND_COFFEE"
+				: product instanceof PackagedCoffee ? "PACKAGED_COFFEE"
+						: product instanceof ReadyToDrinkCoffee ? "READY_TO_DRINK_COFFEE" : null);
+
+		if (product instanceof GroundCoffee) {
+			GroundCoffee groundCoffee = (GroundCoffee) product;
+			dto.getSpecificAttributesDTO().setRoastLevel(groundCoffee.getRoastLevel());
+			dto.getSpecificAttributesDTO().setOrigin(groundCoffee.getOrigin());
+			dto.getSpecificAttributesDTO().setRoastDate(groundCoffee.getRoastDate());
+		} else if (product instanceof PackagedCoffee) {
+			PackagedCoffee packagedCoffee = (PackagedCoffee) product;
+			dto.getSpecificAttributesDTO().setPackType(packagedCoffee.getPackType());
+			dto.getSpecificAttributesDTO().setInstructions(packagedCoffee.getInstructions());
+			dto.getSpecificAttributesDTO().setExpireDate(packagedCoffee.getExpireDate());
+		} else if (product instanceof ReadyToDrinkCoffee) {
+			ReadyToDrinkCoffee readyToDrinkCoffee = (ReadyToDrinkCoffee) product;
+			dto.getSpecificAttributesDTO().setDrinkType(readyToDrinkCoffee.getDrinkType());
+			dto.getSpecificAttributesDTO().setIngredients(readyToDrinkCoffee.getIngredients());
+			dto.getSpecificAttributesDTO().setPreparationTime(readyToDrinkCoffee.getPreparationTime());
+		}
+
+		// Map options (giả định OptionDTO và Option tương thích)
+		// dto.setOptions(...);
+		return dto;
 	}
 
 	/**
