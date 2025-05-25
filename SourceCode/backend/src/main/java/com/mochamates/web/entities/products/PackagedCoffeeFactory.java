@@ -10,7 +10,7 @@ public class PackagedCoffeeFactory implements CoffeeFactory {
 	public CoffeeProduct createCoffee(ProductDTO productDTO) {
 		PackagedCoffee coffee = new PackagedCoffee(productDTO.getName(), productDTO.getDescription(),
 				productDTO.getPrice(), productDTO.getImageUrl(), "PACKAGED_COFFEE", new Date(), null,
-				productDTO.getWeight(), productDTO.getBrand(), productDTO.getStock());
+				productDTO.getPackType(), productDTO.getInstructions(), productDTO.getExpireDate());
 		return coffee;
 
 	}

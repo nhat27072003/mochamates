@@ -1,5 +1,4 @@
 import React from 'react'
-import './NewArrivals.css';
 import Item from '../item/Item';
 
 const NewArrivals = () => {

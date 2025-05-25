@@ -56,7 +56,7 @@ public class AuthController {
 		response.addCookie(cookie);
 
 		UserLoginResponse userLoginResponse = new UserLoginResponse();
-		userLoginResponse.setRefreshToken(tokens.get("accessToken"));
+		userLoginResponse.setAccessToken(tokens.get("accessToken"));
 
 		ApiResponse<UserLoginResponse> apiResponse = new ApiResponse<UserLoginResponse>("1000", "Ok",
 				userLoginResponse);

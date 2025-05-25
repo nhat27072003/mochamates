@@ -1,0 +1,45 @@
+s .new-arrivals-section {
+  background-color: $background-light; // #f8f9fc (thay #F8F9FA)
+
+  &.home-section {
+    &.py-4 {
+      padding: 1.5rem 0; // Tương đương py-4 (Bootstrap: 1.5rem = 24px)
+    }
+  }
+
+  .home-title {
+    font-family: $font-family; // 'Poppins', sans-serif
+    font-size: 2rem;
+    color: $primary-brown; // #6F4E37
+    text-align: center;
+
+    &.text-center {
+      margin-bottom: 1.5rem; // Khoảng cách dưới tiêu đề
+    }
+  }
+
+  .container {
+    .row {
+      &.justify-content-center {
+        .col-md-3 {
+          // Không cần thêm style riêng vì Item đã xử lý
+        }
+      }
+    }
+  }
+}
+
+// Responsive (nếu cần)
+@media (max-width: 767px) {
+  .new-arrivals-section {
+    .container {
+      .row {
+        .col-md-3 {
+          flex: 0 0 100%; // 1 cột trên mobile
+          max-width: 100%;
+          margin-bottom: 1rem; // Khoảng cách giữa các item
+        }
+      }
+    }
+  }
+}

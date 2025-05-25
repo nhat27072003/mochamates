@@ -1,0 +1,135 @@
+// Import các file phụ thuộc
+
+.order-processing-page {
+  background-color: $background-light;
+  min-height: 100vh;
+
+  .text-primary-brown {
+    color: $primary-brown;
+  }
+
+  .table-container {
+    .table-responsive {
+      background-color: rgba($primary-brown, 0.05);
+    }
+
+    .table {
+      background-color: $white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 8px 20px rgba($primary-brown, 0.1);
+      margin-bottom: 0;
+
+      thead {
+        background: linear-gradient(45deg, $primary-brown, $primary-green);
+        color: $white;
+
+        th {
+          padding: 0.6rem;
+        }
+      }
+
+      tbody {
+        tr {
+          &:hover {
+            background-color: rgba($primary-brown, 0.05);
+          }
+
+          td {
+            padding: 0.5rem;
+            vertical-align: middle;
+          }
+        }
+      }
+
+      .status-badge {
+        padding: 0.3rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.9rem;
+      }
+
+      .btn-success {
+        &:hover {
+          background-color: darken(#28a745, 10%);
+        }
+      }
+
+      .btn-danger {
+        &:hover {
+          background-color: darken(#dc3545, 10%);
+        }
+      }
+    }
+  }
+
+  .modal-content {
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba($primary-brown, 0.2);
+
+    .modal-header {
+      background: linear-gradient(45deg, $primary-brown, $primary-green);
+      color: $white;
+
+      .modal-title {
+        font-weight: bold;
+      }
+
+      .btn-close {
+        filter: invert(1);
+      }
+    }
+
+    .modal-footer {
+      border-top: none;
+
+      .btn-secondary {
+        background-color: $gray-600;
+        border: none;
+
+        &:hover {
+          background-color: darken($gray-600, 10%);
+        }
+      }
+
+      .btn-custom {
+        background: linear-gradient(45deg, $primary-brown, $primary-green);
+        border: none;
+
+        &:hover {
+          background: linear-gradient(45deg, #5A3D2B, #386D36);
+        }
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 767px) {
+  .order-processing-page {
+    .table-container {
+      .table {
+        thead {
+          th {
+            font-size: 0.9rem;
+            padding: 0.5rem;
+          }
+        }
+
+        tbody {
+          tr {
+            td {
+              font-size: 0.8rem;
+              padding: 0.5rem;
+
+              .btn-success,
+              .btn-danger {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.8rem;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

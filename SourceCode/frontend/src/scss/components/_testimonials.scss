@@ -1,0 +1,79 @@
+.testimonials-section {
+  background-color: $white; // #FFFFFF
+
+  &.home-section {
+    &.py-4 {
+      padding: 1.5rem 0; // Tương đương py-4 (Bootstrap: 1.5rem = 24px)
+    }
+  }
+
+  .home-title {
+    font-family: $font-family; // 'Poppins', sans-serif
+    font-size: 2rem;
+    color: $primary-brown; // #6F4E37
+    text-align: center;
+
+    &.text-center {
+      margin-bottom: 1.5rem; // Khoảng cách dưới tiêu đề
+    }
+  }
+
+  .container {
+    .row {
+      &.justify-content-center {
+        .col-md-6 {
+          .testimonial-card {
+            background-color: #F5F5F5; // Giữ giá trị nguyên bản vì không có biến tương ứng
+            padding: 20px;
+            border-radius: $border-radius; // 10px
+            margin-bottom: 20px;
+            box-shadow: $box-shadow; // 0 4px 12px rgba(0, 0, 0, 0.1)
+            transition: $transition; // all 0.3s ease
+
+            &:hover {
+              box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15); // Tăng bóng khi hover
+            }
+
+            .testimonial-text {
+              font-family: $font-family;
+              font-size: 1rem;
+              color: $primary-brown;
+              margin-bottom: 10px;
+            }
+
+            .testimonial-author {
+              font-family: $font-family;
+              font-size: 0.9rem;
+              color: $primary-green; // #4A7043
+              text-align: right;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 767px) {
+  .testimonials-section {
+    .container {
+      .row {
+        .col-md-6 {
+          .testimonial-card {
+            padding: 15px; // Giảm padding trên mobile
+            margin-bottom: 15px; // Giảm khoảng cách dưới trên mobile
+
+            .testimonial-text {
+              font-size: 0.95rem; // Giảm kích thước chữ trên mobile
+            }
+
+            .testimonial-author {
+              font-size: 0.85rem; // Giảm kích thước chữ trên mobile
+            }
+          }
+        }
+      }
+    }
+  }
+}

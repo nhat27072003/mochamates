@@ -8,42 +8,54 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
 @Entity
-@DiscriminatorValue("READY_TO_DRINK")
+@DiscriminatorValue("READY_TO_DRINK_COFFEE")
 public class ReadyToDrinkCoffee extends CoffeeProduct {
-	private Double volume;
-	private boolean isCold;
+	private String ingredients;
+	private String preparationTime;
+
+	private String drinkType;
 
 	public ReadyToDrinkCoffee() {
 		super();
 	}
 
 	public ReadyToDrinkCoffee(String name, String description, Double price, String imageUrl, String type,
-			Date create_at, Date update_at, Double volume, boolean isCold) {
+			Date create_at, Date update_at, String drinkType, String ingredients, String preparationTime) {
 		super(name, description, price, imageUrl, create_at, update_at);
-		this.volume = volume;
-		this.isCold = isCold;
+		this.drinkType = drinkType;
+		this.preparationTime = preparationTime;
+		this.ingredients = ingredients;
 	}
 
-	public Double getVolume() {
-		return volume;
+	public String getIngredients() {
+		return ingredients;
 	}
 
-	public void setVolume(Double volume) {
-		this.volume = volume;
+	public void setIngredients(String ingredients) {
+		this.ingredients = ingredients;
 	}
 
-	public boolean isCold() {
-		return isCold;
+	public String getPreparationTime() {
+		return preparationTime;
 	}
 
-	public void setCold(boolean isCold) {
-		this.isCold = isCold;
+	public void setPreparationTime(String preparationTime) {
+		this.preparationTime = preparationTime;
+	}
+
+	public String getDrinkType() {
+		return drinkType;
+	}
+
+	public void setDrinkType(String drinkType) {
+		this.drinkType = drinkType;
 	}
 
 	@Override
 	public void updateFromDTO(ProductDTO productDTO) {
-		this.setVolume(productDTO.getVolume());
-		this.setCold(productDTO.isCold());
+		this.setDrinkType(productDTO.getDrinkType());
+		this.setIngredients(productDTO.getIngredients());
+		this.setPreparationTime(productDTO.getPreparationTime());
 	}
 
 }

@@ -1,18 +1,22 @@
 package com.mochamates.web.entities.products;
 
 import java.util.Date;
+import java.util.List;
 
 import com.mochamates.web.dto.product.ProductDTO;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Inheritance;
 import jakarta.persistence.InheritanceType;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -23,17 +27,21 @@ public abstract class CoffeeProduct {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
+
 	private String name;
 	private String description;
 	private Double price;
 	private String imageUrl;
 	private Date create_at;
 	private Date update_at;
+
 	@Column(name = "type", insertable = false, updatable = false)
 	private String type;
 
-	public CoffeeProduct() {
+	@OneToMany(mappedBy = "coffeeProduct", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+	private List<ProductOption> options;
 
+	public CoffeeProduct() {
 	}
 
 	public CoffeeProduct(String name, String description, Double price, String imageUrl, Date create_at,
@@ -100,6 +108,14 @@ public abstract class CoffeeProduct {
 
 	public String getType() {
 		return type;
+	}
+
+	public List<ProductOption> getOptions() {
+		return options;
+	}
+
+	public void setOptions(List<ProductOption> options) {
+		this.options = options;
 	}
 
 	public abstract void updateFromDTO(ProductDTO productDTO);

@@ -1,0 +1,134 @@
+// Import các file phụ thuộc
+
+
+.admin-layout {
+  .bg-dark {
+    background-color: #1a202c !important;
+  }
+
+  .bg-secondary {
+    background-color: #2d3748 !important;
+  }
+
+  .bg-light {
+    background-color: $background-light;
+  }
+
+  .border-end {
+    border-right: 1px solid $gray-600;
+  }
+
+  .nav-item {
+    .btn {
+      border-radius: 8px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background-color: rgba($primary-brown, 0.1);
+        color: $primary-brown;
+      }
+
+      &.btn-primary {
+        background: linear-gradient(45deg, $primary-brown, $primary-green);
+        color: $white;
+
+        &:hover {
+          background: linear-gradient(45deg, #5A3D2B, #386D36);
+        }
+      }
+
+      &.btn-outline-secondary {
+        color: $gray-600;
+        border-color: $gray-600;
+
+        &:hover {
+          color: $primary-brown;
+          border-color: $primary-brown;
+        }
+      }
+    }
+  }
+
+  .list-unstyled {
+    li {
+      .btn {
+        background-color: transparent;
+        color: $gray-600;
+
+        &:hover {
+          background-color: rgba($primary-brown, 0.05);
+          color: $primary-brown;
+        }
+
+        &.btn-primary {
+          background: linear-gradient(45deg, $primary-brown, $primary-green);
+          color: $white;
+
+          &:hover {
+            background: linear-gradient(45deg, #5A3D2B, #386D36);
+          }
+        }
+      }
+    }
+  }
+
+  header {
+    .input-group {
+      .form-control {
+        border-color: $gray-600;
+        background-color: #f9f9f9;
+
+        &:focus {
+          border-color: $primary-green;
+          box-shadow: 0 0 8px rgba($primary-green, 0.3);
+        }
+
+        &::placeholder {
+          color: $gray-600;
+          opacity: 0.7;
+        }
+      }
+
+      .input-group-text {
+        border-color: $gray-600;
+        background-color: #f9f9f9;
+      }
+    }
+
+    .btn-light {
+      border: 1px solid $gray-600;
+      color: $gray-600;
+
+      &:hover {
+        background-color: rgba($primary-brown, 0.1);
+        color: $primary-brown;
+      }
+    }
+  }
+
+  .container-fluid {
+    padding: 1rem;
+  }
+}
+
+// Responsive
+@media (max-width: 768px) {
+  .admin-layout {
+    .border-end {
+      border-right: none;
+      border-bottom: 1px solid $gray-600;
+    }
+
+    header {
+      .input-group {
+        width: 100%;
+        margin-bottom: 1rem;
+      }
+
+      .d-flex {
+        justify-content: space-between;
+        width: 100%;
+      }
+    }
+  }
+}

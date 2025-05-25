@@ -1,5 +1,4 @@
 import React from 'react';
-import './MenuPreview.css';
 import Item from '../item/Item';
 
 

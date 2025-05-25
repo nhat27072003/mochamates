@@ -8,53 +8,53 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
 @Entity
-@DiscriminatorValue("PACKAGED")
+@DiscriminatorValue("PACKAGED_COFFEE")
 public class PackagedCoffee extends CoffeeProduct {
-	private Double weight;
-	private String brand;
-	private int stock;
+	private String packType;
+	private String instructions;
+	private String expireDate;
 
 	public PackagedCoffee() {
 		super();
 	}
 
 	public PackagedCoffee(String name, String description, Double price, String imageUrl, String type, Date create_at,
-			Date update_at, Double weitght, String brand, int stock) {
+			Date update_at, String packType, String instructions, String expireDate) {
 		super(name, description, price, imageUrl, create_at, update_at);
-		this.brand = brand;
-		this.stock = stock;
-		this.weight = weitght;
+		this.packType = packType;
+		this.instructions = instructions;
+		this.expireDate = expireDate;
 	}
 
-	public Double getWeight() {
-		return weight;
+	public String getPackType() {
+		return packType;
 	}
 
-	public void setWeight(Double weight) {
-		this.weight = weight;
+	public void setPackType(String packType) {
+		this.packType = packType;
 	}
 
-	public String getBrand() {
-		return brand;
+	public String getInstructions() {
+		return instructions;
 	}
 
-	public void setBrand(String brand) {
-		this.brand = brand;
+	public void setInstructions(String instructions) {
+		this.instructions = instructions;
 	}
 
-	public int getStock() {
-		return stock;
+	public String getExpireDate() {
+		return expireDate;
 	}
 
-	public void setStock(int stock) {
-		this.stock = stock;
+	public void setExpireDate(String expireDate) {
+		this.expireDate = expireDate;
 	}
 
 	@Override
 	public void updateFromDTO(ProductDTO productDTO) {
-		this.setWeight(productDTO.getWeight());
-		this.setBrand(productDTO.getBrand());
-		this.setStock(productDTO.getStock());
+		this.setPackType(productDTO.getPackType());
+		this.setExpireDate(productDTO.getExpireDate());
+		this.setInstructions(productDTO.getInstructions());
 	}
 
 }

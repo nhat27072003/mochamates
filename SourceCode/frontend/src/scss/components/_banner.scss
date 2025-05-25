@@ -1,0 +1,96 @@
+#carouselExampleIndicators {
+  .carousel-inner {
+    img {
+      height: 600px;
+      object-fit: cover;
+      border-radius: $border-radius; // 10px từ variables
+      transition: $transition; // all 0.3s ease
+
+      &.d-block {
+        &.w-100 {
+          width: 100%;
+          display: block;
+        }
+      }
+    }
+
+    .carousel-item {
+      &.active {
+        // Không cần thêm style nếu chỉ dùng để đánh dấu
+      }
+
+      .carousel-caption {
+        &.d-none {
+          &.d-md-block {
+            h4 {
+              font-family: $font-family; // 'Poppins', sans-serif
+              color: $white;
+              text-shadow: 2px 2px 4px rgba($primary-brown, 0.5); // Thêm bóng chữ cho dễ đọc
+              font-size: 1.5rem;
+              text-align: center;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .carousel-indicators {
+    button {
+      &.active {
+        background-color: $primary-brown; // #6F4E37
+      }
+
+      &[aria-current="true"] {
+        background-color: $primary-green; // #4A7043
+      }
+    }
+  }
+
+  .carousel-control-prev,
+  .carousel-control-next {
+    &:hover {
+      opacity: 0.8;
+      transition: $transition;
+    }
+
+    .carousel-control-prev-icon,
+    .carousel-control-next-icon {
+      background-color: $primary-brown;
+      border-radius: 50%;
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 991px) {
+  #carouselExampleIndicators {
+    .carousel-inner {
+      img {
+        height: 400px; // Giảm chiều cao trên tablet
+      }
+
+      .carousel-caption {
+        h4 {
+          font-size: 1.2rem; // Giảm kích thước chữ trên tablet
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 767px) {
+  #carouselExampleIndicators {
+    .carousel-inner {
+      img {
+        height: 250px; // Giảm chiều cao trên mobile
+      }
+
+      .carousel-caption {
+        h4 {
+          font-size: 1rem; // Giảm kích thước chữ trên mobile
+        }
+      }
+    }
+  }
+}

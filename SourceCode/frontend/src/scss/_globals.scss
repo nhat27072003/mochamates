@@ -1,0 +1,153 @@
+// Import biến từ variables
+@import 'variables';
+
+// Reset CSS cơ bản
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+// Style cơ bản cho body
+body {
+  font-family: $font-family;
+  background-color: $background-light;
+  color: $gray-800;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+// Style cho link
+a {
+  color: $primary-brown;
+  text-decoration: none;
+  transition: $transition;
+
+  &:hover {
+    color: $primary-green;
+  }
+}
+
+// Container cơ bản
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px;
+  width: 100%;
+}
+
+// Style cho các heading
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: $font-family;
+  font-weight: 600;
+  color: $gray-800;
+  margin-bottom: 1rem;
+}
+
+// Style cho paragraph và list
+p {
+  margin-bottom: 1rem;
+}
+
+ul,
+ol {
+  margin-bottom: 1rem;
+
+  li {
+    margin-bottom: 0.5rem;
+  }
+}
+
+// Style cho button cơ bản
+button,
+.btn {
+  font-family: $font-family;
+  cursor: pointer;
+  transition: $transition;
+}
+
+// Style cho image và các class liên quan
+img {
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+}
+
+.img-fluid {
+  max-width: 100%;
+  height: auto;
+}
+
+.rounded {
+  border-radius: $border-radius; // Sử dụng $border-radius (10px) từ variables
+}
+
+.shadow {
+  box-shadow: $box-shadow; // Sử dụng $box-shadow từ variables
+}
+
+// Animation chung
+.animated--grow-in {
+  animation: growIn 0.3s ease-in-out;
+
+  @keyframes growIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
+
+.animated--fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+}
+
+// Responsive container
+@media (max-width: 1200px) {
+  .container {
+    max-width: 960px;
+  }
+}
+
+@media (max-width: 992px) {
+  .container {
+    max-width: 720px;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    max-width: 540px;
+  }
+}
+
+@media (max-width: 576px) {
+  .container {
+    max-width: 100%;
+    padding: 0 10px;
+  }
+}

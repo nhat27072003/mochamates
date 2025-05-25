@@ -1,0 +1,139 @@
+.admin-dashboard {
+
+  // background-color: $background-light; // This is handled by admin-content now
+  // padding: 2rem; // Padding is now on .content-body
+  // min-height: 100vh; // Handled by admin-layout
+  .admin-title {
+    font-family: $font-family;
+    font-size: 1.8rem; // Modernized size
+    color: $gray-800; // Consistent with layout header title
+    text-align: left; // Modern alignment
+    margin-bottom: 2rem;
+    font-weight: 600;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); // Slightly larger minmax
+    gap: 2rem; // Increased gap
+    margin-bottom: 2.5rem; // Increased margin
+
+    .stat-card {
+      // @include card-style; // We'll define a more modern style here
+      background-color: $white;
+      padding: 1.75rem; // Increased padding
+      text-align: left; // Align text to left for a cleaner look
+      border-radius: $border-radius; // Use global border-radius
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.07); // Softer shadow
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+      &:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      }
+
+      .stat-card-header {
+        // New class for icon and title
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.75rem;
+
+        i {
+          // Style for Bootstrap Icons
+          font-size: 1.5rem; // Icon size
+          color: $primary-green; // Icon color
+          margin-right: 0.75rem;
+          line-height: 1; // Ensure proper alignment
+        }
+
+        h3 {
+          font-family: $font-family;
+          font-size: 1rem; // Smaller, more label-like
+          color: $gray-600; // Softer color for the label
+          margin-bottom: 0; // Remove default margin
+          font-weight: 500; // Medium weight
+        }
+      }
+
+
+      p.stat-value {
+        // New class for the value
+        font-family: $font-family;
+        font-size: 2rem; // Larger value
+        color: $primary-brown;
+        font-weight: 700; // Bold value
+        margin-bottom: 0; // Remove default margin
+      }
+    }
+  }
+
+  .admin-actions {
+    display: flex;
+    justify-content: flex-start; // Align to left or center as preferred
+    gap: 1.5rem; // Increased gap
+    flex-wrap: wrap;
+
+    .btn-custom {
+      // @include gradient-bg($primary-brown, $primary-green); // Remove gradient
+      background-color: $primary-green; // Solid background
+      color: $white;
+      padding: 0.85rem 1.75rem; // Adjusted padding
+      border-radius: 8px; // Consistent with sidebar links
+      transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+      text-decoration: none;
+      font-weight: 500;
+      border: none; // Remove border if any
+
+      &:hover {
+        // @include gradient-bg(#5A3D2B, #386D36); // Remove gradient hover
+        background-color: darken($primary-green, 7%); // Darken on hover
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba($primary-green, 0.3);
+      }
+    }
+  }
+}
+
+// Responsive
+@media (max-width: 767px) {
+  .admin-dashboard {
+    // padding: 1rem; // Handled by .content-body
+
+    .admin-title {
+      font-size: 1.5rem; // Adjusted for mobile
+    }
+
+    .stats-grid {
+      gap: 1rem;
+
+      .stat-card {
+        padding: 1.25rem;
+
+        .stat-card-header {
+          i {
+            font-size: 1.3rem;
+          }
+
+          h3 {
+            font-size: 0.9rem;
+          }
+        }
+
+        p.stat-value {
+          font-size: 1.6rem;
+        }
+      }
+    }
+
+    .admin-actions {
+      gap: 0.75rem;
+      justify-content: center; // Center buttons on mobile
+
+      .btn-custom {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.9rem;
+        width: 100%; // Make buttons full width on mobile for better tap targets
+      }
+    }
+  }
+}

@@ -1,0 +1,31 @@
+@import 'globals';
+@import 'mixins';
+@import 'variables';
+
+//components
+@import 'components/navbar';
+@import 'components/button';
+@import 'components/footer';
+@import 'components/about';
+@import 'components/menuPreview';
+@import 'components/banner';
+@import 'components/item';
+@import 'components/contact';
+@import 'components/newArrivals';
+@import 'components/testimonials';
+
+
+//pages
+@import 'pages/login';
+@import 'pages/register';
+@import 'pages/verify';
+
+//pages/admin
+@import 'pages/admin/adminl-layout';
+@import 'pages/admin/admin-dashboard';
+@import 'pages/admin/manage-products';
+@import 'pages/admin/product-form';
+@import 'pages/admin/manage-orders';
+@import 'pages/admin/admin-order-processing';
+@import 'pages/admin/manage-users';
+@import 'pages/admin/manage-categories';

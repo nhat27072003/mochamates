@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.mochamates.web.dto.product.GetProductsResponseForAdmin;
 import com.mochamates.web.dto.product.ProductDTO;
+import com.mochamates.web.dto.product.ProductResponseDTO;
 import com.mochamates.web.entities.products.CoffeeProduct;
 import com.mochamates.web.response.ApiResponse;
 import com.mochamates.web.services.ProductService;
@@ -30,6 +31,14 @@ public class AdminProductController {
 
 	public AdminProductController(ProductService productService) {
 		this.productService = productService;
+	}
+
+	@GetMapping("/{id}")
+	public ResponseEntity<ApiResponse<ProductResponseDTO>> getProductById(@PathVariable Long id) {
+		ProductResponseDTO productResponseDTO = productService.getProductById(id);
+		ApiResponse<ProductResponseDTO> response = new ApiResponse<ProductResponseDTO>("1000", "Ok",
+				productResponseDTO);
+		return ResponseEntity.status(200).body(response);
 	}
 
 	/**
@@ -69,10 +78,10 @@ public class AdminProductController {
 	 * @return a ResponseEntity containing the updated CoffeeProduct
 	 */
 	@PutMapping("/{id}")
-	public ResponseEntity<ApiResponse<CoffeeProduct>> updateProduct(@PathVariable long id,
+	public ResponseEntity<ApiResponse<ProductResponseDTO>> updateProduct(@PathVariable long id,
 			@RequestBody ProductDTO product) {
-		CoffeeProduct productUpdated = productService.updateProduct(id, product);
-		ApiResponse<CoffeeProduct> response = new ApiResponse<CoffeeProduct>("1000", "Ok", productUpdated);
+		ProductResponseDTO productUpdated = productService.updateProduct(id, product);
+		ApiResponse<ProductResponseDTO> response = new ApiResponse<ProductResponseDTO>("1000", "Ok", productUpdated);
 
 		return ResponseEntity.status(201).body(response);
 

@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import './Login.css';
 import { getVerifyOTP, login } from '../../services/AuthService';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
+import { useDispatch } from 'react-redux';
+import { loginSuccess } from '../../redux/userSlice';
+import Button from '../../components/Button/Button';
 
 const Login = () => {
+  const dispatch = useDispatch();
   const [formLogin, setFormLogin] = useState({
     usernameOrEmail: '',
     password: '',
@@ -25,8 +29,19 @@ const Login = () => {
       const result = await login(formLogin);
       console.log('check login result ', result);
       if (result?.statusCode === '1000') {
-        console.log('come here')
-        navigate('/');
+        const token = result.data.accessToken;
+        const decoded = jwtDecode(token);
+        console.log('check decode', decoded.role);
+        dispatch(loginSuccess({
+          token: token,
+          user: decoded
+        }));
+        if (decoded.role === "ADMIN") {
+          navigate('/admin')
+        }
+        else {
+          navigate('/');
+        }
       }
     } catch (error) {
       console.log(error);
@@ -90,9 +105,12 @@ const Login = () => {
                 <p className="text-danger text-center mb-3">{errorMessage}</p>
               )}
               <div className="d-grid">
-                <button type="submit" className="btn btn-dark btn-lg login-btn-custom">
+                {/* <button type="submit" className="btn btn-dark btn-lg login-btn-custom">
                   Đăng Nhập
-                </button>
+                </button> */}
+                <Button type="submit" variant="dark" size="lg" className="login-btn-custom">
+                  Đăng Nhập
+                </Button>
               </div>
               <p className="text-center text-muted mt-4">
                 Bạn chưa có tài khoản?{' '}

@@ -1,5 +1,7 @@
 package com.mochamates.web.dto.product;
 
+import java.util.List;
+
 public class ProductDTO {
 
 	private String name;
@@ -7,15 +9,23 @@ public class ProductDTO {
 	private Double price;
 	private String imageUrl;
 	private String type;
-	private Double volume;
-	private boolean isCold;
 
+	// ready to drink
+	private String drinkType;
+	private String ingredients;
+	private String preparationTime;
+
+	// ground coffee
 	private String roastLevel;
-	private boolean isWholeBean;
+	private String origin;
+	private String roastDate;
 
-	private Double weight;
-	private String brand;
-	private int stock;
+	// package coffee
+	private String packType;
+	private String instructions;
+	private String expireDate;
+
+	private List<OptionDTO> options;
 
 	public String getName() {
 		return name;
@@ -49,20 +59,28 @@ public class ProductDTO {
 		this.imageUrl = imageUrl;
 	}
 
-	public Double getVolume() {
-		return volume;
+	public String getDrinkType() {
+		return drinkType;
 	}
 
-	public void setVolume(Double volume) {
-		this.volume = volume;
+	public void setDrinkType(String drinkType) {
+		this.drinkType = drinkType;
 	}
 
-	public boolean isCold() {
-		return isCold;
+	public String getIngredients() {
+		return ingredients;
 	}
 
-	public void setCold(boolean isCold) {
-		this.isCold = isCold;
+	public void setIngredients(String ingredients) {
+		this.ingredients = ingredients;
+	}
+
+	public String getPreparationTime() {
+		return preparationTime;
+	}
+
+	public void setPreparationTime(String preparationTime) {
+		this.preparationTime = preparationTime;
 	}
 
 	public String getRoastLevel() {
@@ -73,36 +91,44 @@ public class ProductDTO {
 		this.roastLevel = roastLevel;
 	}
 
-	public boolean isWholeBean() {
-		return isWholeBean;
+	public String getOrigin() {
+		return origin;
 	}
 
-	public void setWholeBean(boolean isWholeBean) {
-		this.isWholeBean = isWholeBean;
+	public void setOrigin(String origin) {
+		this.origin = origin;
 	}
 
-	public Double getWeight() {
-		return weight;
+	public String getRoastDate() {
+		return roastDate;
 	}
 
-	public void setWeight(Double weight) {
-		this.weight = weight;
+	public void setRoastDate(String roastDate) {
+		this.roastDate = roastDate;
 	}
 
-	public String getBrand() {
-		return brand;
+	public String getPackType() {
+		return packType;
 	}
 
-	public void setBrand(String brand) {
-		this.brand = brand;
+	public void setPackType(String packType) {
+		this.packType = packType;
 	}
 
-	public int getStock() {
-		return stock;
+	public String getInstructions() {
+		return instructions;
 	}
 
-	public void setStock(int stock) {
-		this.stock = stock;
+	public void setInstructions(String instructions) {
+		this.instructions = instructions;
+	}
+
+	public String getExpireDate() {
+		return expireDate;
+	}
+
+	public void setExpireDate(String expireDate) {
+		this.expireDate = expireDate;
 	}
 
 	public String getType() {
@@ -111,6 +137,14 @@ public class ProductDTO {
 
 	public void setType(String type) {
 		this.type = type;
+	}
+
+	public List<OptionDTO> getOptions() {
+		return options;
+	}
+
+	public void setOptions(List<OptionDTO> options) {
+		this.options = options;
 	}
 
 }

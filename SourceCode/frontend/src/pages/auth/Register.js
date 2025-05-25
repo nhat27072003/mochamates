@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import './Register.css';
 import { useNavigate } from 'react-router-dom';
 import { register } from '../../services/AuthService';
+import Button from '../../components/Button/Button';
 
 const Register = () => {
   const [formRegister, setFormRegister] = useState({
@@ -112,9 +112,14 @@ const Register = () => {
               </div>
               {errorMessage && <p className="text-danger text-center mb-2">{errorMessage}</p>}
               <div className="d-grid">
-                <button type="submit" className="btn btn-dark btn-lg register-btn-custom">
+                <Button
+                  type="submit"
+                  variant="dark"
+                  size="lg" // Thêm prop size để hỗ trợ btn-lg
+                  className="register-btn-custom"
+                >
                   Đăng Ký
-                </button>
+                </Button>
               </div>
               <p className="text-center text-muted mt-4">
                 Đã có tài khoản?{' '}

@@ -8,30 +8,22 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
 @Entity
-@DiscriminatorValue("GROUND")
+@DiscriminatorValue("GROUND_COFFEE")
 public class GroundCoffee extends CoffeeProduct {
-	private Double weight;
+	private String origin;
 	private String roastLevel;
-	private boolean isWholeBean;
+	private String roastDate;
 
 	public GroundCoffee() {
 		super();
 	}
 
 	public GroundCoffee(String name, String description, Double price, String imageUrl, String type, Date create_at,
-			Date update_at, Double weight, String roastLevel, boolean isWholeBean) {
+			Date update_at, String origin, String roastLevel, String roastDate) {
 		super(name, description, price, imageUrl, create_at, update_at);
-		this.weight = weight;
 		this.roastLevel = roastLevel;
-		this.isWholeBean = isWholeBean;
-	}
-
-	public Double getWeight() {
-		return weight;
-	}
-
-	public void setWeight(Double weight) {
-		this.weight = weight;
+		this.origin = origin;
+		this.roastDate = roastDate;
 	}
 
 	public String getRoastLevel() {
@@ -42,21 +34,27 @@ public class GroundCoffee extends CoffeeProduct {
 		this.roastLevel = roastLevel;
 	}
 
-	public boolean isWholeBean() {
-		return isWholeBean;
+	public String getOrigin() {
+		return origin;
 	}
 
-	public void setWholeBean(boolean isWholeBean) {
-		this.isWholeBean = isWholeBean;
+	public void setOrigin(String origin) {
+		this.origin = origin;
+	}
+
+	public String getRoastDate() {
+		return roastDate;
+	}
+
+	public void setRoastDate(String roastDate) {
+		this.roastDate = roastDate;
 	}
 
 	@Override
 	public void updateFromDTO(ProductDTO productDTO) {
-		if (productDTO.getWeight() != null && productDTO.getWeight() > 0)
-			this.setWeight(productDTO.getWeight());
-
-		if (productDTO.getRoastLevel() != null)
-			this.setRoastLevel(productDTO.getRoastLevel());
+		this.setOrigin(productDTO.getOrigin());
+		this.setRoastDate(productDTO.getRoastDate());
+		this.setRoastLevel(productDTO.getRoastLevel());
 
 	}
 

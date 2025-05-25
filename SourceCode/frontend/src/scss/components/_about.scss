@@ -1,0 +1,126 @@
+@import '../globals';
+
+.about-us {
+  background-color: $background-light; // Thay #F8F9FA bằng biến
+  padding: 3rem 0; // Tương đương py-5 (3rem = 48px)
+
+  .container {
+    .row {
+      align-items: center;
+
+      // Phần nội dung văn bản
+      .col-md-6:first-child {
+        h2 {
+          font-family: $font-family;
+          font-weight: bold;
+          margin-bottom: 1.5rem; // mb-4
+          color: $primary-brown; // Thay .text-brown
+        }
+
+        p.text-muted {
+          margin-bottom: 1.5rem; // mb-4
+          color: $gray-600; // Giả định text-muted tương ứng với $gray-600
+        }
+
+        .row {
+          .col-md-6 {
+            h5 {
+              font-family: $font-family;
+              color: $primary-green; // Thay .text-green
+            }
+
+            ul.list-unstyled {
+              li {
+
+                i.bi-check-circle,
+                i.bi-bullseye {
+                  margin-right: 0.5rem; // me-2
+                  color: $primary-green; // Thay .text-green
+                }
+              }
+            }
+          }
+        }
+
+        a.btn-custom {
+          margin-top: 1.5rem; // mt-4
+          @include gradient-bg($primary-brown, $primary-green); // Gradient từ nâu sang xanh lá
+          color: $white;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 20px;
+          transition: $transition;
+
+          &:hover {
+            @include gradient-bg(#5A3D2B, #386D36); // Tối hơn khi hover
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba($primary-brown, 0.4);
+          }
+        }
+      }
+
+      .col-md-6:last-child {
+        img {
+          @extend .img-fluid;
+          @extend .rounded;
+          @extend .shadow; // Kế thừa từ global
+        }
+      }
+    }
+
+    // Phần thống kê
+    .row:last-child {
+      margin-top: 3rem; // mt-5
+
+      .col-md-3,
+      .col-6 {
+        margin-bottom: 1.5rem; // mb-4
+
+        .text-center {
+
+          i.bi-cup-straw,
+          i.bi-bag,
+          i.bi-star,
+          i.bi-geo-alt {
+            font-size: 1.5rem; // fs-1
+            color: $primary-brown;
+            margin-bottom: 0.5rem; // mb-2
+            transition: $transition;
+
+            &:hover {
+              transform: scale(1.1);
+              color: $primary-green !important;
+            }
+          }
+
+          h2 {
+            font-weight: bold;
+          }
+
+          p.text-muted {
+            color: $gray-600;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Responsive (nếu cần thêm)
+@media (max-width: 768px) {
+  .about-us {
+    .container {
+      .row {
+        .col-md-6 {
+          margin-bottom: 2rem;
+
+          &:last-child {
+            img {
+              margin-top: 2rem;
+            }
+          }
+        }
+      }
+    }
+  }
+}

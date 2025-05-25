@@ -1,5 +1,4 @@
 import React from 'react'
-import './Item.css'
 const Item = ({ name, imageUrl, price, rating = 4.5, description, badge = 'New' }) => {
   return (
     <div className="item-product-card bg-white rounded-4 shadow-sm position-relative">

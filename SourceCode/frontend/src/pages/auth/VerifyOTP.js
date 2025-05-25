@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import './VerifyOTP.css';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getVerifyOTP, login, verifyOTP } from '../../services/AuthService';
+import { getVerifyOTP, verifyOTP } from '../../services/AuthService';
+import Button from '../../components/Button/Button';
 
 const VerifyOTP = () => {
   const [otp, setOtp] = useState('');
@@ -79,18 +79,24 @@ const VerifyOTP = () => {
                 <p className="text-danger text-center mb-3">{errorMessage}</p>
               )}
               <div className="d-grid mb-3">
-                <button type="submit" className="btn btn-dark btn-lg verify-btn-custom">
+                <Button
+                  type="submit"
+                  variant="dark"
+                  size="lg"
+                  className="verify-btn-custom"
+                >
                   Xác Nhận
-                </button>
+                </Button>
               </div>
               <div className="text-center">
-                <button
+                <Button
                   type="button"
-                  className="btn btn-link text-decoration-none"
+                  variant="link"
+                  className="text-decoration-none"
                   onClick={handleResendOTP}
                 >
                   Gửi lại mã
-                </button>
+                </Button>
               </div>
             </form>
           </div>

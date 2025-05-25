@@ -1,0 +1,166 @@
+.navbar {
+  background-color: $primary-brown;
+  padding: 7px 0;
+
+  &.navbar-custom {
+    .navbar-brand {
+      font-family: $font-family;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-left: 16px;
+      transition: $transition;
+
+      &:hover {
+        color: $accent-orange !important;
+      }
+    }
+
+    .nav-item {
+      margin-bottom: 0 !important;
+    }
+
+    .nav-link {
+      font-family: $font-family;
+      font-size: 0.9rem;
+      position: relative;
+      transition: $transition;
+      clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%);
+      padding-left: 20px;
+      padding-right: 20px;
+      @include nav-link-hover;
+
+      &:hover {
+        clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%);
+
+      }
+
+      &.active {
+        color: $accent-orange !important; // Đổi màu chữ thành cam khi hover
+        background-color: rgba($white, 0.15); // Tăng opacity của background để nổi bật hơn
+        transform: translateX(5px);
+        clip-path: polygon(15% 0, 100% 0, 85% 100%, 0 100%);
+
+      }
+    }
+
+    .search-bar {
+      background-color: $white;
+      border-radius: 20px;
+      padding: 5px 10px;
+      width: 250px;
+      transition: $transition;
+
+      &:focus-within {
+        transform: translateX(3px); // Phóng to nhẹ
+      }
+
+      .search-input {
+        border: none;
+        outline: none;
+        background: transparent;
+        font-size: 0.9rem;
+        width: 100%;
+
+        &::placeholder {
+          color: $gray-600;
+        }
+
+        // Hiệu ứng focus cho search-input
+        &:focus {
+          color: $primary-brown; // Đổi màu chữ khi focus
+          caret-color: $accent-orange; // Đổi màu con trỏ nháy
+        }
+      }
+
+      .search-result {
+        font-size: 0.8rem;
+        padding: 5px;
+        border-radius: 5px;
+        margin-top: 5px;
+      }
+    }
+
+    .navbar-toggler-icon {
+      background-image: url("data:image/svg+xml;charset=utf8,%3Csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath stroke='rgba(255, 255, 255, 0.8)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E");
+    }
+
+    .right-icon {
+      cursor: pointer;
+      @include hover-effect;
+    }
+
+    .cart-icon {
+      position: relative;
+
+
+      .cart-count {
+        right: auto !important;
+      }
+
+      .badge {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+        border-radius: 50%;
+        min-width: 18px;
+        text-align: center;
+      }
+    }
+
+    .dropdown-item {
+      font-family: $font-family;
+      font-size: 0.9rem;
+      color: $white; // Đổi màu chữ thành trắng để dễ đọc trên nền nâu
+      padding: 8px 20px;
+      transition: $transition;
+      @include link-hover; // Áp dụng hiệu ứng hover tương tự nav-link
+    }
+  }
+}
+
+// Style cho dropdown menu
+.dropdown-menu {
+  background-color: $primary-brown; // Đồng bộ với màu của navbar
+  border: none;
+  @include card-style;
+  padding: 10px 0;
+
+  .active {
+    @include link-hover;
+    background-color: $accent-orange;
+  }
+}
+
+// Hiệu ứng hover cho dropdown
+.nav-item.dropdown {
+  &:hover .dropdown-menu {
+    display: block;
+    opacity: 1;
+  }
+}
+
+// Responsive
+@media (max-width: 991px) {
+  .navbar-nav {
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  .nav-link {
+    margin: 10px 0;
+  }
+
+  .search-bar {
+    width: 100%;
+    margin: 10px auto;
+  }
+
+  .cart-icon,
+  .bi-person-circle {
+    margin: 10px 10px 0 0;
+  }
+
+  .search-result {
+    position: static;
+    margin-top: 5px;
+  }
+}

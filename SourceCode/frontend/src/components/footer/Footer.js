@@ -1,13 +1,12 @@
 import React from 'react';
-import './Footer.css';
 
 const Footer = () => {
   return (
     <footer className="bg-brown text-white py-5">
       <div className="container">
         <div className="row g-4">
-          <div className="col-lg-4 col-md-6">
-            <h5 className="mb-4">About Mochamates</h5>
+          <div className="col-lg-4 col-md-4">
+            <h5 className="mb-4 text-white">About Mochamates</h5>
             <p className="mb-4">
               Mochamates is your destination for authentic Vietnamese coffee. Founded in Hanoi in 2018, we craft every cup with passion and sustainability.
             </p>
@@ -19,8 +18,8 @@ const Footer = () => {
             </div>
           </div>
 
-          <div className="col-lg-2 col-md-6">
-            <h5 className="mb-4">Quick Links</h5>
+          <div className="col-lg-2 col-md-4">
+            <h5 className="mb-4 text-white">Quick Links</h5>
             <ul className="list-unstyled">
               <li className="mb-2"><a href="#" className="footer-link">Home</a></li>
               <li className="mb-2"><a href="#" className="footer-link">Menu</a></li>
@@ -29,8 +28,8 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div className="col-lg-2 col-md-6">
-            <h5 className="mb-4">Our Offerings</h5>
+          <div className="col-lg-2 col-md-4">
+            <h5 className="mb-4 text-white">Our Offerings</h5>
             <ul className="list-unstyled">
               <li className="mb-2"><a href="#" className="footer-link">Coffee Beans</a></li>
               <li className="mb-2"><a href="#" className="footer-link">Brewed Coffee</a></li>
@@ -39,8 +38,8 @@ const Footer = () => {
             </ul>
           </div>
 
-          <div className="col-lg-4 col-md-6">
-            <h5 className="mb-4">Contact Us</h5>
+          <div className="col-lg-3 col-md-4">
+            <h5 className="mb-4 text-white">Contact Us</h5>
             <ul className="list-unstyled">
               <li className="mb-3">
                 <i className="fas fa-map-marker-alt me-2"></i>

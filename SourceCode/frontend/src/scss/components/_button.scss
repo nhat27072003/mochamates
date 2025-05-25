@@ -1,0 +1,55 @@
+@import '../variables';
+@import '../mixins';
+
+.btn {
+  font-family: $font-family;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: $border-radius;
+  transition: $transition;
+  cursor: pointer;
+
+  &-primary {
+    @include gradient-bg($primary-brown, $primary-green);
+    color: $white;
+    @include hover-effect($primary-green);
+  }
+
+  &-danger {
+    background-color: #dc3545;
+    color: $white;
+    @include hover-effect(#dc3545);
+
+    &:hover {
+      background-color: #c82333;
+    }
+  }
+
+  &-link {
+    background: none;
+    border: none;
+    color: $primary-brown;
+    padding: 0;
+    @include hover-effect($primary-brown);
+
+    &:hover {
+      color: $accent-orange !important;
+      transform: none;
+      box-shadow: none;
+    }
+  }
+
+  &-outline {
+    background: none;
+    border: 2px solid $primary-brown;
+    color: $primary-brown;
+    padding: 0.5rem 1rem;
+    @include hover-effect($primary-brown);
+
+    &:hover {
+      @include gradient-bg($primary-brown, $primary-green);
+      color: $white;
+      border-color: $primary-green;
+    }
+  }
+}

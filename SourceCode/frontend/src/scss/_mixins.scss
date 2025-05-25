@@ -1,0 +1,42 @@
+@import 'variables';
+
+@mixin gradient-bg($start, $end) {
+  background: linear-gradient(45deg, $start, $end);
+}
+
+// Hiệu ứng hover
+@mixin hover-effect($bg-color: $accent-orange) {
+  &:hover {
+    transform: translateY(-2px);
+    color: $accent-orange !important;
+  }
+}
+
+// Hiệu ứng hover cho link
+@mixin link-hover {
+  &:hover {
+    color: $accent-orange;
+    transform: translateX(5px);
+  }
+
+}
+
+@mixin nav-link-hover {
+  position: relative;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+
+  &:hover {
+    color: $accent-orange;
+    background-color: rgba($white, 0.15);
+    transform: translateX(5px);
+  }
+
+}
+
+// Mixin card-style
+@mixin card-style {
+  border: none;
+  border-radius: $border-radius;
+  box-shadow: $box-shadow;
+  transition: $transition;
+}

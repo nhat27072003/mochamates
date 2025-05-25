@@ -1,0 +1,16 @@
+// SCSS for Manage Categories Page
+.manage-categories-page {
+  padding: 1rem;
+
+  .admin-page-title {
+    margin-bottom: 1.5rem;
+    color: $primary-brown;
+  }
+
+  .table {
+    th {
+      background-color: $primary-green;
+      color: $white;
+    }
+  }
+}

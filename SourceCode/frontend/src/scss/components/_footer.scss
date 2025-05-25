@@ -1,0 +1,149 @@
+footer {
+  background-color: $primary-brown; // Sử dụng $primary-brown thay cho .bg-brown
+  color: $white;
+  padding: 3rem 0; // Tương đương py-5 (3rem = 48px)
+
+  .container {
+    .row {
+      gap: 1.5rem; // Tương đương g-4 (1.5rem = 24px)
+
+      // About Mochamates section
+      .col-lg-4:first-child,
+      .col-md-6:first-child {
+        h5 {
+          font-family: $font-family;
+          font-weight: 600;
+          margin-bottom: 1.5rem;
+        }
+
+        p {
+          margin-bottom: 1.5rem; // mb-4
+        }
+
+        .social-links {
+          a.social-icon {
+            background-color: $primary-green; // Thay .bg-green
+            width: 35px;
+            height: 35px;
+            line-height: 35px;
+            border-radius: 50%;
+            text-align: center;
+            color: $white;
+            display: inline-block;
+            margin: 0 8px;
+            transition: $transition;
+
+            @include hover-effect; // Sử dụng mixin hover-effect
+
+            &:hover {
+              background-color: $accent-orange; // Cam khi hover
+            }
+          }
+        }
+      }
+
+      // Quick Links và Our Offerings sections
+      .col-lg-2,
+      .col-md-6:nth-child(n+2) {
+        h5 {
+          font-family: $font-family;
+          font-weight: 600;
+          margin-bottom: 1.5rem; // mb-4
+        }
+
+        ul.list-unstyled {
+          li {
+            margin-bottom: 0.5rem; // mb-2
+
+            a.footer-link {
+              color: $white;
+              text-decoration: none;
+              transition: $transition;
+
+              @include link-hover; // Sử dụng mixin link-hover
+
+              &:hover {
+                color: $accent-orange;
+              }
+            }
+          }
+        }
+      }
+
+      // Contact Us section
+      .col-lg-4:last-child,
+      .col-md-6:last-child {
+        h5 {
+          font-family: $font-family;
+          font-weight: 600;
+          margin-bottom: 1.5rem; // mb-4
+        }
+
+        ul.list-unstyled {
+          li {
+            margin-bottom: 1rem; // mb-3
+
+            i {
+              margin-right: 0.5rem; // me-2
+            }
+
+            a.footer-link {
+              color: $white;
+              text-decoration: none;
+              transition: $transition;
+
+              @include link-hover; // Sử dụng mixin link-hover
+
+              &:hover {
+                color: $accent-orange;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Bottom section với copyright
+    .row:last-child {
+      margin-top: 3rem; // mt-5
+
+      .col-12 {
+        hr.bg-light {
+          opacity: 0.3;
+          background-color: $background-light; // Sử dụng $background-light thay cho .bg-light
+          margin-bottom: 1rem; // mb-4
+        }
+
+        .text-center {
+          p {
+            margin-bottom: 0; // mb-0
+          }
+        }
+      }
+    }
+  }
+
+  // Thêm animation grow-in
+  &.animated--grow-in {
+    @extend .animated--grow-in; // Kế thừa từ global
+  }
+}
+
+// Responsive
+@media (max-width: 991px) {
+  footer {
+    .container {
+      .row {
+        .col-md-6 {
+          margin-bottom: 2rem; // Thêm khoảng cách giữa các cột trên mobile
+        }
+
+        .social-links {
+          a.social-icon {
+            margin: 0 5px; // Giảm khoảng cách giữa các icon trên mobile
+          }
+        }
+      }
+    }
+  }
+}

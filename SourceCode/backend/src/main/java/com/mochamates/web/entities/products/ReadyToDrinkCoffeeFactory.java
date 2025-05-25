@@ -9,6 +9,7 @@ public class ReadyToDrinkCoffeeFactory implements CoffeeFactory {
 	@Override
 	public CoffeeProduct createCoffee(ProductDTO productDTO) {
 		return new ReadyToDrinkCoffee(productDTO.getName(), productDTO.getDescription(), productDTO.getPrice(),
-				productDTO.getImageUrl(), "READY_TO_DRINK_COFFEE", new Date(), null, productDTO.getVolume(), false);
+				productDTO.getImageUrl(), "READY_TO_DRINK_COFFEE", new Date(), null, productDTO.getDrinkType(),
+				productDTO.getIngredients(), productDTO.getPreparationTime());
 	}
 }

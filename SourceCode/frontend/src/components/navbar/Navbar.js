@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import './Navbar.css';
 import { Link, useLocation } from 'react-router-dom';
+import Button from '../Button/Button';
 
 const Navbar = () => {
   const [cartCount, setCartCount] = useState(3); // Mô phỏng số lượng sản phẩm trong giỏ
@@ -12,7 +12,10 @@ const Navbar = () => {
   };
 
   const isActive = (path) => location.pathname === path;
-
+  const isMenuActive = () => {
+    const menuPaths = ['/ready-coffee', '/ground-coffee', '/package-coffee'];
+    return menuPaths.some(path => location.pathname.startsWith(path));
+  };
   return (
     <nav className="navbar navbar-expand-lg fixed-top navbar-custom">
       <div className="container-fluid">
@@ -39,9 +42,9 @@ const Navbar = () => {
                 Trang Chủ
               </Link>
             </li>
-            <li className="nav-item dropdown">
+            <li className='nav-item dropdown'>
               <div
-                className="nav-link dropdown-toggle text-white"
+                className={`nav-link dropdown-toggle text-white ${isMenuActive() ? 'active' : ''}`}
                 id="navbarDropdown"
                 role="button"
                 data-bs-toggle="dropdown"
@@ -50,7 +53,7 @@ const Navbar = () => {
                 Menu
               </div>
               <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
-                <li>
+                <li >
                   <Link
                     className={`dropdown-item ${isActive('/ready-coffee') ? 'active' : ''}`}
                     to="/ready-coffee"
@@ -113,17 +116,17 @@ const Navbar = () => {
                 </span>
               )}
             </div>
-            <div className="cart-icon position-relative me-4">
-              <i className="bi bi-cart2 text-white" style={{ fontSize: '24px' }}></i>
+            <div className="cart-icon text-white position-relative me-4 right-icon">
+              <i className="bi bi-cart2" style={{ fontSize: '24px' }}></i>
               {cartCount > 0 && (
                 <span className="badge bg-danger position-absolute top-7 start-100 translate-middle cart-count">
                   {cartCount}
                 </span>
               )}
             </div>
-            <i className="bi bi-person-circle text-white me-3" style={{ fontSize: '24px' }}></i>
+            <i className="bi bi-person-circle me-3 right-icon text-white " style={{ fontSize: '24px' }}></i>
             <Link to="/signin">
-              <button className="btn btn-custom">Đăng Nhập</button>
+              <Button variant='custom'>Đăng Nhập</Button>
             </Link>
           </div>
         </div>

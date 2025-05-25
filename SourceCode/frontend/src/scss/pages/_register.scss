@@ -1,0 +1,194 @@
+.register-bg {
+  min-height: 100vh;
+  background-image: url('../../../public/img/background_login.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
+
+  &.bg-light {
+    &.d-flex {
+      &.align-items-center {
+        &.justify-content-center {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+    }
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6));
+    z-index: 0;
+  }
+}
+
+// Style cho card register
+.register-card {
+  position: relative;
+  z-index: 1;
+  background-color: rgba($white, 0.95); // Thay rgba(255, 255, 255, 0.95)
+  border: none;
+  border-radius: 15px; // Giữ giá trị lớn hơn $border-radius (10px)
+
+  &.card {
+    &.shadow-lg {
+      &.w-100 {
+        max-width: 480px; // Style inline được chuyển vào SCSS
+      }
+    }
+  }
+
+  .card-body {
+    .text-end {
+      &.mb-2 {
+        margin-bottom: 0.5rem; // mb-2
+      }
+    }
+
+    .text-center {
+      &.mt-4 {
+        margin-top: 1.5rem; // mt-4
+      }
+
+      .card-title {
+        &.h3 {
+          font-family: $font-family; // 'Poppins', sans-serif
+          font-weight: 600;
+        }
+      }
+
+      .card-text {
+        &.text-muted {
+          font-family: $font-family;
+          font-size: 0.9rem;
+          color: $gray-600; // #6c757d
+        }
+      }
+
+      .text-danger {
+        &.mb-2 {
+          margin-bottom: 0.5rem; // mb-2
+        }
+      }
+    }
+
+    .mt-2 {
+      margin-top: 0.5rem; // mt-2
+
+      .mb-2 {
+        margin-bottom: 0.5rem; // mb-2
+
+        .form-label {
+          &.text-muted {
+            font-family: $font-family;
+            font-size: 0.9rem;
+            color: $gray-600;
+          }
+        }
+
+        .form-control {
+          border-radius: $border-radius; // 10px
+          border-color: #E0E0E0; // Giữ màu border từ CSS gốc
+          padding: 10px;
+
+          &:focus {
+            border-color: $primary-green; // #4A7043
+            box-shadow: 0 0 5px rgba($primary-green, 0.5);
+          }
+        }
+      }
+    }
+  }
+}
+
+// Thêm class text-brown và text-green để đồng bộ
+.text-brown {
+  color: $primary-brown; // #6F4E37
+}
+
+.text-green {
+  color: $primary-green; // #4A7043
+}
+
+// Style cho nút (đã có trong _button.scss, nhưng thêm nếu cần)
+.btn-custom {
+  @include gradient-bg($primary-brown, $primary-green); // Gradient từ nâu sang xanh lá
+  color: $white;
+  border: none;
+  transition: $transition; // all 0.3s ease
+
+  &:hover {
+    @include gradient-bg(#5A3D2B, #386D36); // Tối hơn khi hover
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba($primary-brown, 0.4);
+  }
+}
+
+// Style cho nút đăng ký (đã có trong _button.scss, nhưng thêm nếu cần riêng)
+.register-btn-custom {
+  @include gradient-bg($primary-brown, $primary-green);
+  color: $white;
+  border: none;
+  transition: $transition;
+  padding: 0.75rem 1.5rem;
+
+  &:hover {
+    @include gradient-bg(#5A3D2B, #386D36);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba($primary-brown, 0.4);
+  }
+}
+
+// Style cho nút quay về trang chủ
+.btn-outline-custom {
+  font-family: $font-family;
+  color: $primary-brown; // #6F4E37
+  border: 2px solid $primary-brown;
+  border-radius: $border-radius; // 10px
+  padding: 0.5rem 1rem;
+  transition: $transition;
+  text-decoration: none;
+
+  &:hover {
+    color: $white;
+    @include gradient-bg($primary-brown, $primary-green);
+    border-color: $primary-green; // #4A7043
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba($primary-brown, 0.4);
+  }
+}
+
+// Responsive
+@media (max-width: 767px) {
+  .register-bg {
+    min-height: 80vh; // Giảm chiều cao trên mobile
+  }
+
+  .register-card {
+    max-width: 90%; // Giảm chiều rộng trên mobile
+
+    .card-body {
+      .form-control {
+        padding: 8px; // Giảm padding trên mobile
+      }
+
+      .register-btn-custom {
+        padding: 0.5rem 1rem; // Giảm padding nút
+        font-size: 0.9rem; // Giảm kích thước chữ
+      }
+
+      .btn-outline-custom {
+        padding: 0.25rem 0.75rem; // Giảm padding nút outline
+        font-size: 0.85rem; // Giảm kích thước chữ
+      }
+    }
+  }
+}
