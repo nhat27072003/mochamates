@@ -3,11 +3,13 @@ package com.mochamates.web.controller;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.mochamates.web.dto.auth.RefreshTokenResponse;
 import com.mochamates.web.dto.auth.UserLoginRequest;
 import com.mochamates.web.dto.auth.UserLoginResponse;
 import com.mochamates.web.dto.auth.UserRegistrationRequest;
@@ -85,15 +87,15 @@ public class AuthController {
 	 * @param refreshToken the refresh token from the HTTP cookie
 	 * @return a new access token and optional updated refresh token
 	 */
-//	@PostMapping("/refresh")
-//	public ResponseEntity<ApiResponse<RefreshTokenResponse>> refreshToken(
-//			@CookieValue(name = "refresh_token") String refreshToken) {
-//		RefreshTokenResponse response = authService.refreshToken(refreshToken);
-//
-//		ApiResponse<RefreshTokenResponse> apiResponse = new ApiResponse<RefreshTokenResponse>("1000", "OK", response);
-//
-//		return ResponseEntity.status(200).body(apiResponse);
-//	}
+	@PostMapping("/refresh")
+	public ResponseEntity<ApiResponse<RefreshTokenResponse>> refreshToken(
+			@CookieValue(name = "refresh_token") String refreshToken) {
+		RefreshTokenResponse response = authService.refreshToken(refreshToken);
+
+		ApiResponse<RefreshTokenResponse> apiResponse = new ApiResponse<RefreshTokenResponse>("1000", "OK", response);
+
+		return ResponseEntity.status(200).body(apiResponse);
+	}
 
 	/**
 	 * Verifies a user's email using the verification code sent to them.

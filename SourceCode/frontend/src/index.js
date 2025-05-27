@@ -7,7 +7,9 @@ import { Provider } from 'react-redux';
 import { store } from './redux/store';
 import { jwtDecode } from 'jwt-decode';
 import { refreshToken, restoreSession } from './redux/userSlice';
+import { setStore } from './services/axiosClient';
 
+setStore(() => store);
 const initializeAuth = async () => {
   const accessToken = localStorage.getItem('accessToken');
   const user = localStorage.getItem('user');

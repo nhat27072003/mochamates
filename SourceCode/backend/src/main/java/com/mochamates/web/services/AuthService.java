@@ -3,17 +3,21 @@ package com.mochamates.web.services;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.mochamates.web.dto.auth.RefreshTokenResponse;
 import com.mochamates.web.dto.auth.UserLoginRequest;
 import com.mochamates.web.dto.auth.UserRegistrationRequest;
 import com.mochamates.web.dto.auth.VerificaionRequest;
+import com.mochamates.web.entities.RefreshToken;
 import com.mochamates.web.entities.User;
 import com.mochamates.web.exception.EmailNotVerifiedException;
 import com.mochamates.web.exception.InvalidPasswordException;
+import com.mochamates.web.exception.InvalidRefreshTokenException;
 import com.mochamates.web.exception.InvalidVerificationCode;
 import com.mochamates.web.exception.UserAlreadyExistException;
 import com.mochamates.web.exception.UserNotFoundException;
@@ -171,22 +175,23 @@ public class AuthService {
 	 * @param refreshTokenString the refresh token string
 	 * @return a response containing a new access token and the username
 	 */
-//	public RefreshTokenResponse refreshToken(String refreshTokenString) {
-//		Optional<RefreshToken> refeshTokenOptional = refreshTokenRepository.findByToken(refreshTokenString);
-//
-//		if (refeshTokenOptional.isEmpty()) {
-//			throw new InvalidRefreshTokenException();
-//		}
-//
-//		RefreshToken refreshToken = refeshTokenOptional.get();
-//
-//		if (refreshToken.getExpiryDate().before(new Date())) {
-//			refreshTokenRepository.deleteByToken(refreshTokenString);
-//			throw new InvalidRefreshTokenException();
-//		}
-//
-//		String newAccessToken = tokenService.generateAccessToken(refreshToken.getUsername());
-//
-//		return new RefreshTokenResponse(newAccessToken, refreshToken.getUsername());
-//	}
+	public RefreshTokenResponse refreshToken(String refreshTokenString) {
+		Optional<RefreshToken> refeshTokenOptional = refreshTokenRepository.findByToken(refreshTokenString);
+
+		if (refeshTokenOptional.isEmpty()) {
+			throw new InvalidRefreshTokenException();
+		}
+
+		RefreshToken refreshToken = refeshTokenOptional.get();
+
+		if (refreshToken.getExpiryDate().before(new Date())) {
+			refreshTokenRepository.deleteByToken(refreshTokenString);
+			throw new InvalidRefreshTokenException();
+		}
+		User user = userRepository.findByUsername(refreshToken.getUsername())
+				.orElseThrow(() -> new UserNotFoundException());
+		String newAccessToken = tokenService.generateAccessToken(user.getUsername(), user.getRole());
+
+		return new RefreshTokenResponse(newAccessToken, refreshToken.getUsername());
+	}
 }

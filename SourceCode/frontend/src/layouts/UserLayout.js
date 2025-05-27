@@ -8,7 +8,9 @@ const UserLayout = () => {
   return (
     <>
       <Navbar />
-      <Outlet />
+      <div style={{ marginTop: '50px' }}>
+        <Outlet />
+      </div>
       <Footer />
     </>
 

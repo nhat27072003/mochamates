@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosClient from "../services/axiosClient";
 import { jwtDecode } from "jwt-decode";
+import axios from "axios";
 
 // Async thunks for auth API calls
 export const login = createAsyncThunk(
@@ -68,7 +69,7 @@ export const refreshToken = createAsyncThunk(
   "user/refreshToken",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axiosClient.post("/api/v1/auth/refresh");
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/refresh`);
       const decoded = jwtDecode(response.data.accessToken);
       return {
         accessToken: response.data.accessToken,

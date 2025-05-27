@@ -19,6 +19,7 @@ import adminRoutes from './adminRoutes'
 import PrivateRoute from './PrivateRoute'
 import ProductDetail from '../pages/user/ProductDetail'
 import CartPage from '../pages/user/CartPage'
+import OrdersPage from '../pages/user/orders/OrderPage'
 
 export const AppRouter = () => {
   const user = useSelector((state) => state.user.currentUser)
@@ -41,7 +42,8 @@ export const AppRouter = () => {
           <Route path="package-coffee" element={<PackCoffeePage />} />
           <Route path="ready-coffee" element={<ReadyCoffeePage />} />
           <Route path="ground-coffee" element={<GroundCoffeePage />} />
-          <Route path="/cart" element={<CartPage />} />
+          <Route path="cart" element={<CartPage />} />
+          <Route path="order" element={<OrdersPage />} />
           <Route path="about" element={<About />} />
           <Route path="contact" element={<Contact />} />
         </Route>
