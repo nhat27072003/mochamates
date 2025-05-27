@@ -27,8 +27,9 @@ public class SecurityConfig {
 				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/**").permitAll()
 						.requestMatchers("/api/v1/products", "/api/v1/products/{id}", "/api/v1/products/newest",
 								"/api/v1/products/by-type")
-						.permitAll().requestMatchers("/api/v1/cart/**").hasAnyRole("CUSTOMER", "ADMIN")
-						.requestMatchers("/api/v1/admin/**").hasRole("ADMIN").anyRequest().authenticated())
+						.permitAll().requestMatchers("/api/v1/cart/**", "/api/v1/orders")
+						.hasAnyRole("CUSTOMER", "ADMIN").requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+						.anyRequest().authenticated())
 				.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
 		return http.build();

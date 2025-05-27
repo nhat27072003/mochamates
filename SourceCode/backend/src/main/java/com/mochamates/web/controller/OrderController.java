@@ -6,10 +6,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mochamates.web.dto.order.OrderResponseDTO;
+import com.mochamates.web.dto.order.UpdateOrderStatusRequestDTO;
+import com.mochamates.web.entities.order.OrderStatus;
 import com.mochamates.web.response.ApiResponse;
 import com.mochamates.web.services.OrderService;
 
@@ -61,6 +65,18 @@ public class OrderController {
 
 		List<OrderResponseDTO> responseDTO = orderService.getUserOrders();
 		ApiResponse<List<OrderResponseDTO>> response = new ApiResponse<>("1000", "Orders retrieved successfully",
+				responseDTO);
+		return ResponseEntity.ok(response);
+
+	}
+
+	@PutMapping("/{orderId}/status")
+	public ResponseEntity<ApiResponse<OrderResponseDTO>> updateOrderStatus(@PathVariable Long orderId,
+			@RequestBody UpdateOrderStatusRequestDTO request) {
+
+		OrderResponseDTO responseDTO = orderService.updateOrderStatusForUser(orderId,
+				OrderStatus.valueOf(request.getStatus()));
+		ApiResponse<OrderResponseDTO> response = new ApiResponse<>("1000", "Order status updated successfully",
 				responseDTO);
 		return ResponseEntity.ok(response);
 
