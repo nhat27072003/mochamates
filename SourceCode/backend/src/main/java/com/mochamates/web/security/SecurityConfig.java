@@ -26,7 +26,7 @@ public class SecurityConfig {
 				.sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
 				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/**").permitAll()
 						.requestMatchers("/api/v1/products", "/api/v1/products/{id}", "/api/v1/products/newest",
-								"/api/v1/products/by-type")
+								"/api/v1/products/by-type", "/api/v1/reviews/product/**")
 						.permitAll().requestMatchers("/api/v1/cart/**", "/api/v1/orders")
 						.hasAnyRole("CUSTOMER", "ADMIN").requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 						.anyRequest().authenticated())
