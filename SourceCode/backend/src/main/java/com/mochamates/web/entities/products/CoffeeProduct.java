@@ -32,8 +32,10 @@ public abstract class CoffeeProduct {
 	private String description;
 	private Double price;
 	private String imageUrl;
-	private LocalDateTime create_at;
-	private LocalDateTime update_at;
+	@Column(name = "create_at")
+	private LocalDateTime createAt;
+	@Column(name = "update_at")
+	private LocalDateTime updateAt;
 
 	@Column(name = "type", insertable = false, updatable = false)
 	private String type;
@@ -50,8 +52,8 @@ public abstract class CoffeeProduct {
 		this.description = description;
 		this.price = price;
 		this.imageUrl = imageUrl;
-		this.create_at = create_at;
-		this.update_at = update_at;
+		this.createAt = create_at;
+		this.updateAt = update_at;
 	}
 
 	public Long getId() {
@@ -90,20 +92,20 @@ public abstract class CoffeeProduct {
 		this.imageUrl = imageUrl;
 	}
 
-	public LocalDateTime getCreate_at() {
-		return create_at;
+	public LocalDateTime getCreateAt() {
+		return createAt;
 	}
 
-	public void setCreate_at(LocalDateTime create_at) {
-		this.create_at = create_at;
+	public void setCreateAt(LocalDateTime create_at) {
+		this.createAt = create_at;
 	}
 
-	public LocalDateTime getUpdate_at() {
-		return update_at;
+	public LocalDateTime getUpdateAt() {
+		return updateAt;
 	}
 
-	public void setUpdate_at(LocalDateTime update_at) {
-		this.update_at = update_at;
+	public void setUpdateAt(LocalDateTime update_at) {
+		this.updateAt = update_at;
 	}
 
 	public String getType() {

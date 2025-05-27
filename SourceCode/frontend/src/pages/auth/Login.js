@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
-import { getVerifyOTP, login } from '../../services/AuthService';
+import { useDispatch, useSelector } from 'react-redux';
+import { login, getVerifyOTP, resetError, loginSuccess } from '../../redux/userSlice';
 import { useNavigate } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
-import { useDispatch } from 'react-redux';
-import { loginSuccess } from '../../redux/userSlice';
 import Button from '../../components/Button/Button';
+import { Alert, Form, Container, Card } from 'react-bootstrap';
 
 const Login = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { status, error } = useSelector((state) => state.user);
   const [formLogin, setFormLogin] = useState({
     usernameOrEmail: '',
     password: '',
   });
-  const [errorMessage, setErrorMessage] = useState('');
-  const navigate = useNavigate();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -26,42 +26,46 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const result = await login(formLogin);
-      console.log('check login result ', result);
-      if (result?.statusCode === '1000') {
-        const token = result.data.accessToken;
-        const decoded = jwtDecode(token);
-        console.log('check decode', decoded.role);
-        dispatch(loginSuccess({
-          token: token,
-          user: decoded
-        }));
-        if (decoded.role === "ADMIN") {
-          navigate('/admin')
-        }
-        else {
-          navigate('/');
-        }
-      }
-    } catch (error) {
-      console.log(error);
-      if (error.status === 400 && error?.response?.data?.statusCode === '1006') {
-        try {
-          getVerifyOTP({ usernameOrEmail: formLogin.usernameOrEmail });
-          navigate('/verify-otp', { state: { usernameOrEmail: formLogin.usernameOrEmail } });
-        } catch (err) {
-          console.log(err)
-        }
+      dispatch(resetError()); // Clear previous errors
+      const result = await dispatch(login({
+        usernameOrEmail: formLogin.usernameOrEmail,
+        password: formLogin.password,
+      })).unwrap();
+      // result = { accessToken, userId, role }\
+      const token = result.accessToken;
+      const decoded = jwtDecode(token);
+      console.log('check decode', decoded)
+
+      dispatch(loginSuccess({
+        token,
+        user: {
+          userId: result.userId,
+          username: formLogin.usernameOrEmail,
+          role: decoded.role,
+        },
+      }));
+      if (decoded.role === "ADMIN") {
+        navigate('/admin');
       } else {
-        setErrorMessage('Đăng nhập thất bại. Vui lòng kiểm tra thông tin.');
+        navigate('/');
       }
+    } catch (err) {
+      if (err === "OTP verification required") { // Backend message for 1006
+        try {
+          await dispatch(getVerifyOTP({ usernameOrEmail: formLogin.usernameOrEmail })).unwrap();
+          navigate('/verify-otp', { state: { usernameOrEmail: formLogin.usernameOrEmail } });
+        } catch (otpError) {
+          console.error('OTP request failed:', otpError);
+        }
+      }
+      console.log(err)
     }
   };
 
   return (
-    <div className="bg-light d-flex align-items-center justify-content-center login-bg">
-      <div className="login-card card shadow-lg w-100" style={{ maxWidth: '480px' }}>
-        <div className="card-body">
+    <div className="bg-light d-flex align-items-center justify-content-center login-bg" style={{ minHeight: '100vh' }}>
+      <Card className="login-card shadow-lg w-100" style={{ maxWidth: '480px' }}>
+        <Card.Body>
           <div className="text-end mb-3">
             <a href="/" className="btn btn-outline-custom text-decoration-none">
               Quay Về Trang Chủ
@@ -72,14 +76,16 @@ const Login = () => {
             <p className="card-text text-muted">Chào mừng bạn quay trở lại</p>
           </div>
           <div className="mt-3">
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <label htmlFor="usernameOrEmail" className="form-label text-muted">
-                  Email hoặc Username
-                </label>
-                <input
+            {error && (
+              <Alert variant="danger" onClose={() => dispatch(resetError())} dismissible>
+                {error}
+              </Alert>
+            )}
+            <Form onSubmit={handleSubmit}>
+              <Form.Group className="mb-4">
+                <Form.Label className="text-muted">Email hoặc Username</Form.Label>
+                <Form.Control
                   type="text"
-                  className="form-control"
                   id="usernameOrEmail"
                   placeholder="Email hoặc Username"
                   name="usernameOrEmail"
@@ -87,12 +93,11 @@ const Login = () => {
                   onChange={handleInputChange}
                   required
                 />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="password" className="form-label text-muted">Mật Khẩu</label>
-                <input
+              </Form.Group>
+              <Form.Group className="mb-4">
+                <Form.Label className="text-muted">Mật Khẩu</Form.Label>
+                <Form.Control
                   type="password"
-                  className="form-control"
                   id="password"
                   placeholder="Mật khẩu"
                   name="password"
@@ -100,16 +105,16 @@ const Login = () => {
                   onChange={handleInputChange}
                   required
                 />
-              </div>
-              {errorMessage && (
-                <p className="text-danger text-center mb-3">{errorMessage}</p>
-              )}
+              </Form.Group>
               <div className="d-grid">
-                {/* <button type="submit" className="btn btn-dark btn-lg login-btn-custom">
-                  Đăng Nhập
-                </button> */}
-                <Button type="submit" variant="dark" size="lg" className="login-btn-custom">
-                  Đăng Nhập
+                <Button
+                  type="submit"
+                  variant="dark"
+                  size="lg"
+                  className="login-btn-custom"
+                  disabled={status === 'loading'}
+                >
+                  {status === 'loading' ? 'Đang Đăng Nhập...' : 'Đăng Nhập'}
                 </Button>
               </div>
               <p className="text-center text-muted mt-4">
@@ -118,10 +123,10 @@ const Login = () => {
                   Đăng ký
                 </a>.
               </p>
-            </form>
+            </Form>
           </div>
-        </div>
-      </div>
+        </Card.Body>
+      </Card>
     </div>
   );
 };

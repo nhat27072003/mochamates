@@ -7,8 +7,10 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.mochamates.web.dto.product.GetProductsResponseDTO;
 import com.mochamates.web.dto.product.GetProductsResponseForAdmin;
 import com.mochamates.web.dto.product.OptionDTO;
 import com.mochamates.web.dto.product.OptionValueDTO;
@@ -136,7 +138,7 @@ public class ProductService {
 		dto.setDescription(product.getDescription());
 		dto.setPrice(product.getPrice());
 		dto.setImageUrl(product.getImageUrl());
-		dto.setUpdateAt(product.getUpdate_at());
+		dto.setUpdateAt(product.getUpdateAt());
 		dto.setType(product instanceof PackagedCoffee ? "PACKAGED_COFFEE"
 				: product instanceof ReadyToDrinkCoffee ? "READY_TO_DRINK_COFFEE" : "GROUND_COFFEE");
 
@@ -206,7 +208,8 @@ public class ProductService {
 			throw new InvalidProductInfoException();
 
 		CoffeeProduct coffee = coffeeFactory.createCoffee(product);
-
+		coffee.setCreateAt(LocalDateTime.now());
+		coffee.setUpdateAt(LocalDateTime.now());
 		productRepository.save(coffee);
 
 		if (product.getOptions() != null) {
@@ -230,7 +233,7 @@ public class ProductService {
 		product.setName(productDTO.getName());
 		product.setDescription(productDTO.getDescription());
 		product.setPrice(productDTO.getPrice());
-		product.setUpdate_at(LocalDateTime.now());
+		product.setUpdateAt(LocalDateTime.now());
 		product.setImageUrl(productDTO.getImageUrl());
 
 		product.updateFromDTO(productDTO);
@@ -258,10 +261,8 @@ public class ProductService {
 		for (ProductOption productOption : productOptions) {
 			Long optionId = productOption.getOption().getId();
 
-			// Xóa ProductOption
 			productOptionRepository.delete(productOption);
 
-			// Nếu Option không còn liên kết với product nào khác thì xóa Option
 			boolean stillUsed = productOptionRepository.existsByOptionId(optionId);
 			if (!stillUsed) {
 				optionRepository.findById(optionId).ifPresent(optionRepository::delete);
@@ -378,6 +379,148 @@ public class ProductService {
 		// Map options (giả định OptionDTO và Option tương thích)
 		// dto.setOptions(...);
 		return dto;
+	}
+
+	/**
+	 * Retrieves a paginated list of newest products based on creation date.
+	 *
+	 * @param page the page number (0-based)
+	 * @param size the number of items per page
+	 * @return a GetProductsResponseDTO containing the paginated products
+	 */
+	public GetProductsResponseDTO getNewestProducts(int page, int size) {
+		if (page < 0 || size <= 0) {
+			throw new IllegalArgumentException("Page index must be >= 0 and size > 0.");
+		}
+		GetProductsResponseDTO response = new GetProductsResponseDTO();
+		try {
+			Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createAt"));
+			Page<CoffeeProduct> coffeePage = productRepository.findAll(pageable);
+			List<ProductResponseDTO> productDTOs = coffeePage.getContent().stream().map(this::mapToProductResponseDTO)
+					.collect(Collectors.toList());
+
+			response.setProducts(productDTOs);
+			response.setCurrentPage(coffeePage.getNumber());
+			response.setTotalItems(coffeePage.getTotalElements());
+			response.setTotalPage(coffeePage.getTotalPages());
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Failed to retrieve newest products: " + e.getMessage());
+		}
+		return response;
+	}
+
+	/**
+	 * Retrieves a paginated list of best-selling products based on order count.
+	 *
+	 * @param page the page number (0-based)
+	 * @param size the number of items per page
+	 * @return a GetProductsResponseDTO containing the paginated products
+	 */
+//	public GetProductsResponseDTO getBestSellingProducts(int page, int size) {
+//		if (page < 0 || size <= 0) {
+//			throw new IllegalArgumentException("Page index must be >= 0 and size > 0.");
+//		}
+//		GetProductsResponseDTO response = new GetProductsResponseDTO();
+//		try {
+//			Pageable pageable = PageRequest.of(page, size);
+//			// Assume a custom query to join with orders and count
+//			Page<CoffeeProduct> coffeePage = productRepository.findBestSellingProducts(pageable);
+//
+//			List<ProductResponseDTO> productDTOs = coffeePage.getContent().stream().map(this::mapToProductResponseDTO)
+//					.collect(Collectors.toList());
+//
+//			response.setProducts(productDTOs);
+//			response.setCurrentPage(coffeePage.getNumber());
+//			response.setTotalItems(coffeePage.getTotalElements());
+//			response.setTotalPage(coffeePage.getTotalPages());
+//		} catch (Exception e) {
+//			throw new IllegalArgumentException("Failed to retrieve best-selling products: " + e.getMessage());
+//		}
+//		return response;
+//	}
+
+	/**
+	 * Retrieves a paginated list of products filtered by type.
+	 *
+	 * @param type the product type (e.g., GROUND_COFFEE, PACKAGED_COFFEE,
+	 *             READY_TO_DRINK_COFFEE)
+	 * @param page the page number (0-based)
+	 * @param size the number of items per page
+	 * @return a GetProductsResponseDTO containing the paginated products
+	 */
+	public GetProductsResponseDTO getProductsByType(String type, int page, int size) {
+		if (page < 0 || size <= 0) {
+			throw new IllegalArgumentException("Page index must be >= 0 and size > 0.");
+		}
+		if (!List.of("GROUND_COFFEE", "PACKAGED_COFFEE", "READY_TO_DRINK_COFFEE").contains(type)) {
+			throw new IllegalArgumentException("Invalid product type: " + type);
+		}
+		GetProductsResponseDTO response = new GetProductsResponseDTO();
+		try {
+			Pageable pageable = PageRequest.of(page, size);
+			Page<CoffeeProduct> coffeePage;
+			if (type.equals("GROUND_COFFEE")) {
+				coffeePage = productRepository.findByType(GroundCoffee.class, pageable);
+			} else if (type.equals("PACKAGED_COFFEE")) {
+				coffeePage = productRepository.findByType(PackagedCoffee.class, pageable);
+			} else {
+				coffeePage = productRepository.findByType(ReadyToDrinkCoffee.class, pageable);
+			}
+
+			List<ProductResponseDTO> productDTOs = coffeePage.getContent().stream().map(this::mapToProductResponseDTO)
+					.collect(Collectors.toList());
+
+			response.setProducts(productDTOs);
+			response.setCurrentPage(coffeePage.getNumber());
+			response.setTotalItems(coffeePage.getTotalElements());
+			response.setTotalPage(coffeePage.getTotalPages());
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Failed to retrieve products by type: " + e.getMessage());
+		}
+		return response;
+	}
+
+	/**
+	 * Retrieves a paginated list of products with optional type filtering.
+	 *
+	 * @param type optional product type (e.g., GROUND_COFFEE, PACKAGED_COFFEE,
+	 *             READY_TO_DRINK_COFFEE)
+	 * @param page the page number (0-based)
+	 * @param size the number of items per page
+	 * @return a GetProductsResponseDTO containing the paginated products
+	 */
+	public GetProductsResponseDTO getProducts(String type, int page, int size) {
+		if (page < 0 || size <= 0) {
+			throw new IllegalArgumentException("Page index must be >= 0 and size > 0.");
+		}
+		if (type != null && !List.of("GROUND_COFFEE", "PACKAGED_COFFEE", "READY_TO_DRINK_COFFEE").contains(type)) {
+			throw new IllegalArgumentException("Invalid product type: " + type);
+		}
+		GetProductsResponseDTO response = new GetProductsResponseDTO();
+		try {
+			Pageable pageable = PageRequest.of(page, size);
+			Page<CoffeeProduct> coffeePage;
+			if (type == null) {
+				coffeePage = productRepository.findAll(pageable);
+			} else if (type.equals("GROUND_COFFEE")) {
+				coffeePage = productRepository.findByType(GroundCoffee.class, pageable);
+			} else if (type.equals("PACKAGED_COFFEE")) {
+				coffeePage = productRepository.findByType(PackagedCoffee.class, pageable);
+			} else {
+				coffeePage = productRepository.findByType(ReadyToDrinkCoffee.class, pageable);
+			}
+
+			List<ProductResponseDTO> productDTOs = coffeePage.getContent().stream().map(this::mapToProductResponseDTO)
+					.collect(Collectors.toList());
+
+			response.setProducts(productDTOs);
+			response.setCurrentPage(coffeePage.getNumber());
+			response.setTotalItems(coffeePage.getTotalElements());
+			response.setTotalPage(coffeePage.getTotalPages());
+		} catch (Exception e) {
+			throw new IllegalArgumentException("Failed to retrieve products: " + e.getMessage());
+		}
+		return response;
 	}
 
 	/**

@@ -9,6 +9,14 @@
   transition: $transition;
   cursor: pointer;
 
+  &-md {
+    padding: 0.5rem 1rem;
+  }
+
+  &-sm {
+    padding: 0.25rem 0.5rem;
+  }
+
   &-primary {
     @include gradient-bg($primary-brown, $primary-green);
     color: $white;

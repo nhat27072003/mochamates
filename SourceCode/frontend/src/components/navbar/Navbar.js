@@ -1,25 +1,55 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useSelector, useDispatch, shallowEqual } from 'react-redux';
 import Button from '../Button/Button';
+import { FaUserEdit, FaKey, FaSignOutAlt } from 'react-icons/fa';
+import { logout } from '../../redux/userSlice';
 
 const Navbar = () => {
-  const [cartCount, setCartCount] = useState(3); // Mô phỏng số lượng sản phẩm trong giỏ
-  const [searchQuery, setSearchQuery] = useState(''); // Theo dõi giá trị tìm kiếm
+  const cartCount = useSelector((state) => state.cart.items.length, shallowEqual);
+  const isAuthenticated = useSelector((state) => state.user.isAuthenticated, shallowEqual);
+  const currentUser = useSelector((state) => state.user.currentUser, shallowEqual);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
 
+  const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    setIsDropdownOpen(false);
+    navigate('/signin');
+  };
+
   const isActive = (path) => location.pathname === path;
   const isMenuActive = () => {
     const menuPaths = ['/ready-coffee', '/ground-coffee', '/package-coffee'];
-    return menuPaths.some(path => location.pathname.startsWith(path));
+    return menuPaths.some((path) => location.pathname.startsWith(path));
   };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isDropdownOpen && !event.target.closest('.dropdown-container')) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isDropdownOpen]);
+
   return (
     <nav className="navbar navbar-expand-lg fixed-top navbar-custom">
       <div className="container-fluid">
-        <Link to="/" className="navbar-brand text-white">Mochamates</Link>
+        <Link to="/" className="navbar-brand text-white">
+          Mochamates
+        </Link>
         <button
           className="navbar-toggler"
           type="button"
@@ -42,7 +72,7 @@ const Navbar = () => {
                 Trang Chủ
               </Link>
             </li>
-            <li className='nav-item dropdown'>
+            <li className="nav-item dropdown">
               <div
                 className={`nav-link dropdown-toggle text-white ${isMenuActive() ? 'active' : ''}`}
                 id="navbarDropdown"
@@ -53,7 +83,7 @@ const Navbar = () => {
                 Menu
               </div>
               <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
-                <li >
+                <li>
                   <Link
                     className={`dropdown-item ${isActive('/ready-coffee') ? 'active' : ''}`}
                     to="/ready-coffee"
@@ -110,24 +140,74 @@ const Navbar = () => {
               {searchQuery && (
                 <span
                   className="search-result text-white bg-dark p-1 rounded"
-                  style={{ position: 'absolute', top: '100%', left: 0, zIndex: 1000 }}
+                  style={{ zIndex: 1000 }}
                 >
                   Kết quả cho "{searchQuery}" (Mô phỏng: {searchQuery.length} sản phẩm)
                 </span>
               )}
             </div>
-            <div className="cart-icon text-white position-relative me-4 right-icon">
+            <Link to="/cart" className="cart-icon text-white position-relative me-4 right-icon">
               <i className="bi bi-cart2" style={{ fontSize: '24px' }}></i>
               {cartCount > 0 && (
-                <span className="badge bg-danger position-absolute top-7 start-100 translate-middle cart-count">
+                <span className="badge bg-danger position-absolute cart-count">
                   {cartCount}
                 </span>
               )}
-            </div>
-            <i className="bi bi-person-circle me-3 right-icon text-white " style={{ fontSize: '24px' }}></i>
-            <Link to="/signin">
-              <Button variant='custom'>Đăng Nhập</Button>
             </Link>
+            {isAuthenticated ? (
+              <div className="relative dropdown-container">
+                <button
+                  onClick={toggleDropdown}
+                  className="flex items-center focus:outline-none right-icon border-0 bg-transparent"
+                >
+                  <i
+                    className="bi bi-person-circle text-white"
+                    style={{ fontSize: '24px' }}
+                  ></i>
+                </button>
+                {isDropdownOpen && (
+                  <div className="dropdown-menu show" style={{ right: 0, top: '100%', minWidth: '200px', zIndex: 1000 }}>
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <div className="font-medium text-white">
+                        {currentUser?.username || 'User'}
+                      </div>
+                      <div className="text-sm text-white">
+                        {currentUser?.userId || 'No email'}
+                      </div>
+                    </div>
+                    <div className="py-1">
+                      <Link
+                        to="/profile"
+                        className="dropdown-item flex items-center"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <FaUserEdit className="mr-3" />
+                        Update Profile
+                      </Link>
+                      <Link
+                        to="/change-password"
+                        className="dropdown-item flex items-center"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <FaKey className="mr-3" />
+                        Change Password
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="dropdown-item flex items-center text-red-600 hover:bg-red-50"
+                      >
+                        <FaSignOutAlt className="mr-3" />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link to="/signin">
+                <Button variant="custom">Đăng Nhập</Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -135,4 +215,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default React.memo(Navbar);

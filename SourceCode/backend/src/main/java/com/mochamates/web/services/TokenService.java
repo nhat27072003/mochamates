@@ -69,7 +69,7 @@ public class TokenService {
 			Jws<Claims> jws = Jwts.parser().verifyWith(key).build().parseSignedClaims(token);
 			Claims claims = jws.getPayload();
 			System.out.println("check jwt claims: " + claims);
-			return claims; // Trả về Claims để client có thể truy xuất role
+			return claims;
 		} catch (SignatureException e) {
 			throw new IllegalArgumentException("Invalid JWT signature");
 		} catch (Exception e) {

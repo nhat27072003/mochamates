@@ -27,6 +27,40 @@ const uploadImage = async (file) => {
   }
 };
 
+const fetchProducts = async (type = null, page = 0, size = 6) => {
+  try {
+    const params = { page, size };
+    if (type) params.type = type;
+    const response = await axiosClient.get(`/api/v1/products`, { params });
+    if (response.statusCode !== '1000') {
+      throw new Error(response.message || 'Failed to fetch products');
+    }
+    return response.data;
+  } catch (error) {
+
+    throw new Error(error.response?.data?.message || 'Error fetching products');
+  }
+};
+const getProdutById = async (id) => {
+  const response = await axiosClient.get(`/api/v1/products/${id}`);
+  console.log(response);
+  return response.data;
+}
+const fetchNewestProducts = async (page = 0, size = 6) => {
+  try {
+
+    const params = { page, size };
+    const response = await axiosClient.get(`/api/v1/products/newest`, { params });
+    console.log('check get newest product', response);
+    if (response.statusCode !== '1000') {
+      throw new Error(response.message || 'Failed to fetch products');
+    }
+    return response.data;
+  } catch (error) {
+    console.log(error)
+    throw new Error(error.response?.data?.message || 'Error fetching products');
+  }
+}
 const createProduct = async (data) => {
   console.log('check add data product', data);
   const response = await axiosClient.post('/api/v1/admin/products', data);
@@ -36,27 +70,31 @@ const updateProduct = async (id, data) => {
   const response = await axiosClient.put(`/api/v1/admin/products/${id}`, data);
   return response;
 }
-const fetchProducts = async (page, size) => {
+const fetchProductsForAdmin = async (page, size) => {
   const response = await axiosClient.get(`/api/v1/admin/products?page=${page}&size=${size}`);
   console.log(response);
   return response.data;
 
 };
 const fetchProductById = async (id) => {
-  const response = await axiosClient.get(`api/v1/admin/products/${id}`);
+  const response = await axiosClient.get(`/api/v1/admin/products/${id}`);
   console.log(response);
   return response.data;
 }
 
 
-const deleteProduct = async () => {
-
+const deleteProduct = async (id) => {
+  const response = await axiosClient.delete(`/api/v1/admin/products/${id}`);
+  return response;
 }
 export {
+  fetchProducts,
+  fetchNewestProducts,
+  getProdutById,
   createProduct,
   updateProduct,
   uploadImage,
-  fetchProducts,
+  fetchProductsForAdmin,
   fetchProductById,
   deleteProduct
 }

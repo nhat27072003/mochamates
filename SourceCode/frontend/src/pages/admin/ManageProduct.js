@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchProducts, deleteProduct } from '../../services/ProductService';
+import { fetchProductsForAdmin, deleteProduct } from '../../services/ProductService';
 
 const ManageProducts = () => {
   const [products, setProducts] = useState([]);
@@ -20,7 +20,7 @@ const ManageProducts = () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await fetchProducts(currentPage - 1, 10);
+        const data = await fetchProductsForAdmin(currentPage - 1, 10);
         setProducts(data.products || []);
         setFilteredProducts(data.products || []);
         setTotalPages(data.totalPage || 1);
@@ -199,12 +199,12 @@ const ManageProducts = () => {
                           <td>
                             <Link
                               to={`/admin/products/edit/${product.id}`}
-                              className="btn btn-outline-primary btn-sm me-2"
+                              className="btn btn-outline me-2"
                             >
                               Sửa
                             </Link>
                             <button
-                              className="btn btn-danger btn-sm"
+                              className="btn btn-danger btn-md"
                               onClick={() => handleDelete(product.id)}
                             >
                               Xóa

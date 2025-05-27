@@ -1,64 +1,301 @@
 package com.mochamates.web.services;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.mochamates.web.entities.Cart;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mochamates.web.dto.cart.CartItemDTO;
+import com.mochamates.web.dto.cart.CartItemRequestDTO;
+import com.mochamates.web.dto.cart.CartItemUpdateRequestDTO;
+import com.mochamates.web.dto.cart.CartResponseDTO;
+import com.mochamates.web.dto.cart.DeleteCartItemRequestDTO;
+import com.mochamates.web.dto.product.OptionDTO;
+import com.mochamates.web.dto.product.OptionValueDTO;
+import com.mochamates.web.entities.User;
+import com.mochamates.web.entities.cart.Cart;
+import com.mochamates.web.entities.cart.CartItem;
+import com.mochamates.web.entities.products.CoffeeProduct;
+import com.mochamates.web.entities.products.Option;
+import com.mochamates.web.entities.products.OptionValue;
+import com.mochamates.web.entities.products.ProductOption;
+import com.mochamates.web.exception.InvalidProductInfoException;
+import com.mochamates.web.exception.ProductNotFoundException;
 import com.mochamates.web.exception.UserNotFoundException;
 import com.mochamates.web.repository.CartItemRepository;
 import com.mochamates.web.repository.CartRepository;
+import com.mochamates.web.repository.OptionRepository;
+import com.mochamates.web.repository.OptionValueRepository;
+import com.mochamates.web.repository.ProductOptionRepository;
+import com.mochamates.web.repository.ProductRepository;
+import com.mochamates.web.repository.UserRepository;
 
 @Service
 public class CartService {
-	private CartRepository cartRepository;
-	private CartItemRepository cartItemRepository;
-	private UserService userService;
-	private ProductService productService;
+	private final CartRepository cartRepository;
+	private final CartItemRepository cartItemRepository;
+	private final ProductRepository productRepository;
+	private final OptionRepository optionRepository;
+	private final OptionValueRepository optionValueRepository;
+	private final ProductOptionRepository productOptionRepository;
+	private final UserRepository userRepository;
+	private final ObjectMapper objectMapper;
 
-	public CartService(CartRepository cartRepository, CartItemRepository cartItemRepository, UserService userService,
-			ProductService productService) {
+	public CartService(CartRepository cartRepository, CartItemRepository cartItemRepository,
+			ProductRepository productRepository, OptionRepository optionRepository,
+			OptionValueRepository optionValueRepository, ProductOptionRepository productOptionRepository,
+			UserRepository userRepository) {
 		this.cartRepository = cartRepository;
 		this.cartItemRepository = cartItemRepository;
-		this.userService = userService;
-		this.productService = productService;
+		this.productRepository = productRepository;
+		this.optionRepository = optionRepository;
+		this.optionValueRepository = optionValueRepository;
+		this.productOptionRepository = productOptionRepository;
+		this.userRepository = userRepository;
+		this.objectMapper = new ObjectMapper();
 	}
 
-	public Cart getCartByUserId(Long userId) {
-		if (!userService.isUserExist(userId))
-			throw new UserNotFoundException();
+	@Transactional
+	public CartResponseDTO addItemToCart(CartItemRequestDTO request) {
+		User user = getAuthenticatedUser();
+		CoffeeProduct product = validateProduct(request.getProductId());
+		List<OptionDTO> validatedOptions = validateAndFetchOptions(request.getProductId(),
+				request.getSelectedOptions());
 
-		Optional<Cart> cartOptional = cartRepository.findByUserId(userId);
-		Cart cart;
-		if (cartOptional.isEmpty()) {
-			cart = new Cart(userId);
-			cartRepository.save(cart);
-		} else {
-			cart = cartOptional.get();
+		Cart cart = cartRepository.findByUserId(user.getId()).orElseGet(() -> {
+			Cart newCart = new Cart();
+			newCart.setUserId(user.getId());
+			return cartRepository.save(newCart);
+		});
+
+		// Check for existing item with same product ID and options
+		Optional<CartItem> existingItem = findMatchingCartItem(cart.getId(), request.getProductId(), validatedOptions);
+		CartItem item = existingItem.orElseGet(CartItem::new);
+
+		item.setCart(cart);
+		item.setProductId(request.getProductId());
+		item.setName(product.getName());
+		item.setPrice(product.getPrice());
+		item.setImageUrl(product.getImageUrl());
+		item.setQuantity(existingItem.isPresent()
+				? item.getQuantity() + (request.getQuantity() != null ? request.getQuantity() : 1)
+				: (request.getQuantity() != null ? request.getQuantity() : 1));
+
+		updateItemOptionsAndPrice(item, validatedOptions);
+		cartItemRepository.save(item);
+		return updateCartTotals(cart);
+	}
+
+	public CartResponseDTO getCart() {
+		User user = getAuthenticatedUser();
+		Cart cart = cartRepository.findByUserId(user.getId()).orElseGet(() -> {
+			Cart newCart = new Cart();
+			newCart.setUserId(user.getId());
+			return cartRepository.save(newCart);
+		});
+		return toCartResponseDTO(cart);
+	}
+
+	@Transactional
+	public CartResponseDTO updateCartItem(Long productId, CartItemUpdateRequestDTO request) {
+		if (request.getQuantity() == null) {
+			throw new IllegalArgumentException("Quantity must be provided for update");
 		}
-		return cart;
+		if (request.getSelectedOptions() == null || request.getSelectedOptions().isEmpty()) {
+			throw new IllegalArgumentException("Selected options must be provided to identify the cart item");
+		}
+
+		User user = getAuthenticatedUser();
+		validateProduct(productId);
+		List<OptionDTO> validatedOptions = validateAndFetchOptions(productId, request.getSelectedOptions());
+
+		Cart cart = cartRepository.findByUserId(user.getId()).orElseThrow(() -> new RuntimeException("Cart not found"));
+
+		CartItem item = findMatchingCartItem(cart.getId(), productId, validatedOptions)
+				.orElseThrow(() -> new RuntimeException(
+						"Item with product ID " + productId + " and specified options not found in cart"));
+
+		item.setQuantity(Math.max(1, request.getQuantity()));
+		cartItemRepository.save(item);
+		return updateCartTotals(cart);
 	}
 
-//	public CartItem addItemToCart(Long userId, CartDTO cartDTO) {
-//		if (!userService.isUserExist(userId))
-//			throw new UserNotFoundException();
-//		CoffeeProduct product = productService.getProductById(cartDTO.getProductId());
-//		if (product == null)
-//			throw new ProductNotFoundException();
-//
-//		Cart cart = cartRepository.findByUserId(userId).orElseGet(() -> new Cart(userId));
-//		Optional<CartItem> existingCartItem = cartItemRepository.findByCartIdAndProductId(cart.getId(),
-//				cartDTO.getProductId());
-//		CartItem cartItem;
-//		if (existingCartItem.isPresent()) {
-//			cartItem = existingCartItem.get();
-//			cartItem.setQuantity(cartItem.getQuantity() + cartDTO.getQuantity());
-//		} else {
-//			cartItem = new CartItem(cart, product, cartDTO.getQuantity());
-//		}
-//		cartRepository.save(cart);
-//		cartItemRepository.save(cartItem);
-//		return cartItem;
-//	}
+	@Transactional
+	public CartResponseDTO removeCartItem(Long productId, DeleteCartItemRequestDTO selectedOptions) {
+		User user = getAuthenticatedUser();
+		validateProduct(productId);
+		List<OptionDTO> validatedOptions = validateAndFetchOptions(productId, selectedOptions.getSelectedOptions());
 
+		Cart cart = cartRepository.findByUserId(user.getId()).orElseThrow(() -> new RuntimeException("Cart not found"));
+
+		CartItem item = findMatchingCartItem(cart.getId(), productId, validatedOptions)
+				.orElseThrow(() -> new RuntimeException("Item not found in cart with specified options"));
+
+		cartItemRepository.delete(item);
+		return updateCartTotals(cart);
+	}
+
+	@Transactional
+	public void clearCart() {
+		User user = getAuthenticatedUser();
+		Cart cart = cartRepository.findByUserId(user.getId()).orElseThrow(() -> new RuntimeException("Cart not found"));
+
+		cartItemRepository.deleteByCartId(cart.getId());
+		cart.setSubtotal(0.0);
+		cart.setShipping(10000.0);
+		cart.setTotal(10000.0);
+		cartRepository.save(cart);
+	}
+
+	private User getAuthenticatedUser() {
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+		return userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException(username));
+	}
+
+	private CoffeeProduct validateProduct(Long productId) {
+		return productRepository.findById(productId).orElseThrow(() -> new ProductNotFoundException());
+	}
+
+	private List<OptionDTO> validateAndFetchOptions(Long productId, List<OptionDTO> selectedOptions) {
+		if (selectedOptions == null || selectedOptions.isEmpty()) {
+			return new ArrayList<>(); // Return empty list if no options provided
+		}
+
+		List<ProductOption> productOptions = productOptionRepository.findByCoffeeProductId(productId);
+		List<OptionDTO> validatedOptions = new ArrayList<>();
+
+		for (OptionDTO optionDTO : selectedOptions) {
+			Option option = optionRepository.findById(optionDTO.getId()).orElseThrow(
+					() -> new InvalidProductInfoException("Option with ID " + optionDTO.getId() + " not found"));
+
+			boolean isValidOption = productOptions.stream()
+					.anyMatch(po -> po.getOption().getId().equals(optionDTO.getId()));
+			if (!isValidOption) {
+				throw new InvalidProductInfoException(
+						"Option " + optionDTO.getName() + " is not available for this product");
+			}
+
+			OptionDTO validatedOption = new OptionDTO();
+			validatedOption.setId(option.getId());
+			validatedOption.setName(option.getName());
+			validatedOption.setType(option.getType().name());
+			validatedOption
+					.setRequired(productOptions.stream().filter(po -> po.getOption().getId().equals(option.getId()))
+							.findFirst().map(ProductOption::isRequired).orElse(false));
+
+			List<OptionValueDTO> validatedValues = new ArrayList<>();
+			for (OptionValueDTO valueDTO : optionDTO.getValues()) {
+				OptionValue optionValue = optionValueRepository.findById(valueDTO.getId())
+						.orElseThrow(() -> new InvalidProductInfoException(
+								"Option value with ID " + valueDTO.getId() + " not found"));
+				if (!optionValue.getOption().getId().equals(optionDTO.getId())) {
+					throw new InvalidProductInfoException("Option value " + valueDTO.getValue()
+							+ " does not belong to option " + optionDTO.getName());
+				}
+				OptionValueDTO validatedValue = new OptionValueDTO();
+				validatedValue.setId(optionValue.getId());
+				validatedValue.setValue(optionValue.getValue());
+				validatedValue.setAdditionalPrice(optionValue.getAdditionalPrice());
+				validatedValues.add(validatedValue);
+			}
+			validatedOption.setValues(validatedValues);
+			validatedOptions.add(validatedOption);
+		}
+
+		// Check for required options
+		List<Long> selectedOptionIds = validatedOptions.stream().map(OptionDTO::getId).collect(Collectors.toList());
+		for (ProductOption productOption : productOptions) {
+			if (productOption.isRequired() && !selectedOptionIds.contains(productOption.getOption().getId())) {
+				throw new InvalidProductInfoException(
+						"Required option " + productOption.getOption().getName() + " is missing");
+			}
+		}
+
+		return validatedOptions;
+	}
+
+	private Optional<CartItem> findMatchingCartItem(Long cartId, Long productId, List<OptionDTO> selectedOptions) {
+		List<CartItem> cartItems = cartItemRepository.findByCartIdAndProductId(cartId, productId);
+		if (selectedOptions == null || selectedOptions.isEmpty()) {
+			return cartItems.stream()
+					.filter(item -> item.getSelectedOptions() == null || item.getSelectedOptions().isEmpty())
+					.findFirst();
+		}
+
+		String optionsJson;
+		try {
+			optionsJson = objectMapper.writeValueAsString(selectedOptions);
+		} catch (Exception e) {
+			throw new RuntimeException("Error serializing options: " + e.getMessage(), e);
+		}
+
+		return cartItems.stream().filter(item -> optionsJson.equals(item.getSelectedOptions())).findFirst();
+	}
+
+	private void updateItemOptionsAndPrice(CartItem item, List<OptionDTO> selectedOptions) {
+		try {
+			if (selectedOptions != null && !selectedOptions.isEmpty()) {
+				item.setSelectedOptions(objectMapper.writeValueAsString(selectedOptions));
+				double optionPrice = selectedOptions.stream().flatMap(opt -> opt.getValues().stream())
+						.mapToDouble(OptionValueDTO::getAdditionalPrice).sum();
+				item.setTotalPrice(item.getPrice() + optionPrice);
+			} else {
+				item.setSelectedOptions(null);
+				item.setTotalPrice(item.getPrice());
+			}
+		} catch (Exception e) {
+			throw new RuntimeException("Error processing options: " + e.getMessage(), e);
+		}
+	}
+
+	private CartResponseDTO updateCartTotals(Cart cart) {
+		List<CartItem> items = cartItemRepository.findByCartId(cart.getId());
+		double subtotal = items.stream().mapToDouble(item -> item.getTotalPrice() * item.getQuantity()).sum();
+		double shipping = 10000.0;
+		double total = subtotal + shipping;
+
+		cart.setSubtotal(subtotal);
+		cart.setShipping(shipping);
+		cart.setTotal(total);
+		cartRepository.save(cart);
+
+		return toCartResponseDTO(cart);
+	}
+
+	private CartResponseDTO toCartResponseDTO(Cart cart) {
+		CartResponseDTO response = new CartResponseDTO();
+		response.setId(cart.getId());
+		response.setUserId(cart.getUserId().toString());
+		response.setSubtotal(cart.getSubtotal());
+		response.setShipping(cart.getShipping());
+		response.setTotal(cart.getTotal());
+
+		List<CartItem> items = cartItemRepository.findByCartId(cart.getId());
+		List<CartItemDTO> itemDTOs = items.stream().map(item -> {
+			CartItemDTO dto = new CartItemDTO();
+			dto.setId(item.getId());
+			dto.setProductId(item.getProductId());
+			dto.setName(item.getName());
+			dto.setPrice(item.getPrice());
+			dto.setImageUrl(item.getImageUrl());
+			dto.setTotalPrice(item.getTotalPrice());
+			dto.setQuantity(item.getQuantity());
+			try {
+				List<OptionDTO> options = objectMapper.readValue(item.getSelectedOptions(),
+						objectMapper.getTypeFactory().constructCollectionType(List.class, OptionDTO.class));
+				dto.setSelectedOptions(options);
+			} catch (Exception e) {
+				dto.setSelectedOptions(new ArrayList<>());
+			}
+			return dto;
+		}).collect(Collectors.toList());
+
+		response.setItems(itemDTOs);
+		return response;
+	}
 }

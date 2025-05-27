@@ -1,68 +1,111 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Item from '../item/Item';
-
+import { fetchProducts } from '../../services/ProductService';
 
 const MenuPreview = () => {
+  const [products, setProducts] = useState([]);
+  const [filterType, setFilterType] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/150?text=No+Image';
+  const ITEMS_PER_PAGE = 6; // 2 rows of 3 items
+
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const data = await fetchProducts(filterType || null, currentPage - 1, ITEMS_PER_PAGE);
+        setProducts(data.products || []);
+        setTotalPages(data.totalPages || 1);
+      } catch (err) {
+        setError('Lỗi khi tải danh sách sản phẩm');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadProducts();
+  }, [filterType, currentPage]);
+
+  const handleFilterChange = (e) => {
+    setFilterType(e.target.value);
+    setCurrentPage(1); // Reset to first page when filter changes
+  };
+
+  const paginate = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
+
+  const getImageUrl = (imageUrl) => {
+    if (!imageUrl || imageUrl.startsWith('/') || !imageUrl.startsWith('http')) {
+      return PLACEHOLDER_IMAGE;
+    }
+    return `${imageUrl}?w=150&h=150&c=fill`;
+  };
+
+  const getBadge = (product) => {
+    // Example: Mark products with high sales or specific type as "Hot"
+    if (product.type === 'READY_TO_DRINK_COFFEE') return 'Hot';
+    return null;
+  };
+
   return (
     <div className="menu-preview-section home-section pb-3">
       <h2 className="home-title text-center py-3">Our Menu</h2>
       <div className="container">
-        <div className="menu-preview-grid">
-          <div className="menu-preview-row">
-            <div className="col-md-2 col-sm-3">
-              <Item
-                name="Cà phê Sữa Đá"
-                imageUrl="/img/banner1.jpg"
-                price="3.50"
-                description="Hương vị đậm đà của cà phê Việt Nam kết hợp với sữa đặc, phục vụ lạnh."
-              />
-            </div>
-            <div className="col-md-2 col-sm-3">
-              <Item
-                name="Cà phê Đen"
-                imageUrl="/img/banner1.jpg"
-                price="2.50"
-                description="Cà phê đen nguyên chất, đậm đà, pha phin truyền thống."
-                rating={5.0}
-              />
-            </div>
-            <div className="col-md-2 col-sm-3">
-              <Item
-                name="Cà phê Cappuccino"
-                imageUrl="/img/banner1.jpg"
-                price="2.00"
-                description="Cappuccino béo ngậy với lớp kem sữa và cà phê espresso chuẩn vị."
-                badge="Hot"
-              />
-            </div>
-          </div>
-          <div className="menu-preview-row">
-            <div className="col-md-2 col-sm-3">
-              <Item
-                name="Cà phê Latte"
-                imageUrl="/img/banner1.jpg"
-                price="2.50"
-                description="Latte kem béo với espresso đậm đà, hương vị tinh tế."
-              />
-            </div>
-            <div className="col-md-2 col-sm-3">
-              <Item
-                name="Cà phê Phin Đặc Biệt"
-                imageUrl="/img/banner1.jpg"
-                price="3.00"
-                description="Cà phê phin nguyên chất với hương vị vùng cao nguyên."
-              />
-            </div>
-            <div className="col-md-2 col-sm-3">
-              <Item
-                name="Cà phê Mật Ong"
-                imageUrl="/img/banner1.jpg"
-                price="2.00"
-                description="Cà phê ngọt ngào kết hợp với mật ong tự nhiên."
-              />
+        <div className="mb-3">
+          <div className="row g-3">
+            <div className="col-md-4 offset-md-4">
+              <select
+                className="form-select"
+                value={filterType}
+                onChange={handleFilterChange}
+              >
+                <option value="">Tất cả sản phẩm</option>
+                <option value="READY_TO_DRINK_COFFEE">Cà phê pha sẵn</option>
+                <option value="GROUND_COFFEE">Cà phê hạt/xay</option>
+                <option value="PACKAGED_COFFEE">Cà phê đóng gói</option>
+              </select>
             </div>
           </div>
         </div>
+        {error && <div className="alert alert-danger small text-center">{error}</div>}
+        {loading ? (
+          <div className="text-center">
+            <div className="spinner-border" role="status">
+              <span className="visually-hidden">Đang tải...</span>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="menu-preview-grid">
+              {products.length === 0 ? (
+                <div className="text-center">Không có sản phẩm nào</div>
+              ) : (
+                <div className="row">
+                  {products.map((product) => (
+                    <div key={product.id} className="col-md-3 col-sm-4 mb-3">
+                      <Item
+                        id={product.id}
+                        name={product.name}
+                        imageUrl={getImageUrl(product.imageUrl)}
+                        price={product.price.toFixed(2)}
+                        description={product.description || 'No description available'}
+                        badge={getBadge(product)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

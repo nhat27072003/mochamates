@@ -1,5 +1,7 @@
 package com.mochamates.web.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -12,7 +14,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	public User findByEmail(String email);
 
-	public User findByUsername(String username);
+	Optional<User> findByUsername(String username);
 
 	@Query("SELECT u FROM User u WHERE u.username = :username OR u.email = :email")
 	public User findByUsernameOrEmail(@Param("username") String username, @Param("email") String email);

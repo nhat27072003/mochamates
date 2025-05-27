@@ -1,53 +1,107 @@
 package com.mochamates.web.controller.cart;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.mochamates.web.entities.Cart;
+import com.mochamates.web.dto.cart.CartItemRequestDTO;
+import com.mochamates.web.dto.cart.CartItemUpdateRequestDTO;
+import com.mochamates.web.dto.cart.CartResponseDTO;
+import com.mochamates.web.dto.cart.DeleteCartItemRequestDTO;
 import com.mochamates.web.response.ApiResponse;
 import com.mochamates.web.services.CartService;
 
-/**
- * REST controller for managing cart-related operations. Provides endpoints for
- * adding, updating, removing items, and retrieving cart
- * 
- * Base path: /api/v1/carts
- */
-
 @RestController
-@RequestMapping("/api/v1/carts")
+@RequestMapping("/api/v1/cart")
 public class CartController {
-	private CartService cartService;
+	private final CartService cartService;
 
 	public CartController(CartService cartService) {
 		this.cartService = cartService;
 	}
 
-	@GetMapping("/{userId}")
-	public ResponseEntity<ApiResponse<Cart>> getCart(@PathVariable Long userId) {
-		Cart cart = cartService.getCartByUserId(userId);
-
-		ApiResponse<Cart> response = new ApiResponse<Cart>("1000", "OK", cart);
-		return ResponseEntity.status(200).body(response);
+	/**
+	 * Adds an item to the user's cart.
+	 *
+	 * @param request DTO containing item details
+	 * @return ResponseEntity with cart details
+	 */
+	@PostMapping
+	public ResponseEntity<ApiResponse<CartResponseDTO>> addItemToCart(@RequestBody CartItemRequestDTO request) {
+		CartResponseDTO responseDTO = cartService.addItemToCart(request);
+		ApiResponse<CartResponseDTO> response = new ApiResponse<>("1000", "Item added to cart", responseDTO);
+		return ResponseEntity.ok(response);
 	}
 
 	/**
-	 * Adds a product to the user's cart.
-	 * 
-	 * @param userId
-	 * @param cartDTO
-	 * @return a responseEntity containing the updated cart
+	 * Retrieves the user's cart.
+	 *
+	 * @return ResponseEntity with cart details
 	 */
-//	@PostMapping("/{userId}/items")
-//	public ResponseEntity<ApiResponse<CartItem>> addItemToCart(@PathVariable Long userId,
-//			@RequestBody CartDTO cartDTO) {
-//		CartItem addedItem = cartService.addItemToCart(userId, cartDTO);
-//
-//		ApiResponse<CartItem> response = new ApiResponse<CartItem>("1000", "OK", addedItem);
-//		return ResponseEntity.status(201).body(response);
-//
-//	}
+	@GetMapping
+	public ResponseEntity<ApiResponse<CartResponseDTO>> getCart() {
+		CartResponseDTO responseDTO = cartService.getCart();
+		ApiResponse<CartResponseDTO> response = new ApiResponse<>("1000", "Ok", responseDTO);
+		return ResponseEntity.ok(response);
+	}
+
+	/**
+	 * Updates a cart item's quantity or options.
+	 *
+	 * @param productId ID of the product to update
+	 * @param request   DTO containing update details
+	 * @return ResponseEntity with updated cart details
+	 */
+	@PutMapping("/{productId}")
+	public ResponseEntity<ApiResponse<CartResponseDTO>> updateCartItem(@PathVariable Long productId,
+			@RequestBody CartItemUpdateRequestDTO request) {
+		CartResponseDTO responseDTO = cartService.updateCartItem(productId, request);
+		ApiResponse<CartResponseDTO> response = new ApiResponse<>("1000", "Item updated", responseDTO);
+		return ResponseEntity.ok(response);
+	}
+
+	/**
+	 * Removes an item from the cart.
+	 *
+	 * @param productId ID of the product to remove
+	 * @return ResponseEntity with updated cart details
+	 */
+	@DeleteMapping("/{productId}")
+	public ResponseEntity<ApiResponse<CartResponseDTO>> removeCartItem(@PathVariable Long productId,
+			@RequestBody DeleteCartItemRequestDTO selectedOptions) {
+		CartResponseDTO responseDTO = cartService.removeCartItem(productId, selectedOptions);
+		ApiResponse<CartResponseDTO> response = new ApiResponse<>("1000", "Item removed", responseDTO);
+		return ResponseEntity.ok(response);
+	}
+
+	/**
+	 * Clears the entire cart.
+	 *
+	 * @return ResponseEntity with confirmation message
+	 */
+	@DeleteMapping
+	public ResponseEntity<ApiResponse<String>> clearCart() {
+		cartService.clearCart();
+		ApiResponse<String> response = new ApiResponse<>("1000", "Cart cleared", null);
+		return ResponseEntity.ok(response);
+	}
+
+	/**
+	 * Applies a promo code to the cart (mock).
+	 *
+	 * @param request DTO containing promo code
+	 * @return ResponseEntity with promo code response
+	 */
+//    @PostMapping("/promo")
+//    public ResponseEntity<ApiResponse<PromoResponseDTO>> applyPromoCode(@RequestBody PromoCodeRequestDTO request) {
+//        PromoResponseDTO responseDTO = cartService.applyPromoCode(request);
+//        ApiResponse<PromoResponseDTO> response = new ApiResponse<>("1000", "Ok", responseDTO);
+//        return ResponseEntity.ok(response);
+//    }
 }
