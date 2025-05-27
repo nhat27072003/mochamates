@@ -1,4 +1,4 @@
-package com.mochamates.web.controllers.user;
+package com.mochamates.web.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

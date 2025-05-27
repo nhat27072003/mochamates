@@ -16,9 +16,7 @@ public class UserService {
 	}
 
 	public UserDetailResponse getUserProfile(String username) {
-		User user = userRepository.findByUsername(username);
-		if (user == null)
-			throw new UserNotFoundException();
+		User user = userRepository.findByUsername(username).orElseThrow(() -> new UserNotFoundException());
 
 		UserDetailResponse userRes = new UserDetailResponse();
 		userRes.setUsername(username);

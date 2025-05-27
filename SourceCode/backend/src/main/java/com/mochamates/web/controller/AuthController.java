@@ -1,4 +1,4 @@
-package com.mochamates.web.controllers.auth;
+package com.mochamates.web.controller;
 
 import java.util.Map;
 
