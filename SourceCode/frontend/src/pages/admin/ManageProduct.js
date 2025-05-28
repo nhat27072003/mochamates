@@ -138,7 +138,7 @@ const ManageProducts = () => {
               </select>
             </div>
             <div className="col-md-2">
-              <Link to="/admin/products/add" className="btn btn-custom btn-primary w-100">
+              <Link to="/admin/products/add" className="btn btn-custom btn-sm w-100">
                 Thêm Sản Phẩm
               </Link>
             </div>

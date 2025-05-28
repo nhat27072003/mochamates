@@ -1,36 +1,83 @@
-import React from 'react'
-import { Link } from 'react-router-dom';
-const Item = ({ id, name, imageUrl, price, rating = 4.5, description, badge = 'New' }) => {
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { AiFillStar } from "react-icons/ai";
+import { BsStarHalf } from "react-icons/bs";
+import { addToCart, fetchCart } from "../../redux/cartSlice";
+import { formatPrice } from "../../utils/helpers";
+import { toast } from "react-toastify";
+
+const Item = ({ id, name, imageUrl, price, rating = 4.5, description, badge = "New" }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useSelector((state) => state.user);
+
+  const handleAddToCart = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      if (!isAuthenticated) {
+        navigate("/signin");
+        return;
+      }
+      const cartItem = {
+        productId: id,
+        name: name,
+        price: price,
+        imageUrl: imageUrl,
+        selectedOptions: [],
+        quantity: 1,
+      };
+
+      console.log("Adding to cart:", cartItem);
+      await dispatch(addToCart(cartItem)).unwrap();
+      toast.success("Đã thêm sản phẩm vào giỏ hàng")
+      dispatch(fetchCart());
+    } catch (err) {
+      toast.error("Có lỗi xảy ra vui lòng thử lại sau ít phút")
+    }
+  };
+
   return (
-    <Link to={`/products/${id}`} className="item-card-link">
-      <div className="item-product-card bg-white rounded-4 shadow-sm position-relative">
-        <span className={`badge ${badge === 'New' ? 'bg-danger' : 'bg-success'} item-badge`}>{badge}</span>
-        <div className="overflow-hidden">
-          <img src={imageUrl} className="item-product-image w-100" alt={name} />
-        </div>
-        <div className="p-2">
-          <h6 className="fw-bold mb-1 item-product-title">{name}</h6>
-          <div className="d-flex align-items-center mb-1">
-            <div className="me-2">
-              {[...Array(5)].map((_, index) => (
-                <i
-                  key={index}
-                  className={`fas fa-star ${index < Math.floor(rating) ? 'text-warning' : index < rating ? 'fas fa-star-half-alt text-warning' : 'text-secondary'}`}
-                ></i>
-              ))}
-            </div>
-            <small className="text-muted">({rating}/5)</small>
+    <Link to={`/products/${id}`} className="item-card-link text-decoration-none">
+      <div className="card item-product-card h-100 position-relative">
+        <span
+          className={`badge ${badge === "New" ? "bg-danger" : "bg-success"
+            } position-absolute top-0 end-0 m-2`}
+        >
+          {badge}
+        </span>
+        <img
+          src={imageUrl || ""}
+          className="card-img-top object-fit-cover"
+          alt={name}
+          style={{ height: "200px" }}
+          loading="lazy"
+          onError={(e) => (e.target.src = "https://via.placeholder.com/150")}
+        />
+        <div className="card-body d-flex flex-column">
+          <h5 className="card-title fs-6 fw-bold mb-1">{name}</h5>
+          <div className="d-flex align-items-center mb-2">
+            {Array.from({ length: Math.floor(rating) }).map((_, i) => (
+              <AiFillStar key={i} className="text-warning" size={16} />
+            ))}
+            {rating % 1 !== 0 && <BsStarHalf className="text-warning" size={16} />}
+            <small className="text-muted ms-1">({rating}/5)</small>
           </div>
-          {/* <p className="text-muted mb-1 product-description">{description}</p> */}
-          <div className="d-flex justify-content-between align-items-center">
-            <span className="item-price">{price} vnđ</span>
-            <button className="btn btn-sm item-btn-custom text-white p-2 rounded-pill">Add to Cart</button>
+          <div className="mt-auto d-flex justify-content-between align-items-center">
+            <span className="h5 mb-0">{formatPrice(price)}</span>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={handleAddToCart}
+              aria-label={`Add ${name} to cart`}
+            >
+              Thêm vào giỏ
+            </button>
           </div>
         </div>
       </div>
     </Link>
-
   );
-}
+};
 
-export default Item
+export default Item;

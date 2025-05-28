@@ -57,10 +57,10 @@ public class CartController {
 	 * @param request   DTO containing update details
 	 * @return ResponseEntity with updated cart details
 	 */
-	@PutMapping("/{productId}")
-	public ResponseEntity<ApiResponse<CartResponseDTO>> updateCartItem(@PathVariable Long productId,
+	@PutMapping("/{itemId}")
+	public ResponseEntity<ApiResponse<CartResponseDTO>> updateCartItem(@PathVariable Long itemId,
 			@RequestBody CartItemUpdateRequestDTO request) {
-		CartResponseDTO responseDTO = cartService.updateCartItem(productId, request);
+		CartResponseDTO responseDTO = cartService.updateCartItem(itemId, request);
 		ApiResponse<CartResponseDTO> response = new ApiResponse<>("1000", "Item updated", responseDTO);
 		return ResponseEntity.ok(response);
 	}

@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { FiSearch, FiX, FiGrid, FiList, FiChevronLeft, FiChevronRight, FiFilter } from "react-icons/fi";
-import { AiFillStar } from "react-icons/ai";
-import { BsStarHalf } from "react-icons/bs";
 import { debounce } from "lodash";
 import { useNavigate } from "react-router-dom";
+import { fetchProducts } from "../../../services/ProductService";
+import Item from "../../../components/item/Item";
+import { formatPrice } from "../../../utils/helpers";
 
 const Searchpage = () => {
   const dispatch = useDispatch();
@@ -13,71 +14,53 @@ const Searchpage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState("grid");
   const [showFilters, setShowFilters] = useState(false);
+  const [coffeeProducts, setCoffeeProducts] = useState([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [selectedFilters, setSelectedFilters] = useState({
-    categories: [],
-    priceRange: [0, 100],
-    rating: null,
-    availability: [],
-    brands: [],
+    type: [],
+    priceRange: [0, 1000000],
     tags: [],
   });
   const [sortOption, setSortOption] = useState("newest");
-  const filterRef = useRef(null);
 
-  // Sample products (replace with API call)
-  const coffeeProducts = [
-    {
-      id: 1,
-      productId: 101,
-      name: "Ethiopian Yirgacheffe",
-      description: "Light roast with floral and fruity notes",
-      price: 24.99,
-      rating: 4.5,
-      image: "https://images.unsplash.com/photo-1587734361993-0275331181dd",
-      category: "Whole Beans",
-      inStock: true,
-      brand: "Mochamates",
-      tags: ["Organic", "Single Origin"],
-    },
-    {
-      id: 2,
-      productId: 102,
-      name: "Colombian Supremo",
-      description: "Medium roast with caramel sweetness",
-      price: 19.99,
-      rating: 4.8,
-      image: "https://images.unsplash.com/photo-1587734361993-0275331181dd",
-      category: "Ground Coffee",
-      inStock: true,
-      brand: "Mochamates",
-      tags: ["Mild", "Organic"],
-    },
-  ];
+  useEffect(() => {
+    const getProducts = async () => {
+      try {
+        const result = await fetchProducts(null, currentPage, 15);
+        console.log('check result', result);
 
-  // Debounced search
+        const products = result.products.map((product) => ({
+          ...product,
+          rating: Math.random() * (5 - 3) + 3,
+        }));
+        setCoffeeProducts(products);
+        setTotalPages(result.totalPage);
+        setCurrentPage(result.currentPage);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      }
+    };
+    getProducts();
+  }, [currentPage]);
+
   const handleSearch = useCallback(
     debounce((value) => setSearchQuery(value), 300),
     []
   );
 
-  // Filter change
   const handleFilterChange = useCallback((category, value) => {
     setSelectedFilters((prev) => ({ ...prev, [category]: value }));
   }, []);
 
-  // Clear filters
   const clearFilters = useCallback(() => {
     setSelectedFilters({
-      categories: [],
-      priceRange: [0, 100],
-      rating: null,
-      availability: [],
-      brands: [],
+      type: [],
+      priceRange: [0, 1000000],
       tags: [],
     });
   }, []);
 
-  // Add to cart
   const handleAddToCart = useCallback(
     // (product) => {
     //   if (!isAuthenticated) {
@@ -86,7 +69,7 @@ const Searchpage = () => {
     //   }
     //   dispatch(
     //     addToCart({
-    //       productId: product.productId,
+    //       productId: product.id,
     //       quantity: 1,
     //       selectedOptions: [],
     //     })
@@ -95,22 +78,16 @@ const Searchpage = () => {
     // [dispatch, isAuthenticated, navigate]
   );
 
-  // Filter products
   const filteredProducts = coffeeProducts.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory =
-      selectedFilters.categories.length === 0 ||
-      selectedFilters.categories.includes(product.category);
+    const matchesType =
+      selectedFilters.type.length === 0 || selectedFilters.type.includes(product.type);
     const matchesPrice =
       product.price >= selectedFilters.priceRange[0] &&
       product.price <= selectedFilters.priceRange[1];
-    const matchesTags =
-      selectedFilters.tags.length === 0 ||
-      selectedFilters.tags.every((tag) => product.tags.includes(tag));
-    return matchesSearch && matchesCategory && matchesPrice && matchesTags;
+    return matchesSearch && matchesType && matchesPrice;
   });
 
-  // Sort products
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortOption) {
       case "price-low":
@@ -121,11 +98,10 @@ const Searchpage = () => {
         return b.rating - a.rating;
       case "newest":
       default:
-        return b.id - a.id;
+        return new Date(b.updateAt) - new Date(a.updateAt);
     }
   });
 
-  // Handle clicks outside Offcanvas
   useEffect(() => {
     if (!showFilters) return;
     const offcanvas = new window.bootstrap.Offcanvas(document.getElementById("filterOffcanvas"));
@@ -133,11 +109,22 @@ const Searchpage = () => {
     return () => offcanvas.hide();
   }, [showFilters]);
 
+  const handlePreviousPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages - 1) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
   return (
     <div className="coffee-store bg-light min-vh-100">
-      {/* Header */}
-      <header className="bg-white shadow-sm py-3">
-        <div className="container">
+      <main className="container-fluid p-4">
+        <div className="container mb-3">
           <div className="input-group mx-auto" style={{ maxWidth: "600px" }}>
             <span className="input-group-text bg-white border-end-0">
               <FiSearch className="text-secondary" />
@@ -163,47 +150,39 @@ const Searchpage = () => {
             )}
           </div>
         </div>
-      </header>
-
-      <main className="container py-4">
         <div className="row g-4">
-          {/* Filter Sidebar (Offcanvas on mobile) */}
           <aside className="col-lg-3 d-none d-lg-block">
             <div className="card p-3">
               <h4 className="card-title h5 mb-3">Bộ lọc</h4>
-              {/* Categories */}
               <div className="mb-3">
                 <h5 className="h6">Loại cà phê</h5>
-                {["Ground Coffee", "Whole Beans", "Espresso", "Latte Blends", "Cold Brew"].map(
-                  (category) => (
-                    <div key={category} className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id={`category-${category}`}
-                        checked={selectedFilters.categories.includes(category)}
-                        onChange={(e) => {
-                          const newCategories = e.target.checked
-                            ? [...selectedFilters.categories, category]
-                            : selectedFilters.categories.filter((c) => c !== category);
-                          handleFilterChange("categories", newCategories);
-                        }}
-                      />
-                      <label className="form-check-label" htmlFor={`category-${category}`}>
-                        {category}
-                      </label>
-                    </div>
-                  )
-                )}
+                {["READY_TO_DRINK_COFFEE", "GROUND_COFFEE", "PACKAGED_COFFEE"].map((type) => (
+                  <div key={type} className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id={`type-${type}`}
+                      checked={selectedFilters.type.includes(type)}
+                      onChange={(e) => {
+                        const newTypes = e.target.checked
+                          ? [...selectedFilters.type, type]
+                          : selectedFilters.type.filter((t) => t !== type);
+                        handleFilterChange("type", newTypes);
+                      }}
+                    />
+                    <label className="form-check-label" htmlFor={`type-${type}`}>
+                      {type.replace(/_/g, " ")}
+                    </label>
+                  </div>
+                ))}
               </div>
-              {/* Price Range */}
               <div className="mb-3">
                 <h5 className="h6">Khoảng giá</h5>
                 <input
                   type="range"
                   className="form-range"
                   min="0"
-                  max="100"
+                  max="1000000"
                   value={selectedFilters.priceRange[1]}
                   onChange={(e) =>
                     handleFilterChange("priceRange", [
@@ -214,29 +193,8 @@ const Searchpage = () => {
                   aria-label="Price range"
                 />
                 <div className="d-flex justify-content-between">
-                  <span>${selectedFilters.priceRange[0]}</span>
-                  <span>${selectedFilters.priceRange[1]}</span>
-                </div>
-              </div>
-              {/* Tags */}
-              <div className="mb-3">
-                <h5 className="h6">Thẻ</h5>
-                <div className="d-flex flex-wrap gap-2">
-                  {["Organic", "Strong", "Mild", "Iced", "Single Origin"].map((tag) => (
-                    <button
-                      key={tag}
-                      className={`btn btn-sm ${selectedFilters.tags.includes(tag) ? "btn-primary" : "btn-outline-secondary"
-                        }`}
-                      onClick={() => {
-                        const newTags = selectedFilters.tags.includes(tag)
-                          ? selectedFilters.tags.filter((t) => t !== tag)
-                          : [...selectedFilters.tags, tag];
-                        handleFilterChange("tags", newTags);
-                      }}
-                    >
-                      {tag}
-                    </button>
-                  ))}
+                  <span>{formatPrice(selectedFilters.priceRange[0])}</span>
+                  <span>{formatPrice(selectedFilters.priceRange[1])}</span>
                 </div>
               </div>
               <button className="btn btn-outline-danger w-100" onClick={clearFilters}>
@@ -245,7 +203,6 @@ const Searchpage = () => {
             </div>
           </aside>
 
-          {/* Offcanvas for mobile */}
           <div
             className="offcanvas offcanvas-start"
             tabIndex="-1"
@@ -264,39 +221,35 @@ const Searchpage = () => {
               ></button>
             </div>
             <div className="offcanvas-body">
-              {/* Categories */}
               <div className="mb-3">
                 <h5 className="h6">Loại cà phê</h5>
-                {["Ground Coffee", "Whole Beans", "Espresso", "Latte Blends", "Cold Brew"].map(
-                  (category) => (
-                    <div key={category} className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id={`mobile-category-${category}`}
-                        checked={selectedFilters.categories.includes(category)}
-                        onChange={(e) => {
-                          const newCategories = e.target.checked
-                            ? [...selectedFilters.categories, category]
-                            : selectedFilters.categories.filter((c) => c !== category);
-                          handleFilterChange("categories", newCategories);
-                        }}
-                      />
-                      <label className="form-check-label" htmlFor={`mobile-category-${category}`}>
-                        {category}
-                      </label>
-                    </div>
-                  )
-                )}
+                {["READY_TO_DRINK_COFFEE", "GROUND_COFFEE", "PACKAGED_COFFEE"].map((type) => (
+                  <div key={type} className="form-check">
+                    <input
+                      className="form-check-input"
+                      type="checkbox"
+                      id={`mobile-type-${type}`}
+                      checked={selectedFilters.type.includes(type)}
+                      onChange={(e) => {
+                        const newTypes = e.target.checked
+                          ? [...selectedFilters.type, type]
+                          : selectedFilters.type.filter((t) => t !== type);
+                        handleFilterChange("type", newTypes);
+                      }}
+                    />
+                    <label className="form-check-label" htmlFor={`mobile-type-${type}`}>
+                      {type.replace(/_/g, " ")}
+                    </label>
+                  </div>
+                ))}
               </div>
-              {/* Price Range */}
               <div className="mb-3">
                 <h5 className="h6">Khoảng giá</h5>
                 <input
                   type="range"
                   className="form-range"
                   min="0"
-                  max="100"
+                  max="1000000"
                   value={selectedFilters.priceRange[1]}
                   onChange={(e) =>
                     handleFilterChange("priceRange", [
@@ -311,34 +264,12 @@ const Searchpage = () => {
                   <span>${selectedFilters.priceRange[1]}</span>
                 </div>
               </div>
-              {/* Tags */}
-              <div className="mb-3">
-                <h5 className="h6">Thẻ</h5>
-                <div className="d-flex flex-wrap gap-2">
-                  {["Organic", "Strong", "Mild", "Iced", "Single Origin"].map((tag) => (
-                    <button
-                      key={tag}
-                      className={`btn btn-sm ${selectedFilters.tags.includes(tag) ? "btn-primary" : "btn-outline-secondary"
-                        }`}
-                      onClick={() => {
-                        const newTags = selectedFilters.tags.includes(tag)
-                          ? selectedFilters.tags.filter((t) => t !== tag)
-                          : [...selectedFilters.tags, tag];
-                        handleFilterChange("tags", newTags);
-                      }}
-                    >
-                      {tag}
-                    </button>
-                  ))}
-                </div>
-              </div>
               <button className="btn btn-outline-danger w-100" onClick={clearFilters}>
                 Xóa tất cả bộ lọc
               </button>
             </div>
           </div>
 
-          {/* Products */}
           <section className="col-lg-9">
             <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
               <button
@@ -382,47 +313,44 @@ const Searchpage = () => {
               ) : (
                 sortedProducts.map((product) => (
                   <div key={product.id} className={viewMode === "grid" ? "col" : ""}>
-                    <div className={`card h-100 ${viewMode === "list" ? "flex-row" : ""}`}>
-                      <img
-                        src={product.image}
-                        className={`${viewMode === "grid" ? "card-img-top" : "img-fluid"
-                          } object-fit-cover ${viewMode === "list" ? "w-25" : ""}`}
-                        alt={product.name}
-                        style={viewMode === "list" ? { maxWidth: "150px" } : { height: "200px" }}
-                        loading="lazy"
-                      />
-                      <div className="card-body d-flex flex-column">
-                        <h5 className="card-title">{product.name}</h5>
-                        <p className="card-text text-muted">{product.description}</p>
-                        <div className="d-flex gap-1 mb-2">
-                          {Array.from({ length: Math.floor(product.rating) }).map((_, i) => (
-                            <AiFillStar key={i} className="text-warning" />
-                          ))}
-                          {product.rating % 1 !== 0 && <BsStarHalf className="text-warning" />}
-                        </div>
-                        <div className="mt-auto d-flex justify-content-between align-items-center">
-                          <span className="h5 mb-0">${product.price.toFixed(2)}</span>
-                          <button
-                            className="btn btn-primary"
-                            onClick={() => handleAddToCart(product)}
-                          >
-                            Thêm vào giỏ
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                    <Item
+                      id={product.id}
+                      name={product.name}
+                      imageUrl={product.imageUrl}
+                      price={product.price}
+                      rating={product.rating}
+                      description={product.description}
+                      badge={product.specificAttributesDTO.drinkType || "New"}
+                      options={product.options}
+                    />
                   </div>
                 ))
               )}
             </div>
             <div className="d-flex justify-content-center gap-2 mt-4">
-              <button className="btn btn-outline-secondary" disabled aria-label="Previous page">
+              <button
+                className="btn btn-outline-secondary"
+                onClick={handlePreviousPage}
+                disabled={currentPage === 0}
+                aria-label="Previous page"
+              >
                 <FiChevronLeft />
               </button>
-              <button className="btn btn-primary">1</button>
-              <button className="btn btn-outline-secondary">2</button>
-              <button className="btn btn-outline-secondary">3</button>
-              <button className="btn btn-outline-secondary" aria-label="Next page">
+              {[...Array(totalPages)].map((_, index) => (
+                <button
+                  key={index}
+                  className={`btn ${currentPage === index ? "btn-primary" : "btn-outline-secondary"}`}
+                  onClick={() => setCurrentPage(index)}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                className="btn btn-outline-secondary"
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages - 1}
+                aria-label="Next page"
+              >
                 <FiChevronRight />
               </button>
             </div>

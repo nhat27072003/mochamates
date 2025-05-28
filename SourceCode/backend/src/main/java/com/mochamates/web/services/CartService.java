@@ -102,26 +102,33 @@ public class CartService {
 	}
 
 	@Transactional
-	public CartResponseDTO updateCartItem(Long productId, CartItemUpdateRequestDTO request) {
+	public CartResponseDTO updateCartItem(Long itemId, CartItemUpdateRequestDTO request) {
 		if (request.getQuantity() == null) {
 			throw new IllegalArgumentException("Quantity must be provided for update");
 		}
-		if (request.getSelectedOptions() == null || request.getSelectedOptions().isEmpty()) {
-			throw new IllegalArgumentException("Selected options must be provided to identify the cart item");
-		}
 
 		User user = getAuthenticatedUser();
-		validateProduct(productId);
-		List<OptionDTO> validatedOptions = validateAndFetchOptions(productId, request.getSelectedOptions());
+		Cart cart = cartRepository.findByUserId(user.getId()).orElseThrow(() -> new CartException("Cart not found"));
 
-		Cart cart = cartRepository.findByUserId(user.getId()).orElseThrow(() -> new RuntimeException("Cart not found"));
+		CartItem item = cartItemRepository.findById(itemId).orElseThrow(() -> new CartException("Cart item not found"));
+//
+//		item.setCart(cart);
+//		item.setProductId(request.getProductId());
+//		item.setName(product.getName());
+//		item.setPrice(product.getPrice());
+//		item.setImageUrl(product.getImageUrl());
+//		item.setQuantity(existingItem.isPresent()
+//				? item.getQuantity() + (request.getQuantity() != null ? request.getQuantity() : 1)
+//				: (request.getQuantity() != null ? request.getQuantity() : 1));
+//
+//		updateItemOptionsAndPrice(item, validatedOptions);
 
-		CartItem item = findMatchingCartItem(cart.getId(), productId, validatedOptions)
-				.orElseThrow(() -> new RuntimeException(
-						"Item with product ID " + productId + " and specified options not found in cart"));
-
-		item.setQuantity(Math.max(1, request.getQuantity()));
-		cartItemRepository.save(item);
+		item.setQuantity(Math.max(0, request.getQuantity()));
+		if (item.getQuantity() == 0) {
+			cartItemRepository.delete(item);
+		} else {
+			cartItemRepository.save(item);
+		}
 		return updateCartTotals(cart);
 	}
 

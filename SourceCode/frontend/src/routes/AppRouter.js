@@ -20,57 +20,63 @@ import ProductDetail from '../pages/user/ProductDetail'
 import CartPage from '../pages/user/CartPage'
 import OrdersPage from '../pages/user/orders/OrderPage'
 import Searchpage from '../pages/user/searchPage/SearchPage'
+import { ToastContainer } from 'react-toastify'
+import CheckoutPage from '../pages/user/CheckoutPage'
 
 export const AppRouter = () => {
   const user = useSelector((state) => state.user.currentUser)
   console.log('check user redux', user)
   return (
-    <BrowserRouter>
-      <Routes>
+    <>
+      <ToastContainer position="top-center" autoClose={2000} />
+      <BrowserRouter>
+        <Routes>
 
-        {/* Auth routes */}
-        <Route path="/signin" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/verify-otp" element={<VerifyOTP />} />
+          {/* Auth routes */}
+          <Route path="/signin" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/verify-otp" element={<VerifyOTP />} />
 
-        {/* User layout */}
-        <Route path="/" element={<UserLayout />}>
-          <Route index element={<Home />} />
-          <Route path="products" element={<ProductList />} />
-          <Route path="/products/:id" element={<ProductDetail />} />
-          <Route path="search" element={<Searchpage />} />
-          <Route path="package-coffee" element={<PackCoffeePage />} />
-          <Route path="ready-coffee" element={<ReadyCoffeePage />} />
-          <Route path="ground-coffee" element={<GroundCoffeePage />} />
-          <Route path="cart" element={<CartPage />} />
-          <Route path="order" element={<OrdersPage />} />
-          <Route path="about" element={<About />} />
-          <Route path="contact" element={<Contact />} />
-        </Route>
+          {/* User layout */}
+          <Route path="/" element={<UserLayout />}>
+            <Route index element={<Home />} />
+            <Route path="products" element={<ProductList />} />
+            <Route path="/products/:id" element={<ProductDetail />} />
+            <Route path="search" element={<Searchpage />} />
+            <Route path="package-coffee" element={<PackCoffeePage />} />
+            <Route path="ready-coffee" element={<ReadyCoffeePage />} />
+            <Route path="ground-coffee" element={<GroundCoffeePage />} />
+            <Route path="cart" element={<CartPage />} />
+            <Route path="checkout" element={<CheckoutPage />} />
+            <Route path="order" element={<OrdersPage />} />
+            <Route path="about" element={<About />} />
+            <Route path="contact" element={<Contact />} />
+          </Route>
 
-        <Route
-          element={
-            <PrivateRoute
-              isAuthenticated={!!user}
-              allowedRoles={['ADMIN']} // Chỉ cho phép vai trò ADMIN
-            />
-          }
-        >
-          {adminRoutes.map((route, index) => (
-            <Route key={index} path={route.path} element={route.element}>
-              {route.children?.map((childRoute, childIndex) => (
-                <Route
-                  key={childIndex}
-                  index={childRoute.index}
-                  path={childRoute.path}
-                  element={childRoute.element}
-                />
-              ))}
-            </Route>
-          ))}
-        </Route>
+          <Route
+            element={
+              <PrivateRoute
+                isAuthenticated={!!user}
+                allowedRoles={['ADMIN']} // Chỉ cho phép vai trò ADMIN
+              />
+            }
+          >
+            {adminRoutes.map((route, index) => (
+              <Route key={index} path={route.path} element={route.element}>
+                {route.children?.map((childRoute, childIndex) => (
+                  <Route
+                    key={childIndex}
+                    index={childRoute.index}
+                    path={childRoute.path}
+                    element={childRoute.element}
+                  />
+                ))}
+              </Route>
+            ))}
+          </Route>
 
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </>
   )
 }

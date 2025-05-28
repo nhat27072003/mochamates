@@ -4,6 +4,7 @@ import { useSelector, useDispatch, shallowEqual } from 'react-redux';
 import Button from '../Button/Button';
 import { FaUserEdit, FaKey, FaSignOutAlt } from 'react-icons/fa';
 import { logout } from '../../redux/userSlice';
+import { FiSearch } from 'react-icons/fi';
 
 const Navbar = () => {
   const cartCount = useSelector((state) => state.cart.items.length, shallowEqual);
@@ -127,25 +128,9 @@ const Navbar = () => {
             </li>
           </ul>
           <div className="d-flex align-items-center">
-            <div className="search-bar d-flex align-items-center me-3 position-relative">
-              <i className="bi bi-search me-2 text-dark"></i>
-              <input
-                className="search-input"
-                type="search"
-                placeholder="Tìm kiếm..."
-                aria-label="Tìm kiếm"
-                value={searchQuery}
-                onChange={handleSearchChange}
-              />
-              {searchQuery && (
-                <span
-                  className="search-result text-white bg-dark p-1 rounded"
-                  style={{ zIndex: 1000 }}
-                >
-                  Kết quả cho "{searchQuery}" (Mô phỏng: {searchQuery.length} sản phẩm)
-                </span>
-              )}
-            </div>
+            <Link className="text-white me-4 search" to="/search">
+              <FiSearch /> Tìm Kiếm
+            </Link>
             <Link to="/cart" className="cart-icon text-white position-relative me-4 right-icon">
               <i className="bi bi-cart2" style={{ fontSize: '24px' }}></i>
               {cartCount > 0 && (
@@ -171,18 +156,26 @@ const Navbar = () => {
                       <div className="font-medium text-white">
                         {currentUser?.username || 'User'}
                       </div>
-                      <div className="text-sm text-white">
+                      {/* <div className="text-sm text-white">
                         {currentUser?.userId || 'No email'}
-                      </div>
+                      </div> */}
                     </div>
                     <div className="py-1">
+                      <Link
+                        to="/order"
+                        className="dropdown-item flex items-center"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <FaUserEdit className="mr-3" />
+                        Đơn hàng của tôi
+                      </Link>
                       <Link
                         to="/profile"
                         className="dropdown-item flex items-center"
                         onClick={() => setIsDropdownOpen(false)}
                       >
                         <FaUserEdit className="mr-3" />
-                        Update Profile
+                        Cập nhật thông tin
                       </Link>
                       <Link
                         to="/change-password"
@@ -190,7 +183,7 @@ const Navbar = () => {
                         onClick={() => setIsDropdownOpen(false)}
                       >
                         <FaKey className="mr-3" />
-                        Change Password
+                        Đổi mật khẩu
                       </Link>
                       <button
                         onClick={handleLogout}

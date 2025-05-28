@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { getProdutById } from "../../services/ProductService"; // Typo: should be getProductById
 import { addToCart, updateCartItem, fetchCart } from "../../redux/cartSlice";
+import Comment from "../../components/Comment";
+import { toast } from "react-toastify";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -69,8 +71,8 @@ const ProductDetail = () => {
     }
   }, [id, isAuthenticated, dispatch]);
 
-  // Check if product is in cart
-  const cartItem = cartItems.find((item) => item.productId === Number(id));
+
+  const cartItem = cartItems.find((item) => item.productId === Number(id) ? item.id : null);
 
   const getImageUrl = (imageUrl) => {
     if (!imageUrl || !imageUrl.startsWith("http")) {
@@ -146,7 +148,7 @@ const ProductDetail = () => {
   const handleAddToCart = async () => {
     try {
       if (!isAuthenticated) {
-        navigate("/signin");
+        toast.info("Bạn chưa đăng nhập");
         return;
       }
       const error = validateOptions();
@@ -196,72 +198,12 @@ const ProductDetail = () => {
         quantity,
       };
 
-      console.log("Adding to cart:", cartItem);
       await dispatch(addToCart(cartItem)).unwrap();
-      alert("Đã thêm vào giỏ hàng!");
-      dispatch(fetchCart()); // Refresh cart
+      toast.success("Đã thêm vào giỏ hàng!");
+      dispatch(fetchCart());
     } catch (err) {
       console.error("Error adding to cart:", err);
-      setError(err.message || "Lỗi khi thêm vào giỏ hàng");
-    }
-  };
-
-  const handleUpdateCartItem = async () => {
-    try {
-      if (!isAuthenticated) {
-        navigate("/signin");
-        return;
-      }
-      const error = validateOptions();
-      if (error) {
-        setValidationError(error);
-        return;
-      }
-      if (quantity < 1) {
-        setValidationError("Số lượng phải lớn hơn 0");
-        return;
-      }
-
-      const updatePayload = {
-        selectedOptions: Object.entries(selectedOptions)
-          .filter(([_, valueIds]) => valueIds && (Array.isArray(valueIds) ? valueIds.length > 0 : valueIds))
-          .map(([optionId, valueIds]) => ({
-            id: Number(optionId),
-            name: product.options.find((opt) => opt.id === Number(optionId))?.name || "Option",
-            type: product.options.find((opt) => opt.id === Number(optionId))?.type === "CHECKBOX" ? "checkbox" : "select",
-            isRequired: product.options.find((opt) => opt.id === Number(optionId))?.isRequired || false,
-            values: Array.isArray(valueIds)
-              ? valueIds.map((valueId) => {
-                const opt = product.options.find((opt) => opt.id === Number(optionId));
-                const val = opt?.values.find((v) => v.id === valueId);
-                return {
-                  id: valueId,
-                  value: val?.value || "",
-                  additionalPrice: val?.additionalPrice || 0,
-                };
-              })
-              : (() => {
-                const opt = product.options.find((opt) => opt.id === Number(optionId));
-                const val = opt?.values.find((v) => v.id === valueIds);
-                return [
-                  {
-                    id: valueIds,
-                    value: val?.value || "",
-                    additionalPrice: val?.additionalPrice || 0,
-                  },
-                ];
-              })(),
-          })),
-        quantity,
-      };
-
-      console.log("Updating cart item:", updatePayload);
-      await dispatch(updateCartItem({ productId: Number(product.id), updates: updatePayload })).unwrap();
-      alert("Đã cập nhật giỏ hàng!");
-      dispatch(fetchCart()); // Refresh cart
-    } catch (err) {
-      console.error("Error updating cart:", err);
-      setError(err.message || "Lỗi khi cập nhật giỏ hàng");
+      toast.error(err.message || "Lỗi khi thêm vào giỏ hàng");
     }
   };
 
@@ -456,20 +398,21 @@ const ProductDetail = () => {
                 </div>
                 <button
                   className="btn btn-custom mt-2 text-white"
-                  onClick={cartItem ? handleUpdateCartItem : handleAddToCart}
+                  // cartItem ? handleUpdateCartItem :
+                  onClick={handleAddToCart}
                   disabled={loading || cartStatus === "loading"}
                 >
                   {cartStatus === "loading"
                     ? "Đang xử lý..."
-                    : cartItem
-                      ? "Cập nhật Giỏ Hàng"
-                      : "Thêm vào Giỏ Hàng"}
+                    : "Thêm vào Giỏ Hàng"}
                 </button>
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      <Comment />
     </div>
   );
 };

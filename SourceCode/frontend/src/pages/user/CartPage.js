@@ -4,7 +4,8 @@ import { FiTrash2, FiMinus, FiPlus } from 'react-icons/fi';
 import { motion } from 'framer-motion';
 import { removeFromCart, clearCart, updateCartItem, fetchCart, applyPromoCode } from '../../redux/cartSlice';
 import { formatPrice } from '../../utils/helpers';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 
 const CartPage = () => {
   const dispatch = useDispatch();
@@ -14,31 +15,26 @@ const CartPage = () => {
   const [promoCode, setPromoCode] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [quantities, setQuantities] = useState(
-    cartItems.reduce((acc, item) => ({ ...acc, [item.productId]: item.quantity || 1 }), {})
+    cartItems.reduce((acc, item) => ({ ...acc, [item.id]: item.quantity || 1 }), {})
   );
-  const modalRef = useRef(null); // Ref for modal focus management
-  const firstButtonRef = useRef(null); // Ref for first button in modal
+  const modalRef = useRef(null);
+  const firstButtonRef = useRef(null);
 
-  // Fetch cart on mount if authenticated
   useEffect(() => {
     if (isAuthenticated) {
       dispatch(fetchCart());
-    } else {
-      navigate('/signin');
     }
   }, [dispatch, isAuthenticated, navigate]);
 
-  // Update quantities state when cartItems change
   useEffect(() => {
     setQuantities(
-      cartItems.reduce((acc, item) => ({ ...acc, [item.productId]: item.quantity || 1 }), {})
+      cartItems.reduce((acc, item) => ({ ...acc, [item.id]: item.quantity || 1 }), {})
     );
   }, [cartItems]);
 
-  // Focus management for modal
   useEffect(() => {
     if (showModal && firstButtonRef.current) {
-      firstButtonRef.current.focus(); // Focus the first button when modal opens
+      firstButtonRef.current.focus();
     }
     if (showModal) {
       const handleKeyDown = (e) => {
@@ -66,31 +62,34 @@ const CartPage = () => {
     }
   }, [showModal]);
 
-  const updateQuantity = async (productId, change) => {
-    const newQty = Math.max(1, (quantities[productId] || 1) + change);
-    setQuantities((prev) => ({ ...prev, [productId]: newQty }));
+  const updateQuantity = async (e, change, itemId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const newQty = (quantities[itemId] || 1) + change;
+    setQuantities((prev) => ({ ...prev, [itemId]: newQty }));
 
-    const item = cartItems.find((item) => item.productId === productId);
+    const item = cartItems.find((item) => item.id === itemId);
     if (item) {
       const updatePayload = {
         selectedOptions: item.selectedOptions || [],
         quantity: newQty,
       };
       try {
-        await dispatch(updateCartItem({ productId, updates: updatePayload })).unwrap();
-        // dispatch(fetchCart());
+        await dispatch(updateCartItem({ itemId, updates: updatePayload })).unwrap();
       } catch (err) {
-        console.error("Error updating quantity:", err);
+        toast.error("Có lỗi xảy ra vui lòng thử lại sau ít phút");
       }
     }
   };
 
-  const removeItem = async (productId) => {
+  const removeItem = async (e, productId) => {
+    e.preventDefault();
+    e.stopPropagation();
     try {
       await dispatch(removeFromCart(productId)).unwrap();
       dispatch(fetchCart());
     } catch (err) {
-      console.error("Error removing item:", err);
+      toast.error("Có lỗi xảy ra vui lòng thử lại sau ít phút");
     }
   };
 
@@ -100,29 +99,29 @@ const CartPage = () => {
       setShowModal(false);
       setQuantities({});
     } catch (err) {
-      console.error("Error clearing cart:", err);
+      toast.error("Có lỗi xảy ra vui lòng thử lại sau ít phút");
     }
   };
 
   const handleApplyPromoCode = async () => {
     if (!promoCode) {
-      alert('Vui lòng nhập mã khuyến mãi');
+      toast.info('Vui lòng nhập mã khuyến mãi');
       return;
     }
     try {
       await dispatch(applyPromoCode(promoCode)).unwrap();
       dispatch(fetchCart());
       setPromoCode('');
-      alert('Mã khuyến mãi đã được áp dụng!');
+      toast.info('Mã khuyến mãi đã được áp dụng!');
     } catch (err) {
-      console.error("Error applying promo code:", err);
-      alert(err.message || 'Lỗi khi áp dụng mã khuyến mãi');
+      toast.error("Có lỗi xảy ra vui lòng thử lại sau ít phút");
+
     }
   };
 
   const calculateSubtotal = () => {
     return cartItems.reduce((sum, item) => {
-      const qty = quantities[item.productId] || item.quantity || 1;
+      const qty = quantities[item.id] || item.quantity || 1;
       return sum + (item.totalPrice || item.price || 0) * qty;
     }, 0);
   };
@@ -185,7 +184,7 @@ const CartPage = () => {
 
   return (
     <div className="cart-page">
-      <div className="container">
+      <div className="container-fluid">
         <div class="d-flex direction-column">
           <h1 className="page-title">Giỏ Hàng của bạn</h1>
           {status === 'loading' && (
@@ -196,7 +195,7 @@ const CartPage = () => {
             </div>
           )}
         </div>
-        {cartError && <div className="alert alert-danger">{cartError}</div>}
+        {/* {cartError && <div className="alert alert-danger">{cartError}</div>} */}
         {cartItems.length === 0 && status !== 'loading' ? (
           <div className="empty-cart text-center py-5">
             <h2 className="empty-title">Giỏ hàng của bạn đang trống</h2>
@@ -209,68 +208,70 @@ const CartPage = () => {
               <div className="cart-items">
                 {cartItems.map((item) => (
                   <motion.div
-                    key={item.productId}
+                    key={item.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="cart-item card mb-3"
-                  >
-                    <div className="card-body d-flex align-items-center">
-                      <img
-                        src={item.imageUrl || 'https://via.placeholder.com/80?text=Product+Image'}
-                        alt={item.name}
-                        className="cart-image me-3"
-                        onError={(e) => {
-                          e.target.src = 'https://via.placeholder.com/80?text=Product+Image';
-                        }}
-                      />
-                      <div className="row cart-details flex-grow-1">
-                        <h3 className="col-2 cart-name">{item.name}</h3>
-                        <div className='col-4 option-item'>
-                          {item.selectedOptions?.map((opt) => (
-                            <p key={opt.id} className="cart-option mb-1">
-                              <strong>{opt.name}:</strong> {opt.values.map((val) => val.value).join(', ')}
-                              {opt.values.some((val) => val.additionalPrice > 0) &&
-                                ` (+${formatPrice(opt.values.reduce((sum, val) => sum + (val.additionalPrice || 0), 0))})`}
-                            </p>
-                          ))}
+                  ><Link to={`/products/${item.productId}`}>
+                      <div className="card-body d-flex align-items-center">
+                        <img
+                          src={item.imageUrl || 'https://via.placeholder.com/80?text=Product+Image'}
+                          alt={item.name}
+                          className="cart-image me-3"
+                          onError={(e) => {
+                            e.target.src = 'https://via.placeholder.com/80?text=Product+Image';
+                          }}
+                        />
+                        <div className="row cart-details flex-grow-1">
+                          <h3 className="col-4 cart-name">{item.name}</h3>
+                          <div className='col-4 option-item'>
+                            {item.selectedOptions?.map((opt) => (
+                              <p key={opt.id} className="cart-option mb-1">
+                                <strong>{opt.name}:</strong> {opt.values.map((val) => val.value).join(', ')}
+                                {opt.values.some((val) => val.additionalPrice > 0) &&
+                                  ` (+${formatPrice(opt.values.reduce((sum, val) => sum + (val.additionalPrice || 0), 0))})`}
+                              </p>
+                            ))}
+                          </div>
+                          <p className="col-2 price-text">
+                            {formatPrice(item.price || 0)}
+                          </p>
+                          <div className="col-2 quantity-control d-flex align-items-center ">
+                            <button
+                              className="btn btn-outline-secondary btn-sm"
+                              onClick={(e) => updateQuantity(e, -1, item.id)}
+                              aria-label={`Giảm số lượng ${item.name}`}
+                              disabled={status === 'loading'}
+                            >
+                              <FiMinus />
+                            </button>
+                            <span className="mx-3">{quantities[item.productId] || item.quantity || 1}</span>
+                            <button
+                              className="btn btn-outline-secondary btn-sm"
+                              onClick={(e) => updateQuantity(e, 1, item.id)}
+                              aria-label={`Tăng số lượng ${item.name}`}
+                              disabled={status === 'loading'}
+                            >
+                              <FiPlus />
+                            </button>
+                          </div>
                         </div>
-                        <p className="col-3 price-text">
-                          {formatPrice(item.price || 0)}
-                        </p>
-                        <div className="col-3 quantity-control d-flex align-items-center ">
+                        <div className="cart-price text-end">
+                          <p className="price-text">
+                            {formatPrice((item.totalPrice || item.price || 0) * (quantities[item.productId] || item.quantity || 1))}
+                          </p>
                           <button
-                            className="btn btn-outline-secondary btn-sm"
-                            onClick={() => updateQuantity(item.productId, -1)}
-                            aria-label={`Giảm số lượng ${item.name}`}
+                            className="btn btn-link text-danger"
+                            onClick={(e) => removeItem(e, item.id)}
+                            aria-label={`Xóa ${item.name}`}
                             disabled={status === 'loading'}
                           >
-                            <FiMinus />
-                          </button>
-                          <span className="mx-3">{quantities[item.productId] || item.quantity || 1}</span>
-                          <button
-                            className="btn btn-outline-secondary btn-sm"
-                            onClick={() => updateQuantity(item.productId, 1)}
-                            aria-label={`Tăng số lượng ${item.name}`}
-                            disabled={status === 'loading'}
-                          >
-                            <FiPlus />
+                            <FiTrash2 size={20} />
                           </button>
                         </div>
                       </div>
-                      <div className="cart-price text-end">
-                        <p className="price-text">
-                          {formatPrice((item.totalPrice || item.price || 0) * (quantities[item.productId] || item.quantity || 1))}
-                        </p>
-                        <button
-                          className="btn btn-link text-danger"
-                          onClick={() => removeItem(item.id)}
-                          aria-label={`Xóa ${item.name}`}
-                          disabled={status === 'loading'}
-                        >
-                          <FiTrash2 size={20} />
-                        </button>
-                      </div>
-                    </div>
+                    </Link>
+
                   </motion.div>
                 ))}
               </div>

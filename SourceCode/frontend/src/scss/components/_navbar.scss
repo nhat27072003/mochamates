@@ -43,40 +43,9 @@
       }
     }
 
-    .search-bar {
-      background-color: $white;
-      border-radius: 20px;
-      padding: 5px 10px;
-      width: 250px;
-      transition: $transition;
-
-      &:focus-within {
-        transform: translateX(3px); // Phóng to nhẹ
-      }
-
-      .search-input {
-        border: none;
-        outline: none;
-        background: transparent;
-        font-size: 0.9rem;
-        width: 100%;
-
-        &::placeholder {
-          color: $gray-600;
-        }
-
-        // Hiệu ứng focus cho search-input
-        &:focus {
-          color: $primary-brown; // Đổi màu chữ khi focus
-          caret-color: $accent-orange; // Đổi màu con trỏ nháy
-        }
-      }
-
-      .search-result {
-        font-size: 0.8rem;
-        padding: 5px;
-        border-radius: 5px;
-        margin-top: 5px;
+    .search {
+      &:hover {
+        @include hover-effect;
       }
     }
 
