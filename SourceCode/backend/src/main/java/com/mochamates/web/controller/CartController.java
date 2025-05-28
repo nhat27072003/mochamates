@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mochamates.web.dto.cart.CartItemRequestDTO;
 import com.mochamates.web.dto.cart.CartItemUpdateRequestDTO;
 import com.mochamates.web.dto.cart.CartResponseDTO;
-import com.mochamates.web.dto.cart.DeleteCartItemRequestDTO;
 import com.mochamates.web.response.ApiResponse;
 import com.mochamates.web.services.CartService;
 
@@ -72,10 +71,9 @@ public class CartController {
 	 * @param productId ID of the product to remove
 	 * @return ResponseEntity with updated cart details
 	 */
-	@DeleteMapping("/{productId}")
-	public ResponseEntity<ApiResponse<CartResponseDTO>> removeCartItem(@PathVariable Long productId,
-			@RequestBody DeleteCartItemRequestDTO selectedOptions) {
-		CartResponseDTO responseDTO = cartService.removeCartItem(productId, selectedOptions);
+	@DeleteMapping("/{itemId}")
+	public ResponseEntity<ApiResponse<CartResponseDTO>> removeCartItem(@PathVariable Long itemId) {
+		CartResponseDTO responseDTO = cartService.removeCartItem(itemId);
 		ApiResponse<CartResponseDTO> response = new ApiResponse<>("1000", "Item removed", responseDTO);
 		return ResponseEntity.ok(response);
 	}

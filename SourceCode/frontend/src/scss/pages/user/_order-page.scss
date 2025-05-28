@@ -137,7 +137,8 @@
             background: lighten($background-light, 2%);
           }
 
-          td {
+          td,
+          .items-column {
             padding: 1rem;
             vertical-align: top;
             /* Căn đỉnh để items không bị lệch */

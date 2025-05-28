@@ -201,18 +201,16 @@ const OrdersPage = () => {
                         <td>{order.id}</td>
                         <td>{formatDate(order.createdAt)}</td>
                         <div className='items-column'>
-                          <td >
-                            {order.items.map((item, index) => (
-                              <div key={index} className="item-container">
-                                <img
-                                  src={item.imageUrl || 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd'}
-                                  alt={item.name}
-                                  onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd'}
-                                />
-                                <span>{item.name} (x{item.quantity})</span>
-                              </div>
-                            ))}
-                          </td>
+                          {order.items.map((item, index) => (
+                            <div key={index} className="item-container">
+                              <img
+                                src={item.imageUrl || 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd'}
+                                alt={item.name}
+                                onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd'}
+                              />
+                              <span>{item.name} (x{item.quantity})</span>
+                            </div>
+                          ))}
                         </div>
 
                         <td>${order.total?.toFixed(2) || '0.00'}</td>

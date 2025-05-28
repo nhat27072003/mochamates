@@ -11,10 +11,9 @@ export const fetchCart = createAsyncThunk(
       const { user } = getState();
       const token = user.token;
       if (!token) return rejectWithValue("No authentication token");
-      const response = await axiosClient.get(API_URL, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      return response;
+      const response = await axiosClient.get('/api/v1/cart');
+      console.log('check get cart', response)
+      return response.data;
     } catch (error) {
       console.error("Fetch cart error:", error);
       return rejectWithValue(error.response?.message || "Failed to fetch cart");
@@ -30,9 +29,7 @@ export const addToCart = createAsyncThunk(
       const token = user.token;
       if (!token) return rejectWithValue("No authentication token");
       console.log("Sending cart item to API:", item);
-      const response = await axiosClient.post(API_URL, item, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axiosClient.post('/api/v1/cart', item);
       console.log("API response:", response);
       return response;
     } catch (error) {
@@ -52,7 +49,8 @@ export const updateCartItem = createAsyncThunk(
       const response = await axiosClient.put(`${API_URL}/${productId}`, updates, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      return response;
+      console.log('check reponse update', response)
+      return response.data;
     } catch (error) {
       console.error("Update cart error:", error);
       return rejectWithValue(error.response?.message || "Failed to update cart item");
@@ -62,14 +60,13 @@ export const updateCartItem = createAsyncThunk(
 
 export const removeFromCart = createAsyncThunk(
   "cart/removeFromCart",
-  async (productId, { getState, rejectWithValue }) => {
+  async (itemId, { getState, rejectWithValue }) => {
     try {
       const { user } = getState();
       const token = user.token;
       if (!token) return rejectWithValue("No authentication token");
-      const response = await axiosClient.delete(`${API_URL}/${productId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axiosClient.delete(`/api/v1/cart/${itemId}`)
+      console.log('check delete item ', response)
       return response;
     } catch (error) {
       console.error("Remove from cart error:", error);
@@ -85,9 +82,7 @@ export const clearCart = createAsyncThunk(
       const { user } = getState();
       const token = user.token;
       if (!token) return rejectWithValue("No authentication token");
-      await axiosClient.delete(API_URL, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axiosClient.delete('/api/v1/cart');
       return { items: [], subtotal: 0, shipping: 10000, total: 10000 };
     } catch (error) {
       console.error("Clear cart error:", error);

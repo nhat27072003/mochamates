@@ -1,37 +1,40 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { getProdutById } from "../../services/ProductService";
-import { addToCart } from "../../redux/cartSlice";
+import { getProdutById } from "../../services/ProductService"; // Typo: should be getProductById
+import { addToCart, updateCartItem, fetchCart } from "../../redux/cartSlice";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
+  const cartItems = useSelector((state) => state.cart.items);
   const cartStatus = useSelector((state) => state.cart.status);
   const cartError = useSelector((state) => state.cart.error);
   const [product, setProduct] = useState(null);
   const [selectedOptions, setSelectedOptions] = useState({});
+  const [quantity, setQuantity] = useState(1); // Added quantity state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [validationError, setValidationError] = useState(null);
 
   const PLACEHOLDER_IMAGE = "https://via.placeholder.com/300?text=Product+Image";
 
+  // Fetch product and cart on mount
   useEffect(() => {
     const loadProduct = async () => {
       try {
         setLoading(true);
         setError(null);
-        const data = await getProdutById(id);
-        console.log("Product data:", data);
+        const data = await getProdutById(id); // Fix typo in service name if needed
         if (!data || !data.id) {
           throw new Error("Invalid product data");
         }
         setProduct({
           ...data,
-          price: data.price ? data.price.toString() : "",
+          price: data.price ? data.price.toString() : "0",
+          imageUrl: data.imageUrl || PLACEHOLDER_IMAGE,
           specificAttributesDTO: {
             drinkType: data.specificAttributesDTO?.drinkType || "",
             ingredients: data.specificAttributesDTO?.ingredients || "",
@@ -61,7 +64,13 @@ const ProductDetail = () => {
       }
     };
     loadProduct();
-  }, [id]);
+    if (isAuthenticated) {
+      dispatch(fetchCart()); // Fetch cart to check if product is already in cart
+    }
+  }, [id, isAuthenticated, dispatch]);
+
+  // Check if product is in cart
+  const cartItem = cartItems.find((item) => item.productId === Number(id));
 
   const getImageUrl = (imageUrl) => {
     if (!imageUrl || !imageUrl.startsWith("http")) {
@@ -137,7 +146,7 @@ const ProductDetail = () => {
   const handleAddToCart = async () => {
     try {
       if (!isAuthenticated) {
-        navigate('/signin');
+        navigate("/signin");
         return;
       }
       const error = validateOptions();
@@ -145,22 +154,114 @@ const ProductDetail = () => {
         setValidationError(error);
         return;
       }
+      if (quantity < 1) {
+        setValidationError("Số lượng phải lớn hơn 0");
+        return;
+      }
+
       const cartItem = {
-        productId: product.id,
-        quantity: 1, // API yêu cầu quantity
+        productId: Number(product.id),
+        name: product.name,
+        price: Number(product.price),
+        imageUrl: product.imageUrl,
         selectedOptions: Object.entries(selectedOptions)
           .filter(([_, valueIds]) => valueIds && (Array.isArray(valueIds) ? valueIds.length > 0 : valueIds))
           .map(([optionId, valueIds]) => ({
-            optionId: Number(optionId),
-            valueIds: Array.isArray(valueIds) ? valueIds : [valueIds],
+            id: Number(optionId),
+            name: product.options.find((opt) => opt.id === Number(optionId))?.name || "Option",
+            type: product.options.find((opt) => opt.id === Number(optionId))?.type === "CHECKBOX" ? "checkbox" : "select",
+            isRequired: product.options.find((opt) => opt.id === Number(optionId))?.isRequired || false,
+            values: Array.isArray(valueIds)
+              ? valueIds.map((valueId) => {
+                const opt = product.options.find((opt) => opt.id === Number(optionId));
+                const val = opt?.values.find((v) => v.id === valueId);
+                return {
+                  id: valueId,
+                  value: val?.value || "",
+                  additionalPrice: val?.additionalPrice || 0,
+                };
+              })
+              : (() => {
+                const opt = product.options.find((opt) => opt.id === Number(optionId));
+                const val = opt?.values.find((v) => v.id === valueIds);
+                return [
+                  {
+                    id: valueIds,
+                    value: val?.value || "",
+                    additionalPrice: val?.additionalPrice || 0,
+                  },
+                ];
+              })(),
           })),
+        quantity,
       };
+
       console.log("Adding to cart:", cartItem);
       await dispatch(addToCart(cartItem)).unwrap();
       alert("Đã thêm vào giỏ hàng!");
+      dispatch(fetchCart()); // Refresh cart
     } catch (err) {
       console.error("Error adding to cart:", err);
       setError(err.message || "Lỗi khi thêm vào giỏ hàng");
+    }
+  };
+
+  const handleUpdateCartItem = async () => {
+    try {
+      if (!isAuthenticated) {
+        navigate("/signin");
+        return;
+      }
+      const error = validateOptions();
+      if (error) {
+        setValidationError(error);
+        return;
+      }
+      if (quantity < 1) {
+        setValidationError("Số lượng phải lớn hơn 0");
+        return;
+      }
+
+      const updatePayload = {
+        selectedOptions: Object.entries(selectedOptions)
+          .filter(([_, valueIds]) => valueIds && (Array.isArray(valueIds) ? valueIds.length > 0 : valueIds))
+          .map(([optionId, valueIds]) => ({
+            id: Number(optionId),
+            name: product.options.find((opt) => opt.id === Number(optionId))?.name || "Option",
+            type: product.options.find((opt) => opt.id === Number(optionId))?.type === "CHECKBOX" ? "checkbox" : "select",
+            isRequired: product.options.find((opt) => opt.id === Number(optionId))?.isRequired || false,
+            values: Array.isArray(valueIds)
+              ? valueIds.map((valueId) => {
+                const opt = product.options.find((opt) => opt.id === Number(optionId));
+                const val = opt?.values.find((v) => v.id === valueId);
+                return {
+                  id: valueId,
+                  value: val?.value || "",
+                  additionalPrice: val?.additionalPrice || 0,
+                };
+              })
+              : (() => {
+                const opt = product.options.find((opt) => opt.id === Number(optionId));
+                const val = opt?.values.find((v) => v.id === valueIds);
+                return [
+                  {
+                    id: valueIds,
+                    value: val?.value || "",
+                    additionalPrice: val?.additionalPrice || 0,
+                  },
+                ];
+              })(),
+          })),
+        quantity,
+      };
+
+      console.log("Updating cart item:", updatePayload);
+      await dispatch(updateCartItem({ productId: Number(product.id), updates: updatePayload })).unwrap();
+      alert("Đã cập nhật giỏ hàng!");
+      dispatch(fetchCart()); // Refresh cart
+    } catch (err) {
+      console.error("Error updating cart:", err);
+      setError(err.message || "Lỗi khi cập nhật giỏ hàng");
     }
   };
 
@@ -336,15 +437,33 @@ const ProductDetail = () => {
                   </div>
                 )}
 
+                <div className="quantity-section mt-3">
+                  <label className="form-label small">Số lượng:</label>
+                  <input
+                    type="number"
+                    className="form-control form-control-sm w-25"
+                    min="1"
+                    value={quantity}
+                    onChange={(e) => {
+                      setQuantity(parseInt(e.target.value) || 1);
+                      setValidationError(null);
+                    }}
+                  />
+                </div>
+
                 <div className="total-price mt-3">
-                  <h5 className="price-text">Tổng: {formatPrice(calculateTotalPrice())}</h5>
+                  <h5 className="price-text">Tổng: {formatPrice(calculateTotalPrice() * quantity)}</h5>
                 </div>
                 <button
                   className="btn btn-custom mt-2 text-white"
-                  onClick={handleAddToCart}
-                  disabled={loading || cartStatus === 'loading'}
+                  onClick={cartItem ? handleUpdateCartItem : handleAddToCart}
+                  disabled={loading || cartStatus === "loading"}
                 >
-                  {cartStatus === 'loading' ? 'Đang thêm...' : 'Thêm vào Giỏ Hàng'}
+                  {cartStatus === "loading"
+                    ? "Đang xử lý..."
+                    : cartItem
+                      ? "Cập nhật Giỏ Hàng"
+                      : "Thêm vào Giỏ Hàng"}
                 </button>
               </div>
             </div>

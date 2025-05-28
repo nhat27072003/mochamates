@@ -69,14 +69,19 @@ export const refreshToken = createAsyncThunk(
   "user/refreshToken",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/refresh`);
-      const decoded = jwtDecode(response.data.accessToken);
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/v1/auth/refresh`, {}, {
+        withCredentials: true
+      });
+      console.log('check response', response)
+
+      const decoded = jwtDecode(response.data.data.accessToken);
       return {
-        accessToken: response.data.accessToken,
+        accessToken: response.data.data.accessToken,
         userId: decoded.sub,
         role: decoded.role,
       };
     } catch (error) {
+      console.log(error)
       return rejectWithValue(error.response?.data?.message || "Token refresh failed");
     }
   }

@@ -1,7 +1,7 @@
 .cart-page {
   background-color: $background-light;
   min-height: 100vh;
-  padding: 3rem 0;
+  padding: 1rem 0;
 
   .page-title {
     font-family: $font-family;
@@ -9,7 +9,6 @@
     font-size: 1.4rem;
     font-weight: 600;
     text-transform: uppercase;
-    margin-top: 2rem;
   }
 
   .empty-cart {
@@ -49,6 +48,17 @@
 
       &:hover {
         box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+      }
+
+      .cart-details {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+
+        .option-item {
+          display: flex;
+          flex-direction: column;
+        }
       }
 
       .cart-image {

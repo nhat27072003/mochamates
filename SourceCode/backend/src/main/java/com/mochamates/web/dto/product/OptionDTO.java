@@ -6,7 +6,7 @@ public class OptionDTO {
 	private Long id;
 	private String name;
 	private String type;
-	private boolean isRequired;
+	private boolean required;
 
 	private List<OptionValueDTO> values;
 
@@ -35,11 +35,11 @@ public class OptionDTO {
 	}
 
 	public boolean isRequired() {
-		return isRequired;
+		return required;
 	}
 
-	public void setRequired(boolean isRequired) {
-		this.isRequired = isRequired;
+	public void setRequired(boolean required) {
+		this.required = required;
 	}
 
 	public List<OptionValueDTO> getValues() {

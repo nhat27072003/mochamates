@@ -14,7 +14,6 @@ import com.mochamates.web.dto.cart.CartItemDTO;
 import com.mochamates.web.dto.cart.CartItemRequestDTO;
 import com.mochamates.web.dto.cart.CartItemUpdateRequestDTO;
 import com.mochamates.web.dto.cart.CartResponseDTO;
-import com.mochamates.web.dto.cart.DeleteCartItemRequestDTO;
 import com.mochamates.web.dto.product.OptionDTO;
 import com.mochamates.web.dto.product.OptionValueDTO;
 import com.mochamates.web.entities.User;
@@ -24,6 +23,7 @@ import com.mochamates.web.entities.products.CoffeeProduct;
 import com.mochamates.web.entities.products.Option;
 import com.mochamates.web.entities.products.OptionValue;
 import com.mochamates.web.entities.products.ProductOption;
+import com.mochamates.web.exception.CartException;
 import com.mochamates.web.exception.InvalidProductInfoException;
 import com.mochamates.web.exception.ProductNotFoundException;
 import com.mochamates.web.exception.UserNotFoundException;
@@ -126,15 +126,12 @@ public class CartService {
 	}
 
 	@Transactional
-	public CartResponseDTO removeCartItem(Long productId, DeleteCartItemRequestDTO selectedOptions) {
+	public CartResponseDTO removeCartItem(Long itemId) {
 		User user = getAuthenticatedUser();
-		validateProduct(productId);
-		List<OptionDTO> validatedOptions = validateAndFetchOptions(productId, selectedOptions.getSelectedOptions());
 
-		Cart cart = cartRepository.findByUserId(user.getId()).orElseThrow(() -> new RuntimeException("Cart not found"));
+		Cart cart = cartRepository.findByUserId(user.getId()).orElseThrow(() -> new CartException("Cart not found"));
 
-		CartItem item = findMatchingCartItem(cart.getId(), productId, validatedOptions)
-				.orElseThrow(() -> new RuntimeException("Item not found in cart with specified options"));
+		CartItem item = cartItemRepository.findById(itemId).orElseThrow(() -> new CartException("Cart item not found"));
 
 		cartItemRepository.delete(item);
 		return updateCartTotals(cart);
@@ -230,6 +227,7 @@ public class CartService {
 		String optionsJson;
 		try {
 			optionsJson = objectMapper.writeValueAsString(selectedOptions);
+			System.out.println("check delete" + cartItems.stream().toString());
 		} catch (Exception e) {
 			throw new RuntimeException("Error serializing options: " + e.getMessage(), e);
 		}

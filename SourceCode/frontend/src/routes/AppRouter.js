@@ -8,7 +8,6 @@ import Register from '../pages/auth/Register'
 import VerifyOTP from '../pages/auth/VerifyOTP'
 import Home from '../pages/user/Home'
 import ProductList from '../pages/user/productList/ProductList'
-import SearchPage from '../pages/user/searchPage/SearchPage'
 import PackCoffeePage from '../pages/user/categories/PackageCoffeePage'
 import ReadyCoffeePage from '../pages/user/categories/ReadyCoffeePage'
 import GroundCoffeePage from '../pages/user/categories/GroundCoffeePage'
@@ -20,6 +19,7 @@ import PrivateRoute from './PrivateRoute'
 import ProductDetail from '../pages/user/ProductDetail'
 import CartPage from '../pages/user/CartPage'
 import OrdersPage from '../pages/user/orders/OrderPage'
+import Searchpage from '../pages/user/searchPage/SearchPage'
 
 export const AppRouter = () => {
   const user = useSelector((state) => state.user.currentUser)
@@ -38,7 +38,7 @@ export const AppRouter = () => {
           <Route index element={<Home />} />
           <Route path="products" element={<ProductList />} />
           <Route path="/products/:id" element={<ProductDetail />} />
-          <Route path="search" element={<SearchPage />} />
+          <Route path="search" element={<Searchpage />} />
           <Route path="package-coffee" element={<PackCoffeePage />} />
           <Route path="ready-coffee" element={<ReadyCoffeePage />} />
           <Route path="ground-coffee" element={<GroundCoffeePage />} />

@@ -1,88 +1,203 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { FiTrash2, FiMinus, FiPlus } from 'react-icons/fi';
 import { motion } from 'framer-motion';
-import { removeFromCart, clearCart } from '../../redux/cartSlice';
+import { removeFromCart, clearCart, updateCartItem, fetchCart, applyPromoCode } from '../../redux/cartSlice';
 import { formatPrice } from '../../utils/helpers';
+import { useNavigate } from 'react-router-dom';
 
 const CartPage = () => {
   const dispatch = useDispatch();
-  const cartItems = useSelector((state) => state.cart.items);
+  const navigate = useNavigate();
+  const { items: cartItems, status, error: cartError } = useSelector((state) => state.cart);
+  const isAuthenticated = useSelector((state) => state.user.isAuthenticated);
   const [promoCode, setPromoCode] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [quantities, setQuantities] = useState(
     cartItems.reduce((acc, item) => ({ ...acc, [item.productId]: item.quantity || 1 }), {})
   );
+  const modalRef = useRef(null); // Ref for modal focus management
+  const firstButtonRef = useRef(null); // Ref for first button in modal
 
-  const updateQuantity = (productId, change) => {
-    setQuantities((prev) => {
-      const newQty = Math.max(1, (prev[productId] || 1) + change);
-      return { ...prev, [productId]: newQty };
-    });
+  // Fetch cart on mount if authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchCart());
+    } else {
+      navigate('/signin');
+    }
+  }, [dispatch, isAuthenticated, navigate]);
+
+  // Update quantities state when cartItems change
+  useEffect(() => {
+    setQuantities(
+      cartItems.reduce((acc, item) => ({ ...acc, [item.productId]: item.quantity || 1 }), {})
+    );
+  }, [cartItems]);
+
+  // Focus management for modal
+  useEffect(() => {
+    if (showModal && firstButtonRef.current) {
+      firstButtonRef.current.focus(); // Focus the first button when modal opens
+    }
+    if (showModal) {
+      const handleKeyDown = (e) => {
+        if (e.key === 'Escape') {
+          setShowModal(false);
+        }
+        if (e.key === 'Tab' && modalRef.current) {
+          const focusableElements = modalRef.current.querySelectorAll(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+          );
+          const firstElement = focusableElements[0];
+          const lastElement = focusableElements[focusableElements.length - 1];
+
+          if (e.shiftKey && document.activeElement === firstElement) {
+            e.preventDefault();
+            lastElement.focus();
+          } else if (!e.shiftKey && document.activeElement === lastElement) {
+            e.preventDefault();
+            firstElement.focus();
+          }
+        }
+      };
+      document.addEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [showModal]);
+
+  const updateQuantity = async (productId, change) => {
+    const newQty = Math.max(1, (quantities[productId] || 1) + change);
+    setQuantities((prev) => ({ ...prev, [productId]: newQty }));
+
+    const item = cartItems.find((item) => item.productId === productId);
+    if (item) {
+      const updatePayload = {
+        selectedOptions: item.selectedOptions || [],
+        quantity: newQty,
+      };
+      try {
+        await dispatch(updateCartItem({ productId, updates: updatePayload })).unwrap();
+        // dispatch(fetchCart());
+      } catch (err) {
+        console.error("Error updating quantity:", err);
+      }
+    }
   };
 
-  const removeItem = (productId) => {
-    dispatch(removeFromCart(productId));
+  const removeItem = async (productId) => {
+    try {
+      await dispatch(removeFromCart(productId)).unwrap();
+      dispatch(fetchCart());
+    } catch (err) {
+      console.error("Error removing item:", err);
+    }
   };
 
-  const handleClearCart = () => {
-    dispatch(clearCart());
-    setShowModal(false);
-    setQuantities({});
+  const handleClearCart = async () => {
+    try {
+      await dispatch(clearCart()).unwrap();
+      setShowModal(false);
+      setQuantities({});
+    } catch (err) {
+      console.error("Error clearing cart:", err);
+    }
+  };
+
+  const handleApplyPromoCode = async () => {
+    if (!promoCode) {
+      alert('Vui lòng nhập mã khuyến mãi');
+      return;
+    }
+    try {
+      await dispatch(applyPromoCode(promoCode)).unwrap();
+      dispatch(fetchCart());
+      setPromoCode('');
+      alert('Mã khuyến mãi đã được áp dụng!');
+    } catch (err) {
+      console.error("Error applying promo code:", err);
+      alert(err.message || 'Lỗi khi áp dụng mã khuyến mãi');
+    }
   };
 
   const calculateSubtotal = () => {
     return cartItems.reduce((sum, item) => {
-      const qty = quantities[item.productId] || 1;
-      return sum + (item.totalPrice || 0) * qty;
+      const qty = quantities[item.productId] || item.quantity || 1;
+      return sum + (item.totalPrice || item.price || 0) * qty;
     }, 0);
   };
 
-  const shipping = 10000; // Fixed shipping cost in VND
+  const shipping = 10000;
   const total = calculateSubtotal() + shipping;
 
   const ConfirmationModal = () => (
-    <div className="modal fade show d-block" tabIndex="-1" aria-labelledby="modalLabel" aria-hidden="true">
-      <div className="modal-dialog">
-        <div className="modal-content">
-          <div className="modal-header">
-            <h5 className="modal-title" id="modalLabel">Xóa giỏ hàng?</h5>
-            <button
-              type="button"
-              className="btn-close"
-              onClick={() => setShowModal(false)}
-              aria-label="Close"
-            ></button>
-          </div>
-          <div className="modal-body">
-            Bạn có chắc muốn xóa tất cả sản phẩm trong giỏ hàng không?
-          </div>
-          <div className="modal-footer">
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => setShowModal(false)}
-            >
-              Hủy
-            </button>
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={handleClearCart}
-            >
-              Xóa tất cả
-            </button>
+    <>
+      <div
+        className="modal-backdrop fade show"
+        onClick={() => setShowModal(false)}
+        style={{ zIndex: 1040 }}
+      ></div>
+      <div
+        className="modal fade show d-block"
+        tabIndex="-1"
+        aria-labelledby="modalLabel"
+        aria-hidden={showModal ? "false" : "true"}
+        ref={modalRef}
+        role="dialog"
+        style={{ zIndex: 1050 }}
+      >
+        <div className="modal-dialog">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title" id="modalLabel">Xóa giỏ hàng?</h5>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={() => setShowModal(false)}
+                aria-label="Close"
+              ></button>
+            </div>
+            <div className="modal-body">
+              Bạn có chắc muốn xóa tất cả sản phẩm trong giỏ hàng không?
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setShowModal(false)}
+                ref={firstButtonRef}
+              >
+                Hủy
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={handleClearCart}
+              >
+                Xóa tất cả
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 
   return (
     <div className="cart-page">
       <div className="container">
-        <h1 className="page-title">Giỏ Hàng của bạn</h1>
-        {cartItems.length === 0 ? (
+        <div class="d-flex direction-column">
+          <h1 className="page-title">Giỏ Hàng của bạn</h1>
+          {status === 'loading' && (
+            < div className="text-center ms-2">
+              <div className="spinner-border" role="status">
+                <span className="visually-hidden">Đang tải...</span>
+              </div>
+            </div>
+          )}
+        </div>
+        {cartError && <div className="alert alert-danger">{cartError}</div>}
+        {cartItems.length === 0 && status !== 'loading' ? (
           <div className="empty-cart text-center py-5">
             <h2 className="empty-title">Giỏ hàng của bạn đang trống</h2>
             <p className="empty-text">Khám phá các sản phẩm cà phê tuyệt vời của chúng tôi!</p>
@@ -108,28 +223,35 @@ const CartPage = () => {
                           e.target.src = 'https://via.placeholder.com/80?text=Product+Image';
                         }}
                       />
-                      <div className="cart-details flex-grow-1">
-                        <h3 className="cart-name">{item.name}</h3>
-                        {item.selectedOptions?.map((opt) => (
-                          <p key={opt.optionId} className="cart-option mb-1">
-                            <strong>{opt.name}:</strong> {opt.values.map((val) => val.value).join(', ')}
-                            {opt.values.some((val) => val.additionalPrice > 0) &&
-                              ` (+${formatPrice(opt.values.reduce((sum, val) => sum + (val.additionalPrice || 0), 0))})`}
-                          </p>
-                        ))}
-                        <div className="quantity-control d-flex align-items-center mt-2">
+                      <div className="row cart-details flex-grow-1">
+                        <h3 className="col-2 cart-name">{item.name}</h3>
+                        <div className='col-4 option-item'>
+                          {item.selectedOptions?.map((opt) => (
+                            <p key={opt.id} className="cart-option mb-1">
+                              <strong>{opt.name}:</strong> {opt.values.map((val) => val.value).join(', ')}
+                              {opt.values.some((val) => val.additionalPrice > 0) &&
+                                ` (+${formatPrice(opt.values.reduce((sum, val) => sum + (val.additionalPrice || 0), 0))})`}
+                            </p>
+                          ))}
+                        </div>
+                        <p className="col-3 price-text">
+                          {formatPrice(item.price || 0)}
+                        </p>
+                        <div className="col-3 quantity-control d-flex align-items-center ">
                           <button
                             className="btn btn-outline-secondary btn-sm"
                             onClick={() => updateQuantity(item.productId, -1)}
                             aria-label={`Giảm số lượng ${item.name}`}
+                            disabled={status === 'loading'}
                           >
                             <FiMinus />
                           </button>
-                          <span className="mx-3">{quantities[item.productId] || 1}</span>
+                          <span className="mx-3">{quantities[item.productId] || item.quantity || 1}</span>
                           <button
                             className="btn btn-outline-secondary btn-sm"
                             onClick={() => updateQuantity(item.productId, 1)}
                             aria-label={`Tăng số lượng ${item.name}`}
+                            disabled={status === 'loading'}
                           >
                             <FiPlus />
                           </button>
@@ -137,12 +259,13 @@ const CartPage = () => {
                       </div>
                       <div className="cart-price text-end">
                         <p className="price-text">
-                          {formatPrice((item.totalPrice || 0) * (quantities[item.productId] || 1))}
+                          {formatPrice((item.totalPrice || item.price || 0) * (quantities[item.productId] || item.quantity || 1))}
                         </p>
                         <button
                           className="btn btn-link text-danger"
-                          onClick={() => removeItem(item.productId)}
+                          onClick={() => removeItem(item.id)}
                           aria-label={`Xóa ${item.name}`}
+                          disabled={status === 'loading'}
                         >
                           <FiTrash2 size={20} />
                         </button>
@@ -170,23 +293,34 @@ const CartPage = () => {
                       <span>{formatPrice(total)}</span>
                     </div>
                   </div>
-                  <input
-                    type="text"
-                    className="form-control mb-3"
-                    placeholder="Mã khuyến mãi"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                  />
+                  <div className="input-group mb-3">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Mã khuyến mãi"
+                      value={promoCode}
+                      onChange={(e) => setPromoCode(e.target.value)}
+                    />
+                    <button
+                      className="btn btn-outline-secondary"
+                      onClick={handleApplyPromoCode}
+                      disabled={status === 'loading' || !promoCode}
+                    >
+                      Áp dụng
+                    </button>
+                  </div>
                   <div className="d-grid gap-2">
                     <button
                       className="btn btn-primary"
-                      onClick={() => alert('Chuyển đến trang thanh toán (chưa triển khai)!')}
+                      onClick={() => navigate('/checkout')}
+                      disabled={status === 'loading' || cartItems.length === 0}
                     >
                       Thanh Toán
                     </button>
                     <button
                       className="btn btn-outline-danger"
                       onClick={() => setShowModal(true)}
+                      disabled={status === 'loading' || cartItems.length === 0}
                     >
                       Xóa Giỏ Hàng
                     </button>
@@ -198,7 +332,7 @@ const CartPage = () => {
         )}
         {showModal && <ConfirmationModal />}
       </div>
-    </div>
+    </div >
   );
 };
 

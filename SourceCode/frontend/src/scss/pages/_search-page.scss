@@ -1,0 +1,418 @@
+
+.coffee-store {
+  background-color: $background-light;
+  min-height: 100vh;
+  font-family: $font-family;
+
+  &__header {
+    @include card-style;
+    background-color: $white;
+    padding: 1rem;
+    position: 'sticky';
+    top: 0;
+    z-index: 10;
+  }
+
+  &__search {
+    @include card-style;
+    display: flex;
+    align-items: center;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 0.5rem 1rem;
+    border: 1px solid $gray-600;
+    border-radius: $border-radius;
+
+    &-icon {
+      color: $gray-600;
+      width: 1.5rem;
+      height: 1.5rem;
+      margin-right: 0.5rem;
+    }
+
+    input {
+      flex: 1;
+      border: none;
+      outline: none;
+      font-size: 1rem;
+      color: $gray-800;
+
+      &::placeholder {
+        color: $gray-600;
+      }
+    }
+
+    &-clear-icon {
+      color: $gray-600;
+      width: 1.5rem;
+      height: 1.5rem;
+      cursor: pointer;
+      @include hover-effect;
+    }
+  }
+
+  &__main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  &__content {
+    display: flex;
+    gap: 2rem;
+  }
+
+  &__filters {
+    width: $sidebar-width;
+    background-color: $white;
+    @include card-style;
+    padding: 1.5rem;
+    position: 'sticky';
+    top: 80px;
+    height: fit-content;
+
+    &-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+
+      h3 {
+        font-size: 1.2rem;
+        color: $primary-brown;
+        font-weight: 600;
+      }
+
+      &-close {
+        color: $gray-600;
+        width: 1.5rem;
+        height: 1.5rem;
+        cursor: pointer;
+        display: none;
+        @include hover-effect;
+      }
+    }
+
+    &-group {
+      margin-bottom: 1.5rem;
+
+      h4 {
+        font-size: 1rem;
+        color: $primary-brown;
+        font-weight: 500;
+        margin-bottom: 0.75rem;
+      }
+    }
+
+    &-option {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+
+      input {
+        accent-color: $primary-green;
+      }
+
+      span {
+        font-size: 0.9rem;
+        color: $gray-800;
+      }
+    }
+
+    &-price-range {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      color: $gray-800;
+      margin-top: 0.5rem;
+    }
+
+    &-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+
+      button {
+        padding: 0.5rem 1rem;
+        border-radius: $border-radius;
+        font-size: 0.85rem;
+        background-color: $gray-100;
+        color: $gray-800;
+        border: none;
+        cursor: pointer;
+        @include hover-effect;
+
+        &.active {
+          @include gradient-bg($primary-brown, $primary-green);
+          color: $white;
+        }
+      }
+    }
+
+    &-clear {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: $border-radius;
+      background-color: $gray-100;
+      color: $gray-800;
+      font-size: 0.9rem;
+      border: none;
+      cursor: pointer;
+      @include hover-effect($danger);
+
+      &:hover {
+        background-color: $gray-200;
+      }
+    }
+  }
+
+  &__products {
+    flex: 1;
+  }
+
+  &__controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  &__filter-toggle {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: $border-radius;
+    background-color: $gray-100;
+    color: $gray-800;
+    font-size: 0.9rem;
+    border: none;
+    cursor: pointer;
+    @include hover-effect;
+
+    svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  }
+
+  &__view-modes {
+    display: flex;
+    gap: 0.5rem;
+
+    button {
+      padding: 0.5rem;
+      border-radius: $border-radius;
+      background-color: $gray-100;
+      color: $gray-800;
+      border: none;
+      cursor: pointer;
+      @include hover-effect;
+
+      &.active {
+        background-color: $primary-brown;
+        color: $white;
+      }
+
+      svg {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+    }
+  }
+
+  select {
+    padding: 0.5rem 1rem;
+    border-radius: $border-radius;
+    border: 1px solid $gray-600;
+    font-size: 0.9rem;
+    color: $gray-800;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+      border-color: $primary-green;
+    }
+  }
+
+  &__product-grid {
+    display: grid;
+    gap: 1.5rem;
+
+    &.grid {
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    }
+
+    &.list {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__product {
+    @include card-style;
+    background-color: $white;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+
+    &.list & {
+      flex-direction: row;
+      align-items: center;
+    }
+
+    img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+
+      &.list & {
+        width: 150px;
+        height: 150px;
+        margin-right: 1rem;
+      }
+    }
+
+    &-info {
+      padding: 1rem;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      h3 {
+        font-size: 1.1rem;
+        color: $primary-brown;
+        font-weight: 600;
+        margin: 0;
+      }
+
+      p {
+        font-size: 0.9rem;
+        color: $gray-600;
+        margin: 0;
+      }
+    }
+
+    &-rating {
+      display: flex;
+      gap: 0.25rem;
+
+      svg {
+        width: 1.25rem;
+        height: 1.25rem;
+        color: $accent-orange;
+      }
+    }
+
+    &-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: auto;
+
+      span {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: $primary-brown;
+      }
+
+      button {
+        padding: 0.5rem 1rem;
+        border-radius: $border-radius;
+        @include gradient-bg($primary-brown, $primary-green);
+        color: $white;
+        font-size: 0.9rem;
+        border: none;
+        cursor: pointer;
+        @include hover-effect;
+
+        &:hover {
+          background: linear-gradient(
+            45deg,
+            darken($primary-brown, 10%),
+            darken($primary-green, 10%)
+          );
+        }
+      }
+    }
+  }
+
+  &__no-results {
+    text-align: center;
+    font-size: 1rem;
+    color: $gray-600;
+    padding: 2rem;
+  }
+
+  &__pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 2rem;
+
+    button {
+      padding: 0.5rem 1rem;
+      border-radius: $border-radius;
+      border: 1px solid $gray-600;
+      background-color: $white;
+      color: $gray-800;
+      font-size: 0.9rem;
+      cursor: pointer;
+      @include hover-effect;
+
+      &.active {
+        @include gradient-bg($primary-brown, $primary-green);
+        color: $white;
+        border: none;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      svg {
+        width: 1.25rem;
+        height: 1.25rem;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    &__content {
+      flex-direction: column;
+    }
+
+    &__filters {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 20;
+      transform: translateX(-100%);
+      transition: transform $transition;
+
+      &.show {
+        transform: translateX(0);
+      }
+
+      &-header {
+        &-close {
+          display: block;
+        }
+      }
+    }
+
+    &__filter-toggle {
+      display: flex;
+    }
+
+    &__product-grid.grid {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+  }
+}
