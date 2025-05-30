@@ -22,6 +22,8 @@ import OrdersPage from '../pages/user/orders/OrderPage'
 import Searchpage from '../pages/user/searchPage/SearchPage'
 import { ToastContainer } from 'react-toastify'
 import CheckoutPage from '../pages/user/CheckoutPage'
+import OrderDetailsUser from '../pages/user/OrderDetailsUser'
+import Category from '../pages/user/Category'
 
 export const AppRouter = () => {
   const user = useSelector((state) => state.user.currentUser)
@@ -43,12 +45,14 @@ export const AppRouter = () => {
             <Route path="products" element={<ProductList />} />
             <Route path="/products/:id" element={<ProductDetail />} />
             <Route path="search" element={<Searchpage />} />
-            <Route path="package-coffee" element={<PackCoffeePage />} />
+            <Route path="/:category" element={<Category />} />
+            {/* <Route path="package-coffee" element={<PackCoffeePage />} />
             <Route path="ready-coffee" element={<ReadyCoffeePage />} />
-            <Route path="ground-coffee" element={<GroundCoffeePage />} />
+            <Route path="ground-coffee" element={<GroundCoffeePage />} /> */}
             <Route path="cart" element={<CartPage />} />
             <Route path="checkout" element={<CheckoutPage />} />
             <Route path="order" element={<OrdersPage />} />
+            <Route path='order/:id' element={<OrderDetailsUser />} />
             <Route path="about" element={<About />} />
             <Route path="contact" element={<Contact />} />
           </Route>

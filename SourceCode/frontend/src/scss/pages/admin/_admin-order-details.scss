@@ -1,0 +1,266 @@
+.order-details {
+  @include card-style;
+  background-color: $white;
+  margin-bottom: 2rem;
+
+  // Card header with gradient background
+  .card-header {
+    @include gradient-bg($primary-brown, $primary-green);
+    border-radius: $border-radius $border-radius 0 0;
+    padding: 1.5rem;
+
+    .btn-icon {
+      background: transparent;
+      border: none;
+      transition: $transition;
+
+      @include hover-effect($accent-orange);
+    }
+  }
+
+  // Card body
+  .card-body {
+    padding: 2rem;
+
+    h2 {
+      font-family: $font-family;
+      font-size: 1.25rem;
+      color: $gray-800;
+      font-weight: 600;
+    }
+
+    .text-gray-600 {
+      color: $gray-600;
+      font-size: 0.9rem;
+    }
+
+    .fw-medium {
+      font-weight: 500;
+      color: $gray-800;
+    }
+
+    .fw-semibold {
+      font-weight: 600;
+      color: $gray-800;
+    }
+
+    .text-primary-brown {
+      color: $primary-brown;
+      font-weight: 600;
+    }
+  }
+
+  // Table styling
+  .table {
+    font-family: $font-family;
+
+    thead {
+      background-color: $background-light;
+
+      th {
+        font-weight: 500;
+        color: $gray-600;
+        font-size: 0.9rem;
+      }
+    }
+
+    tbody {
+      tr {
+        transition: $transition;
+
+        &:hover {
+          background-color: rgba($background-light, 0.5);
+        }
+
+        td {
+          vertical-align: middle;
+          font-size: 0.95rem;
+          color: $gray-800;
+
+          img {
+            border-radius: $border-radius;
+          }
+        }
+      }
+    }
+  }
+
+  // Status select dropdown
+  .form-select {
+    font-family: $font-family;
+    border-radius: $border-radius;
+    border: 1px solid $gray-600;
+    transition: $transition;
+
+    &:focus {
+      border-color: $primary-brown;
+      box-shadow: 0 0 0 0.2rem rgba($primary-brown, 0.25);
+    }
+
+    // Status-specific styling
+    &.status-pending {
+      color: $pending;
+    }
+
+    &.status-processing {
+      color: $processing;
+    }
+
+    &.status-shipped {
+      color: $shipped;
+    }
+
+    &.status-delivered {
+      color: $delivered;
+    }
+
+    &.status-cancelled {
+      color: $cancelled;
+    }
+  }
+
+  // Order summary
+  .order-summary {
+    .border-top {
+      border-color: $gray-600;
+    }
+  }
+}
+
+// Modal styling
+.modal-content {
+  @include card-style;
+  font-family: $font-family;
+
+  .modal-header {
+    border-bottom: 1px solid $gray-600;
+    background-color: $background-light;
+
+    .modal-title {
+      font-size: 1.25rem;
+      color: $gray-800;
+      font-weight: 600;
+    }
+  }
+
+  .modal-body {
+    color: $gray-600;
+    font-size: 0.95rem;
+  }
+
+  .modal-footer {
+    border-top: 1px solid $gray-600;
+
+    .btn-outline-secondary {
+      border-color: $gray-600;
+      color: $gray-600;
+      transition: $transition;
+
+      &:hover {
+        background-color: $gray-600;
+        color: $white;
+      }
+    }
+
+    .btn-primary-brown {
+      background-color: $primary-brown;
+      border-color: $primary-brown;
+      color: $white;
+      transition: $transition;
+
+      @include hover-effect($accent-orange);
+    }
+  }
+}
+
+// Loading spinner
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-family: $font-family;
+
+  .spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 4px solid $primary-brown;
+    border-top: 4px solid $accent-orange;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  p {
+    margin-top: 1rem;
+    color: $gray-600;
+    font-size: 1rem;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+// No orders found
+.no-orders {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-family: $font-family;
+  text-align: center;
+
+  h2 {
+    font-size: 1.5rem;
+    color: $gray-800;
+    font-weight: 600;
+  }
+
+  p {
+    color: $gray-600;
+    font-size: 1rem;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .order-details {
+    .card-header {
+      flex-direction: column;
+      align-items: flex-start;
+
+      .d-flex.gap-3 {
+        margin-top: 1rem;
+      }
+    }
+
+    .card-body {
+      padding: 1.5rem;
+
+      .row {
+        flex-direction: column;
+
+        .col-md-6 {
+          width: 100%;
+        }
+      }
+    }
+
+    .table {
+      font-size: 0.85rem;
+
+      td,
+      th {
+        padding: 0.75rem;
+      }
+    }
+  }
+}

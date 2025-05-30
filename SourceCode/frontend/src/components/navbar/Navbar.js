@@ -86,24 +86,24 @@ const Navbar = () => {
               <ul className="dropdown-menu" aria-labelledby="navbarDropdown">
                 <li>
                   <Link
-                    className={`dropdown-item ${isActive('/ready-coffee') ? 'active' : ''}`}
-                    to="/ready-coffee"
+                    className={`dropdown-item ${isActive('/ready') ? 'active' : ''}`}
+                    to="/ready"
                   >
                     Cà Phê Pha Sẵn
                   </Link>
                 </li>
                 <li>
                   <Link
-                    className={`dropdown-item ${isActive('/ground-coffee') ? 'active' : ''}`}
-                    to="/ground-coffee"
+                    className={`dropdown-item ${isActive('/ground') ? 'active' : ''}`}
+                    to="/ground"
                   >
                     Cà Phê Hạt
                   </Link>
                 </li>
                 <li>
                   <Link
-                    className={`dropdown-item ${isActive('/package-coffee') ? 'active' : ''}`}
-                    to="/package-coffee"
+                    className={`dropdown-item ${isActive('/packaged') ? 'active' : ''}`}
+                    to="/packaged"
                   >
                     Cà Phê Hòa Tan
                   </Link>

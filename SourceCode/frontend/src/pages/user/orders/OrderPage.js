@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FaSearch, FaTable, FaThLarge, FaTimes } from 'react-icons/fa';
 import { Container, Row, Col, Table, Form, Modal } from 'react-bootstrap';
 import { getOrdersForUser } from '../../../services/OrderService';
+import { useNavigate } from 'react-router-dom';
 import Button from '../../../components/Button/Button';
 
 const OrdersPage = () => {
@@ -12,6 +13,7 @@ const OrdersPage = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchOrders();
@@ -130,7 +132,6 @@ const OrdersPage = () => {
       </div>
     );
   }
-
   return (
     <div className="orders-page">
       <Container fluid>
@@ -224,8 +225,7 @@ const OrdersPage = () => {
                             variant="link"
                             className="action-btn"
                             onClick={() => {
-                              setSelectedOrder(order);
-                              setShowModal(true);
+                              navigate(`/order/${order.id}`);
                             }}
                           >
                             View Details
@@ -271,12 +271,12 @@ const OrdersPage = () => {
                           <Button
                             className="action-btn"
                             onClick={() => {
-                              setSelectedOrder(order);
-                              setShowModal(true);
+                              navigate(`/order/${order.id}`);
                             }}
                           >
                             View Details
                           </Button>
+
                         </div>
                       </div>
                     </Col>
@@ -285,9 +285,6 @@ const OrdersPage = () => {
               </div>
             )}
 
-            {showModal && selectedOrder && (
-              <OrderModal order={selectedOrder} onClose={() => setShowModal(false)} />
-            )}
           </>
         )}
       </Container>

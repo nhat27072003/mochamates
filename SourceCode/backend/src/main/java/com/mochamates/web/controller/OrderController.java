@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mochamates.web.dto.order.OrderResponseDTO;
+import com.mochamates.web.dto.order.PlaceOrderRequestDTO;
 import com.mochamates.web.dto.order.UpdateOrderStatusRequestDTO;
 import com.mochamates.web.entities.order.OrderStatus;
 import com.mochamates.web.response.ApiResponse;
@@ -33,8 +34,9 @@ public class OrderController {
 	 * @return ResponseEntity with order details
 	 */
 	@PostMapping
-	public ResponseEntity<ApiResponse<OrderResponseDTO>> createOrder() {
-		OrderResponseDTO responseDTO = orderService.createOrder();
+	public ResponseEntity<ApiResponse<OrderResponseDTO>> createOrder(
+			@RequestBody PlaceOrderRequestDTO placeOrderRequestDTO) {
+		OrderResponseDTO responseDTO = orderService.createOrder(placeOrderRequestDTO);
 		ApiResponse<OrderResponseDTO> response = new ApiResponse<>("1000", "Order created successfully", responseDTO);
 		return ResponseEntity.ok(response);
 

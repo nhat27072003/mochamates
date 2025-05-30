@@ -2,6 +2,7 @@ package com.mochamates.web.entities.products;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import com.mochamates.web.dto.product.ProductDTO;
 
@@ -26,22 +27,22 @@ import jakarta.persistence.Table;
 public abstract class CoffeeProduct {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	protected Long id;
 
-	private String name;
-	private String description;
-	private Double price;
-	private String imageUrl;
+	protected String name;
+	protected String description;
+	protected Double price;
+	protected String imageUrl;
 	@Column(name = "create_at")
-	private LocalDateTime createAt;
+	protected LocalDateTime createAt;
 	@Column(name = "update_at")
-	private LocalDateTime updateAt;
+	protected LocalDateTime updateAt;
 
 	@Column(name = "type", insertable = false, updatable = false)
-	private String type;
+	protected String type;
 
 	@OneToMany(mappedBy = "coffeeProduct", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-	private List<ProductOption> options;
+	protected List<ProductOption> options;
 
 	public CoffeeProduct() {
 	}
@@ -120,5 +121,13 @@ public abstract class CoffeeProduct {
 		this.options = options;
 	}
 
-	public abstract void updateFromDTO(ProductDTO productDTO);
+	public void updateFromDTO(ProductDTO productDTO) {
+		this.name = productDTO.getName();
+		this.description = productDTO.getDescription();
+		this.price = productDTO.getPrice();
+	}
+
+	public abstract double calculatePrice(String value);
+
+	public abstract List<Map<String, Object>> getOptionsWithPrices();
 }

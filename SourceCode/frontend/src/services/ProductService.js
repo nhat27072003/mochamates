@@ -41,7 +41,7 @@ const fetchProducts = async (type = null, page = 0, size = 6) => {
     throw new Error(error.response?.data?.message || 'Error fetching products');
   }
 };
-const getProdutById = async (id) => {
+const getProductById = async (id) => {
   const response = await axiosClient.get(`/api/v1/products/${id}`);
   console.log(response);
   return response.data;
@@ -90,7 +90,7 @@ const deleteProduct = async (id) => {
 export {
   fetchProducts,
   fetchNewestProducts,
-  getProdutById,
+  getProductById,
   createProduct,
   updateProduct,
   uploadImage,

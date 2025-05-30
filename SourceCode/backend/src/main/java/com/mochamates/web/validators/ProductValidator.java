@@ -35,8 +35,8 @@ public class ProductValidator {
 		case "READY_TO_DRINK_COFFEE":
 
 			break;
-		case "PACKAGED_COFFEE":
-		case "GROUND_COFFEE":
+		case "INSTANT_COFFEE":
+		case "ROASTED_COFFEE":
 
 			break;
 		default:

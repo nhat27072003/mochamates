@@ -8,7 +8,7 @@ const NewArrivals = () => {
   const [error, setError] = useState(null);
 
   const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/150?text=No+Image';
-  const ITEMS_PER_PAGE = 4;
+  const ITEMS_PER_PAGE = 8;
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -36,9 +36,9 @@ const NewArrivals = () => {
 
   return (
     <div className="new-arrivals-section home-section py-4">
-      <h2 className="home-title text-center">New Arrivals</h2>
+      <h2 className="home-title text-center">Sản phẩm mới</h2>
       <div className="container">
-        {error && <div className="alert alert-danger small text-center">{error}</div>}
+        {/* {error && <div className="alert alert-danger small text-center">{error}</div>} */}
         {loading ? (
           <div className="text-center">
             <div className="spinner-border" role="status">

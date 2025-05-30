@@ -22,7 +22,7 @@ public class CartItem {
 	private String name;
 	private Double price;
 	private String imageUrl;
-	private String selectedOptions;
+	private String selectedAttributes;
 	private Double totalPrice;
 	private Integer quantity;
 
@@ -74,12 +74,12 @@ public class CartItem {
 		this.imageUrl = imageUrl;
 	}
 
-	public String getSelectedOptions() {
-		return selectedOptions;
+	public String getSelectedAttributes() {
+		return selectedAttributes;
 	}
 
-	public void setSelectedOptions(String selectedOptions) {
-		this.selectedOptions = selectedOptions;
+	public void setSelectedAttributes(String selectedAttributes) {
+		this.selectedAttributes = selectedAttributes;
 	}
 
 	public Double getTotalPrice() {

@@ -39,9 +39,75 @@ const Textarea = memo(({ label, name, rows = 2, value, onChange }) => (
   </div>
 ));
 
+const CheckboxGroup = memo(({ label, name, options, selectedValues, onChange }) => (
+  <div className="mb-2 col">
+    <label className="form-label small">{label}</label>
+    <div className="d-flex flex-wrap">
+      {options.map((option) => (
+        <div key={option.value} className="form-check me-3">
+          <input
+            type="checkbox"
+            id={`${name}-${option.value}`}
+            className="form-check-input"
+            value={option.value}
+            checked={selectedValues.includes(option.value)}
+            onChange={(e) => {
+              const newValues = e.target.checked
+                ? [...selectedValues, e.target.value]
+                : selectedValues.filter((v) => v !== e.target.value);
+              onChange(newValues);
+            }}
+          />
+          <label htmlFor={`${name}-${option.value}`} className="form-check-label small">{option.label}</label>
+        </div>
+      ))}
+    </div>
+  </div>
+));
+
 const ProductForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  const iceLevelOptions = [
+    { value: 'NO_ICE', label: 'Không đá' },
+    { value: 'LESS_ICE', label: 'Ít đá' },
+    { value: 'NORMAL_ICE', label: 'Bình thường' },
+  ];
+  const sugarLevelOptions = [
+    { value: 'NO_SUGAR', label: 'Không đường' },
+    { value: 'LESS_SUGAR', label: 'Ít đường' },
+    { value: 'NORMAL_SUGAR', label: 'Bình thường' },
+  ];
+  const sizeOptionOptions = [
+    { value: 'SMALL', label: 'Nhỏ' },
+    { value: 'MEDIUM', label: 'Vừa' },
+    { value: 'LARGE', label: 'Lớn' },
+  ];
+  const roastLevelOptions = [
+    { value: 'LIGHT', label: 'Rang nhạt' },
+    { value: 'MEDIUM', label: 'Rang vừa' },
+    { value: 'DARK', label: 'Rang đậm' },
+  ];
+  const grindLevelOptions = [
+    { value: 'WHOLE_BEAN', label: 'Nguyên hạt' },
+    { value: 'FINE', label: 'Xay mịn' },
+    { value: 'MEDIUM', label: 'Xay vừa' },
+    { value: 'COARSE', label: 'Xay thô' },
+  ];
+  const weightOptions = [
+    { value: 'G250', label: '250g' },
+    { value: 'G500', label: '500g' },
+    { value: 'KG1', label: '1kg' },
+  ];
+
+  const defaultIceLevels = iceLevelOptions.map(opt => opt.value);
+  const defaultSugarLevels = sugarLevelOptions.map(opt => opt.value);
+  const defaultSizeOptions = sizeOptionOptions.map(opt => opt.value);
+  const defaultRoastLevels = roastLevelOptions.map(opt => opt.value);
+  const defaultGrindLevels = grindLevelOptions.map(opt => opt.value);
+  const defaultWeights = weightOptions.map(opt => opt.value);
+
   const [product, setProduct] = useState({
     name: '',
     type: 'READY_TO_DRINK_COFFEE',
@@ -49,12 +115,15 @@ const ProductForm = () => {
     description: '',
     imageUrl: '',
     specificAttributesDTO: {
-      drinkType: '',
-      ingredients: '',
-      preparationTime: '',
-      roastLevel: '',
+      iceLevels: defaultIceLevels,
+      sugarLevels: defaultSugarLevels,
+      sizeOptions: defaultSizeOptions,
+      roastLevels: defaultRoastLevels,
       origin: '',
       roastDate: '',
+      composition: '',
+      grindLevels: defaultGrindLevels,
+      weights: defaultWeights,
       packType: '',
       instructions: '',
       expireDate: '',
@@ -78,22 +147,25 @@ const ProductForm = () => {
             ...data,
             price: data.price ? data.price.toString() : '',
             specificAttributesDTO: {
-              drinkType: data.specificAttributesDTO?.drinkType || '',
-              ingredients: data.specificAttributesDTO?.ingredients || '',
-              preparationTime: data.specificAttributesDTO?.preparationTime?.toString() || '',
-              roastLevel: data.specificAttributesDTO?.roastLevel || '',
+              iceLevels: data.specificAttributesDTO?.iceLevels?.length > 0 ? Array.from(data.specificAttributesDTO.iceLevels) : defaultIceLevels,
+              sugarLevels: data.specificAttributesDTO?.sugarLevels?.length > 0 ? Array.from(data.specificAttributesDTO.sugarLevels) : defaultSugarLevels,
+              sizeOptions: data.specificAttributesDTO?.sizeOptions?.length > 0 ? Array.from(data.specificAttributesDTO.sizeOptions) : defaultSizeOptions,
+              roastLevels: data.specificAttributesDTO?.roastLevels?.length > 0 ? Array.from(data.specificAttributesDTO.roastLevels) : defaultRoastLevels,
               origin: data.specificAttributesDTO?.origin || '',
               roastDate: data.specificAttributesDTO?.roastDate || '',
+              composition: data.specificAttributesDTO?.composition || '',
+              grindLevels: data.specificAttributesDTO?.grindLevels?.length > 0 ? Array.from(data.specificAttributesDTO.grindLevels) : defaultGrindLevels,
+              weights: data.specificAttributesDTO?.weights?.length > 0 ? Array.from(data.specificAttributesDTO.weights) : defaultWeights,
               packType: data.specificAttributesDTO?.packType || '',
               instructions: data.specificAttributesDTO?.instructions || '',
               expireDate: data.specificAttributesDTO?.expireDate || '',
             },
             options: Array.isArray(data.options) ? data.options.map(opt => ({
-              id: opt.id, // Giữ id từ backend
+              id: opt.id,
               name: opt.name,
               type: opt.type,
               values: Array.isArray(opt.values) ? opt.values.map(val => ({
-                id: val.id, // Giữ id từ backend
+                id: val.id,
                 value: val.value,
                 additionalPrice: val.additionalPrice,
               })) : [],
@@ -113,7 +185,31 @@ const ProductForm = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setProduct((prev) => ({ ...prev, [name]: value }));
+    setProduct((prev) => {
+      if (name === 'type') {
+        // Đặt lại specificAttributesDTO khi thay đổi type, mặc định chọn hết
+        const newSpecificAttributesDTO = {
+          iceLevels: value === 'READY_TO_DRINK_COFFEE' ? defaultIceLevels : [],
+          sugarLevels: value === 'READY_TO_DRINK_COFFEE' ? defaultSugarLevels : [],
+          sizeOptions: value === 'READY_TO_DRINK_COFFEE' ? defaultSizeOptions : [],
+          roastLevels: value === 'ROASTED_COFFEE' ? defaultRoastLevels : [],
+          origin: '',
+          roastDate: '',
+          composition: value === 'ROASTED_COFFEE' ? prev.specificAttributesDTO.composition : '',
+          grindLevels: value === 'ROASTED_COFFEE' ? defaultGrindLevels : [],
+          weights: value === 'ROASTED_COFFEE' ? defaultWeights : [],
+          packType: value === 'PACKAGED_COFFEE' ? prev.specificAttributesDTO.packType : '',
+          instructions: value === 'PACKAGED_COFFEE' ? prev.specificAttributesDTO.instructions : '',
+          expireDate: value === 'PACKAGED_COFFEE' ? prev.specificAttributesDTO.expireDate : '',
+        };
+        return {
+          ...prev,
+          type: value,
+          specificAttributesDTO: newSpecificAttributesDTO,
+        };
+      }
+      return { ...prev, [name]: value };
+    });
   };
 
   const handleSpecificAttrChange = (e) => {
@@ -124,6 +220,13 @@ const ProductForm = () => {
     }));
   };
 
+  const handleSpecificAttrCheckboxChange = (name, values) => {
+    setProduct((prev) => ({
+      ...prev,
+      specificAttributesDTO: { ...prev.specificAttributesDTO, [name]: values },
+    }));
+  };
+
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -131,7 +234,6 @@ const ProductForm = () => {
         setImageUploading(true);
         setError(null);
         const imageUrl = await uploadImage(file);
-        console.log("check image url", imageUrl);
         setProduct((prev) => ({ ...prev, imageUrl }));
         setImagePreview(imageUrl);
       } catch (err) {
@@ -212,18 +314,25 @@ const ProductForm = () => {
         ...product,
         price: Number(product.price),
         specificAttributesDTO: {
-          ...product.specificAttributesDTO,
-          ingredients: product.specificAttributesDTO.ingredients || '',
-          preparationTime: product.specificAttributesDTO.preparationTime ? Number(product.specificAttributesDTO.preparationTime) : undefined,
+          iceLevels: product.specificAttributesDTO.iceLevels.length > 0 ? product.specificAttributesDTO.iceLevels : undefined,
+          sugarLevels: product.specificAttributesDTO.sugarLevels.length > 0 ? product.specificAttributesDTO.sugarLevels : undefined,
+          sizeOptions: product.specificAttributesDTO.sizeOptions.length > 0 ? product.specificAttributesDTO.sizeOptions : undefined,
+          roastLevels: product.specificAttributesDTO.roastLevels.length > 0 ? product.specificAttributesDTO.roastLevels : undefined,
+          origin: product.specificAttributesDTO.origin || undefined,
           roastDate: product.specificAttributesDTO.roastDate || undefined,
+          composition: product.specificAttributesDTO.composition || undefined,
+          grindLevels: product.specificAttributesDTO.grindLevels.length > 0 ? product.specificAttributesDTO.grindLevels : undefined,
+          weights: product.specificAttributesDTO.weights.length > 0 ? product.specificAttributesDTO.weights : undefined,
+          packType: product.specificAttributesDTO.packType || undefined,
+          instructions: product.specificAttributesDTO.instructions || undefined,
           expireDate: product.specificAttributesDTO.expireDate || undefined,
         },
         options: product.options.map(option => ({
-          id: option.id, // Giữ id của Option
+          id: option.id,
           name: option.name,
           type: option.type,
           values: option.values.map(value => ({
-            id: value.id, // Giữ id của OptionValue
+            id: value.id,
             value: value.value,
             additionalPrice: value.additionalPrice,
           })),
@@ -285,8 +394,8 @@ const ProductForm = () => {
                       required
                     >
                       <option value="READY_TO_DRINK_COFFEE">Cà phê pha sẵn</option>
-                      <option value="GROUND_COFFEE">Cà phê hạt/xay</option>
-                      <option value="PACKAGED_COFFEE">Cà Phê Đóng Gói</option>
+                      <option value="ROASTED_COFFEE">Cà phê hạt/xay</option>
+                      <option value="INSTANT_COFFEE">Cà Phê Đóng Gói</option>
                     </select>
                   </div>
                 </div>
@@ -335,42 +444,37 @@ const ProductForm = () => {
                   <h6 className="section-title">Thông Tin Cụ Thể</h6>
                   {product.type === 'READY_TO_DRINK_COFFEE' && (
                     <div className="row">
-                      <Input
-                        label="Loại"
-                        name="drinkType"
-                        medium
-                        value={product.specificAttributesDTO.drinkType}
-                        onChange={handleSpecificAttrChange}
-                        placeholder="Loại đồ uống"
+                      <CheckboxGroup
+                        label="Mức Đá"
+                        name="iceLevels"
+                        options={iceLevelOptions}
+                        selectedValues={product.specificAttributesDTO.iceLevels}
+                        onChange={(values) => handleSpecificAttrCheckboxChange('iceLevels', values)}
                       />
-                      <Input
-                        label="Thời Gian Pha (phút)"
-                        name="preparationTime"
-                        type="number"
-                        value={product.specificAttributesDTO.preparationTime}
-                        onChange={handleSpecificAttrChange}
-                        placeholder="Phút"
-                        min="0"
+                      <CheckboxGroup
+                        label="Mức Đường"
+                        name="sugarLevels"
+                        options={sugarLevelOptions}
+                        selectedValues={product.specificAttributesDTO.sugarLevels}
+                        onChange={(values) => handleSpecificAttrCheckboxChange('sugarLevels', values)}
                       />
-                      <Textarea
-                        label="Thành Phần"
-                        name="ingredients"
-                        rows={1}
-                        value={product.specificAttributesDTO.ingredients}
-                        onChange={handleSpecificAttrChange}
-                        placeholder="Thành phần, cách nhau bởi dấu phẩy"
+                      <CheckboxGroup
+                        label="Kích Cỡ"
+                        name="sizeOptions"
+                        options={sizeOptionOptions}
+                        selectedValues={product.specificAttributesDTO.sizeOptions}
+                        onChange={(values) => handleSpecificAttrCheckboxChange('sizeOptions', values)}
                       />
                     </div>
                   )}
-                  {product.type === 'GROUND_COFFEE' && (
+                  {product.type === 'ROASTED_COFFEE' && (
                     <div className="row">
-                      <Input
-                        label="Rang"
-                        name="roastLevel"
-                        medium
-                        value={product.specificAttributesDTO.roastLevel}
-                        onChange={handleSpecificAttrChange}
-                        placeholder="Mức độ rang"
+                      <CheckboxGroup
+                        label="Mức Rang"
+                        name="roastLevels"
+                        options={roastLevelOptions}
+                        selectedValues={product.specificAttributesDTO.roastLevels}
+                        onChange={(values) => handleSpecificAttrCheckboxChange('roastLevels', values)}
                       />
                       <Input
                         label="Nguồn Gốc"
@@ -388,6 +492,28 @@ const ProductForm = () => {
                         value={product.specificAttributesDTO.roastDate}
                         onChange={handleSpecificAttrChange}
                         placeholder="Ngày rang"
+                      />
+                      <Input
+                        label="Thành Phần"
+                        name="composition"
+                        medium
+                        value={product.specificAttributesDTO.composition}
+                        onChange={handleSpecificAttrChange}
+                        placeholder="Thành phần"
+                      />
+                      <CheckboxGroup
+                        label="Mức Xay"
+                        name="grindLevels"
+                        options={grindLevelOptions}
+                        selectedValues={product.specificAttributesDTO.grindLevels}
+                        onChange={(values) => handleSpecificAttrCheckboxChange('grindLevels', values)}
+                      />
+                      <CheckboxGroup
+                        label="Khối Lượng"
+                        name="weights"
+                        options={weightOptions}
+                        selectedValues={product.specificAttributesDTO.weights}
+                        onChange={(values) => handleSpecificAttrCheckboxChange('weights', values)}
                       />
                     </div>
                   )}
@@ -493,7 +619,7 @@ const ProductForm = () => {
                       ))}
                       <button
                         type="button"
-                        className="btn btn-outline-sm btn-sm mt-2"
+                        className="btn btn-outline-primary btn-sm mt-2"
                         onClick={() => addOptionValue(optionIndex)}
                       >
                         Thêm Giá Trị
@@ -505,8 +631,12 @@ const ProductForm = () => {
                   </button>
                 </div>
 
-                <button type="submit" className="btn btn-primary w-100 btn-sm mt-3 btn-submit" disabled={loading || imageUploading}>
-                  {isEdit ? 'Cập Nhật' : 'Thêm'}
+                <button
+                  type="submit"
+                  className="btn btn-primary w-100 btn-sm mt-3 btn-submit"
+                  disabled={loading || imageUploading}
+                >
+                  {isEdit ? 'Cập nhật' : 'Thêm mới'}
                 </button>
               </form>
             )}

@@ -11,7 +11,7 @@ const MenuPreview = () => {
   const [error, setError] = useState(null);
 
   const PLACEHOLDER_IMAGE = 'https://via.placeholder.com/150?text=No+Image';
-  const ITEMS_PER_PAGE = 6; // 2 rows of 3 items
+  const ITEMS_PER_PAGE = 8; // 2 rows of 3 items
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -57,9 +57,9 @@ const MenuPreview = () => {
 
   return (
     <div className="menu-preview-section home-section pb-3">
-      <h2 className="home-title text-center py-3">Our Menu</h2>
+      <h2 className="home-title text-center py-3">Sản phẩm của chúng tôi</h2>
       <div className="container">
-        <div className="mb-3">
+        {/* <div className="mb-3">
           <div className="row g-3">
             <div className="col-md-4 offset-md-4">
               <select
@@ -74,8 +74,8 @@ const MenuPreview = () => {
               </select>
             </div>
           </div>
-        </div>
-        {error && <div className="alert alert-danger small text-center">{error}</div>}
+        </div> */}
+        {/* {error && <div className="alert alert-danger small text-center">{error}</div>} */}
         {loading ? (
           <div className="text-center">
             <div className="spinner-border" role="status">

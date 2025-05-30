@@ -1,55 +1,61 @@
 package com.mochamates.web.dto.product;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 public class SpecificAttributesDTO {
 
 	// READY_TO_DRINK_COFFEE
-	private String drinkType;
-	private String ingredients;
-	private String preparationTime;
+	private Set<String> iceLevels;
+	private Set<String> sugarLevels;
+	private Set<String> sizeOptions;
 
-	// GROUND_COFFEE
-	private String roastLevel;
+	// ROASTED_COFFEE
+	private Set<String> roastLevels;
 	private String origin;
 	private LocalDate roastDate;
+	private String composition;
+	private Set<String> grindLevels;
+	private Set<String> weights;
 
-	// PACKAGED_COFFEE
+	// INSTANT_COFFEE
 	private String packType;
 	private String instructions;
 	private LocalDate expireDate;
 
 	// Getters and Setters
-	public String getDrinkType() {
-		return drinkType;
+
+	public Set<String> getIceLevels() {
+		return iceLevels != null ? new HashSet<>(iceLevels) : new HashSet<>();
 	}
 
-	public void setDrinkType(String drinkType) {
-		this.drinkType = drinkType;
+	public void setIceLevels(Set<String> iceLevels) {
+		this.iceLevels = iceLevels != null ? new HashSet<>(iceLevels) : new HashSet<>();
 	}
 
-	public String getIngredients() {
-		return ingredients;
+	public Set<String> getSugarLevels() {
+		return sugarLevels != null ? new HashSet<>(sugarLevels) : new HashSet<>();
 	}
 
-	public void setIngredients(String ingredients) {
-		this.ingredients = ingredients;
+	public void setSugarLevels(Set<String> sugarLevels) {
+		this.sugarLevels = sugarLevels != null ? new HashSet<>(sugarLevels) : new HashSet<>();
 	}
 
-	public String getPreparationTime() {
-		return preparationTime;
+	public Set<String> getSizeOptions() {
+		return sizeOptions != null ? new HashSet<>(sizeOptions) : new HashSet<>();
 	}
 
-	public void setPreparationTime(String preparationTime) {
-		this.preparationTime = preparationTime;
+	public void setSizeOptions(Set<String> sizeOptions) {
+		this.sizeOptions = sizeOptions != null ? new HashSet<>(sizeOptions) : new HashSet<>();
 	}
 
-	public String getRoastLevel() {
-		return roastLevel;
+	public Set<String> getRoastLevels() {
+		return roastLevels != null ? new HashSet<>(roastLevels) : new HashSet<>();
 	}
 
-	public void setRoastLevel(String roastLevel) {
-		this.roastLevel = roastLevel;
+	public void setRoastLevels(Set<String> roastLevels) {
+		this.roastLevels = roastLevels != null ? new HashSet<>(roastLevels) : new HashSet<>();
 	}
 
 	public String getOrigin() {
@@ -66,6 +72,30 @@ public class SpecificAttributesDTO {
 
 	public void setRoastDate(LocalDate roastDate) {
 		this.roastDate = roastDate;
+	}
+
+	public String getComposition() {
+		return composition;
+	}
+
+	public void setComposition(String composition) {
+		this.composition = composition;
+	}
+
+	public Set<String> getGrindLevels() {
+		return grindLevels != null ? new HashSet<>(grindLevels) : new HashSet<>();
+	}
+
+	public void setGrindLevels(Set<String> grindLevels) {
+		this.grindLevels = grindLevels != null ? new HashSet<>(grindLevels) : new HashSet<>();
+	}
+
+	public Set<String> getWeights() {
+		return weights != null ? new HashSet<>(weights) : new HashSet<>();
+	}
+
+	public void setWeights(Set<String> weights) {
+		this.weights = weights != null ? new HashSet<>(weights) : new HashSet<>();
 	}
 
 	public String getPackType() {

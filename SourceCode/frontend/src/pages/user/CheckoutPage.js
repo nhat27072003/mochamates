@@ -3,8 +3,9 @@ import { useSelector, useDispatch } from "react-redux";
 import { FaMoneyBillWave, FaCreditCard, FaWallet } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { clearCart } from "../../redux/cartSlice";
+import { clearCart, fetchCart } from "../../redux/cartSlice";
 import { formatPrice } from "../../utils/helpers";
+import { placeOrder } from "../../services/OrderService";
 
 const CheckoutPage = () => {
   const dispatch = useDispatch();
@@ -103,11 +104,9 @@ const CheckoutPage = () => {
     e.preventDefault();
     if (!isAuthenticated) {
       toast.warn("Vui lòng đăng nhập để tiếp tục!");
-      navigate("/signin");
       return;
     }
 
-    // Validate all fields before submission
     Object.keys(formData).forEach((key) => validateField(key, formData[key]));
 
     if (!isFormValid()) {
@@ -117,11 +116,17 @@ const CheckoutPage = () => {
 
     setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      await dispatch(clearCart()).unwrap();
-      toast.success("Đặt hàng thành công!");
-      navigate("/order-confirmation"); // Redirect to confirmation page
+      console.log('check form data', formData)
+      const result = await placeOrder(formData);
+      console.log(result);
+      // await dispatch(clearCart()).unwrap();
+      if (result.statusCode === "1000") {
+        toast.success("Đặt hàng thành công!");
+        dispatch(fetchCart()).unwrap();
+        navigate('/order');
+      }
+      else toast.info(result.message)
+      // navigate("/order-confirmation"); // Redirect to confirmation page
     } catch (err) {
       toast.error("Có lỗi xảy ra, vui lòng thử lại sau!");
       console.error("Order placement error:", err);

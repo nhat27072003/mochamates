@@ -4,16 +4,15 @@ import java.time.LocalDateTime;
 
 import com.mochamates.web.dto.product.ProductDTO;
 
-public class PackagedCoffeeFactory implements CoffeeFactory {
+public class InstantCoffeeFactory implements CoffeeFactory {
 
 	@Override
 	public CoffeeProduct createCoffee(ProductDTO productDTO) {
-		PackagedCoffee coffee = new PackagedCoffee(productDTO.getName(), productDTO.getDescription(),
-				productDTO.getPrice(), productDTO.getImageUrl(), "PACKAGED_COFFEE", LocalDateTime.now(), null,
-				productDTO.getSpecificAttributesDTO().getPackType(),
+		InstantCoffee coffee = new InstantCoffee(productDTO.getName(), productDTO.getDescription(),
+				productDTO.getPrice(), productDTO.getImageUrl(), "INSTANT_COFFEE", LocalDateTime.now(),
+				LocalDateTime.now(), productDTO.getSpecificAttributesDTO().getPackType(),
 				productDTO.getSpecificAttributesDTO().getInstructions(),
 				productDTO.getSpecificAttributesDTO().getExpireDate());
 		return coffee;
-
 	}
 }

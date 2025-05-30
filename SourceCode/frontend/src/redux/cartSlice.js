@@ -41,12 +41,12 @@ export const addToCart = createAsyncThunk(
 
 export const updateCartItem = createAsyncThunk(
   "cart/updateCartItem",
-  async ({ itemId, updates }, { getState, rejectWithValue }) => {
+  async ({ itemId, newQty }, { getState, rejectWithValue }) => {
     try {
       const { user } = getState();
       const token = user.token;
       if (!token) return rejectWithValue("No authentication token");
-      const response = await axiosClient.put(`${API_URL}/${itemId}`, updates, {
+      const response = await axiosClient.put(`${API_URL}/${itemId}`, Number(newQty), {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log('check reponse update', response)

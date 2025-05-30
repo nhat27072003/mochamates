@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { FiShoppingCart, FiList, FiUsers, FiDollarSign, FiSearch, FiSun, FiMoon, FiBell, FiLogOut, FiHome, FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { useDispatch } from "react-redux";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
+import { logout } from "../redux/userSlice";
 
 
 const AdminLayout = () => {
@@ -9,22 +11,21 @@ const AdminLayout = () => {
   const [isOrderDropdownOpen, setIsOrderDropdownOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-
+  const dispatch = useDispatch();
   const menuItems = [
     { icon: <FiHome />, label: "Dashboard", link: "/admin" },
     {
       icon: <FiShoppingCart />,
-      label: "Quản lý đơn hàng",
-      dropdown: [
-        { label: "Xử lý đơn hàng", link: "/admin/orders/pending" },
-        { label: "Cập nhật đơn hàng", link: "/admin/orders/update" },
-        { label: "Lịch sử đơn hàng", link: "/admin/orders/history" },
-      ],
+      label: "Quản lý đơn hàng", link: "/admin/orders",
+      // dropdown: [
+      //   { label: "Xử lý đơn hàng", link: "/admin/orders/pending" },
+      //   { label: "Cập nhật đơn hàng", link: "/admin/orders/update" },
+      //   { label: "Lịch sử đơn hàng", link: "/admin/orders/history" },
+      // ],
     },
     { icon: <FiList />, label: "Quản lý sản phẩm", link: "/admin/products" },
     { icon: <FiUsers />, label: "Quản lý khách hàng", link: "/admin/users" },
     { icon: <FiDollarSign />, label: "Báo cáo doanh thu", link: "/admin/revenu" },
-    { icon: <FiLogOut />, label: "Đăng xuất" },
   ];
 
   useEffect(() => {
@@ -49,7 +50,10 @@ const AdminLayout = () => {
     document.body.classList.toggle("bg-dark");
     document.body.classList.toggle("text-white");
   };
-
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/signin');
+  };
   const toggleOrderDropdown = () => {
     setIsOrderDropdownOpen(!isOrderDropdownOpen);
   };
@@ -75,9 +79,9 @@ const AdminLayout = () => {
                   onClick={toggleOrderDropdown}
                 >
                   {item.icon} <span className="ms-2 flex-grow-1">{item.label}</span>
-                  {isOrderDropdownOpen ? <FiChevronUp /> : <FiChevronDown />}
+                  {/* {isOrderDropdownOpen ? <FiChevronUp /> : <FiChevronDown />} */}
                 </button>
-                {isOrderDropdownOpen && (
+                {/* {isOrderDropdownOpen && (
                   <ul className="list-unstyled mt-2 ms-4">
                     {item.dropdown.map((subItem, subIdx) => (
                       <li key={subIdx} className="nav-item mb-1">
@@ -93,7 +97,7 @@ const AdminLayout = () => {
                       </li>
                     ))}
                   </ul>
-                )}
+                )} */}
               </li>
             ) : (
               <li key={idx} className="nav-item mb-2">
@@ -109,6 +113,14 @@ const AdminLayout = () => {
               </li>
             )
           )}
+          <li className="nav-item mb-2">
+            <button
+              className={`btn w-100 text-start `}
+              onClick={() => { handleLogout() }}
+            >
+              <FiLogOut /> <span className="ms-2">Đăng xuất</span>
+            </button>
+          </li>
         </ul>
       </div>
 

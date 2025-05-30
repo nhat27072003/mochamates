@@ -7,6 +7,7 @@ import ManageUsers from '../pages/admin/ManageUsers'; // Will be created
 import ManageCategories from '../pages/admin/ManageCategories'; // Will be created
 import ProductForm from '../pages/admin/ProductForm';
 import OrderProcessing from '../pages/admin/OrderProcessing';
+import OrderDetails from '../pages/admin/OrderDetails';
 
 const adminRoutes = [
   {
@@ -18,6 +19,7 @@ const adminRoutes = [
       { path: 'products/add', element: <ProductForm /> },
       { path: 'products/edit/:id', element: <ProductForm /> },
       { path: 'orders', element: <ManageOrders /> },
+      { path: 'orders/:id', element: <OrderDetails /> },
       { path: 'orders/pending', element: <OrderProcessing /> },
       { path: 'users', element: <ManageUsers /> },
       { path: 'categories', element: <ManageCategories /> },

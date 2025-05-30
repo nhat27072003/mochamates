@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { FiTrash2, FiMinus, FiPlus } from 'react-icons/fi';
@@ -19,6 +20,40 @@ const CartPage = () => {
   );
   const modalRef = useRef(null);
   const firstButtonRef = useRef(null);
+
+  const labelMap = {
+    IceLevel: {
+      NO_ICE: "Không đá",
+      LESS_ICE: "Ít đá",
+      NORMAL_ICE: "Bình thường",
+    },
+    SugarLevel: {
+      NO_SUGAR: "Không đường",
+      LESS_SUGAR: "Ít đường",
+      NORMAL_SUGAR: "Bình thường",
+    },
+    SizeOption: {
+      SMALL: "Nhỏ",
+      MEDIUM: "Vừa",
+      LARGE: "Lớn",
+    },
+    RoastLevel: {
+      LIGHT: "Rang nhạt",
+      MEDIUM: "Rang vừa",
+      DARK: "Rang đậm",
+    },
+    GrindLevel: {
+      WHOLE_BEAN: "Nguyên hạt",
+      FINE: "Xay mịn",
+      MEDIUM: "Xay vừa",
+      COARSE: "Xay thô",
+    },
+    Weight: {
+      G250: "250g",
+      G500: "500g",
+      KG1: "1kg",
+    },
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -65,31 +100,30 @@ const CartPage = () => {
   const updateQuantity = async (e, change, itemId) => {
     e.preventDefault();
     e.stopPropagation();
-    const newQty = (quantities[itemId] || 1) + change;
+    const newQty = Math.max(1, (quantities[itemId] || 1) + change);
     setQuantities((prev) => ({ ...prev, [itemId]: newQty }));
 
     const item = cartItems.find((item) => item.id === itemId);
     if (item) {
       const updatePayload = {
-        selectedOptions: item.selectedOptions || [],
         quantity: newQty,
       };
       try {
-        await dispatch(updateCartItem({ itemId, updates: updatePayload })).unwrap();
+        await dispatch(updateCartItem({ itemId, newQty })).unwrap();
       } catch (err) {
-        toast.error("Có lỗi xảy ra vui lòng thử lại sau ít phút");
+        toast.error("Có lỗi xảy ra, vui lòng thử lại sau ít phút");
       }
     }
   };
 
-  const removeItem = async (e, productId) => {
+  const removeItem = async (e, itemId) => {
     e.preventDefault();
     e.stopPropagation();
     try {
-      await dispatch(removeFromCart(productId)).unwrap();
+      await dispatch(removeFromCart(itemId)).unwrap();
       dispatch(fetchCart());
     } catch (err) {
-      toast.error("Có lỗi xảy ra vui lòng thử lại sau ít phút");
+      toast.error("Có lỗi xảy ra, vui lòng thử lại sau ít phút");
     }
   };
 
@@ -99,7 +133,7 @@ const CartPage = () => {
       setShowModal(false);
       setQuantities({});
     } catch (err) {
-      toast.error("Có lỗi xảy ra vui lòng thử lại sau ít phút");
+      toast.error("Có lỗi xảy ra, vui lòng thử lại sau ít phút");
     }
   };
 
@@ -114,8 +148,7 @@ const CartPage = () => {
       setPromoCode('');
       toast.info('Mã khuyến mãi đã được áp dụng!');
     } catch (err) {
-      toast.error("Có lỗi xảy ra vui lòng thử lại sau ít phút");
-
+      toast.error("Có lỗi xảy ra, vui lòng thử lại sau ít phút");
     }
   };
 
@@ -182,20 +215,28 @@ const CartPage = () => {
     </>
   );
 
+  const getOptionDisplayName = (optionName) => {
+    return labelMap[optionName] ? optionName.replace(/([A-Z])/g, " $1").trim() : optionName;
+  };
+
+  const getOptionValueDisplay = (optionName, value) => {
+    return labelMap[optionName] && labelMap[optionName][value] ? labelMap[optionName][value] : value;
+  };
+
   return (
     <div className="cart-page">
       <div className="container-fluid">
-        <div class="d-flex direction-column">
+        <div className="d-flex direction-column">
           <h1 className="page-title">Giỏ Hàng của bạn</h1>
           {status === 'loading' && (
-            < div className="text-center ms-2">
+            <div className="text-center ms-2">
               <div className="spinner-border" role="status">
                 <span className="visually-hidden">Đang tải...</span>
               </div>
             </div>
           )}
         </div>
-        {/* {cartError && <div className="alert alert-danger">{cartError}</div>} */}
+        {cartError && <div className="alert alert-danger">{cartError}</div>}
         {cartItems.length === 0 && status !== 'loading' ? (
           <div className="empty-cart text-center py-5">
             <h2 className="empty-title">Giỏ hàng của bạn đang trống</h2>
@@ -212,7 +253,8 @@ const CartPage = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="cart-item card mb-3"
-                  ><Link to={`/products/${item.productId}`}>
+                  >
+                    <Link to={`/products/${item.productId}`}>
                       <div className="card-body d-flex align-items-center">
                         <img
                           src={item.imageUrl || 'https://via.placeholder.com/80?text=Product+Image'}
@@ -224,28 +266,28 @@ const CartPage = () => {
                         />
                         <div className="row cart-details flex-grow-1">
                           <h3 className="col-4 cart-name">{item.name}</h3>
-                          <div className='col-4 option-item'>
-                            {item.selectedOptions?.map((opt) => (
-                              <p key={opt.id} className="cart-option mb-1">
-                                <strong>{opt.name}:</strong> {opt.values.map((val) => val.value).join(', ')}
-                                {opt.values.some((val) => val.additionalPrice > 0) &&
-                                  ` (+${formatPrice(opt.values.reduce((sum, val) => sum + (val.additionalPrice || 0), 0))})`}
-                              </p>
-                            ))}
+                          <div className="col-4 option-item">
+                            {item.selectedOptions &&
+                              Object.entries(item.selectedOptions).map(([optionName, values]) => (
+                                <p key={optionName} className="cart-option mb-1">
+                                  <strong>{getOptionDisplayName(optionName)}:</strong>{' '}
+                                  {values.map((value) => getOptionValueDisplay(optionName, value)).join(', ')}
+                                </p>
+                              ))}
                           </div>
                           <p className="col-2 price-text">
-                            {formatPrice(item.price || 0)}
+                            {formatPrice(item.totalPrice || item.price || 0)}
                           </p>
-                          <div className="col-2 quantity-control d-flex align-items-center ">
+                          <div className="col-2 quantity-control d-flex align-items-center">
                             <button
                               className="btn btn-outline-secondary btn-sm"
                               onClick={(e) => updateQuantity(e, -1, item.id)}
                               aria-label={`Giảm số lượng ${item.name}`}
-                              disabled={status === 'loading'}
+                              disabled={status === 'loading' || quantities[item.id] <= 1}
                             >
                               <FiMinus />
                             </button>
-                            <span className="mx-3">{quantities[item.productId] || item.quantity || 1}</span>
+                            <span className="mx-3">{quantities[item.id] || item.quantity || 1}</span>
                             <button
                               className="btn btn-outline-secondary btn-sm"
                               onClick={(e) => updateQuantity(e, 1, item.id)}
@@ -258,7 +300,7 @@ const CartPage = () => {
                         </div>
                         <div className="cart-price text-end">
                           <p className="price-text">
-                            {formatPrice((item.totalPrice || item.price || 0) * (quantities[item.productId] || item.quantity || 1))}
+                            {formatPrice((item.totalPrice || item.price || 0) * (quantities[item.id] || item.quantity || 1))}
                           </p>
                           <button
                             className="btn btn-link text-danger"
@@ -271,7 +313,6 @@ const CartPage = () => {
                         </div>
                       </div>
                     </Link>
-
                   </motion.div>
                 ))}
               </div>
@@ -333,7 +374,7 @@ const CartPage = () => {
         )}
         {showModal && <ConfirmationModal />}
       </div>
-    </div >
+    </div>
   );
 };
 

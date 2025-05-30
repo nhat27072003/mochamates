@@ -1,15 +1,15 @@
+
 package com.mochamates.web.dto.cart;
 
 import java.util.List;
-
-import com.mochamates.web.dto.product.OptionDTO;
+import java.util.Map;
 
 public class CartItemRequestDTO {
 	private Long productId;
 	private String name;
 	private Double price;
 	private String imageUrl;
-	private List<OptionDTO> selectedOptions;
+	private Map<String, List<String>> selectedOptions;
 	private Integer quantity;
 
 	public Long getProductId() {
@@ -44,11 +44,11 @@ public class CartItemRequestDTO {
 		this.imageUrl = imageUrl;
 	}
 
-	public List<OptionDTO> getSelectedOptions() {
+	public Map<String, List<String>> getSelectedOptions() {
 		return selectedOptions;
 	}
 
-	public void setSelectedOptions(List<OptionDTO> selectedOptions) {
+	public void setSelectedOptions(Map<String, List<String>> selectedOptions) {
 		this.selectedOptions = selectedOptions;
 	}
 
@@ -59,5 +59,4 @@ public class CartItemRequestDTO {
 	public void setQuantity(Integer quantity) {
 		this.quantity = quantity;
 	}
-
 }

@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mochamates.web.dto.cart.CartResponseDTO;
 import com.mochamates.web.dto.order.OrderItemDTO;
 import com.mochamates.web.dto.order.OrderResponseDTO;
+import com.mochamates.web.dto.order.PlaceOrderRequestDTO;
 import com.mochamates.web.dto.product.OptionDTO;
 import com.mochamates.web.entities.User;
 import com.mochamates.web.entities.order.Order;
@@ -47,7 +48,8 @@ public class OrderService {
 	}
 
 	@Transactional
-	public OrderResponseDTO createOrder() {
+	public OrderResponseDTO createOrder(PlaceOrderRequestDTO placeOrderRequestDTO) {
+		System.out.println("come here order");
 		User user = getAuthenticatedUser();
 		CartResponseDTO cart = cartService.getCart();
 
@@ -63,6 +65,15 @@ public class OrderService {
 		order.setStatus(OrderStatus.PENDING);
 		order.setCreateAt(LocalDateTime.now());
 
+		order.setFullName(placeOrderRequestDTO.getFullName());
+		order.setPhoneNumber(placeOrderRequestDTO.getPhoneNumber());
+		order.setStreetAddress(placeOrderRequestDTO.getStreetAddress());
+		order.setCity(placeOrderRequestDTO.getCity());
+		order.setDistrict(placeOrderRequestDTO.getDistrict());
+		order.setWard(placeOrderRequestDTO.getWard());
+		order.setPostalCode(placeOrderRequestDTO.getPostalCode());
+		order.setPaymentMethod(placeOrderRequestDTO.getPaymentMethod());
+
 		List<OrderItem> orderItems = cart.getItems().stream().map(cartItem -> {
 			OrderItem orderItem = new OrderItem();
 			orderItem.setOrder(order);
@@ -72,11 +83,11 @@ public class OrderService {
 			orderItem.setTotalPrice(cartItem.getTotalPrice());
 			orderItem.setImageUrl(cartItem.getImageUrl());
 			orderItem.setQuantity(cartItem.getQuantity());
-			try {
-				orderItem.setSelectedOptions(objectMapper.writeValueAsString(cartItem.getSelectedOptions()));
-			} catch (Exception e) {
-				throw new RuntimeException("Error serializing options: " + e.getMessage(), e);
-			}
+//			try {
+//				orderItem.setSelectedOptions(objectMapper.writeValueAsString(cartItem.getSelectedAttributes()));
+//			} catch (Exception e) {
+//				throw new RuntimeException("Error serializing options: " + e.getMessage(), e);
+//			}
 			return orderItem;
 		}).collect(Collectors.toList());
 
@@ -92,9 +103,9 @@ public class OrderService {
 	public OrderResponseDTO getOrder(Long orderId) {
 		Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
 		User user = getAuthenticatedUser();
-		if (!order.getUserId().equals(user.getId())) {
-			throw new RuntimeException("Unauthorized access to order");
-		}
+//		if (!order.getUserId().equals(user.getId())) {
+//			throw new RuntimeException("Unauthorized access to order");
+//		}
 		return toOrderResponseDTO(order);
 	}
 
@@ -167,6 +178,15 @@ public class OrderService {
 		response.setShipping(order.getShipping());
 		response.setTotal(order.getTotal());
 		response.setStatus(order.getStatus().name());
+
+		response.setFullName(order.getFullName());
+		response.setPhoneNumber(order.getPhoneNumber());
+		response.setStreetAddress(order.getStreetAddress());
+		response.setCity(order.getCity());
+		response.setDistrict(order.getDistrict());
+		response.setWard(order.getWard());
+		response.setPostalCode(order.getPostalCode());
+		response.setPaymentMethod(order.getPaymentMethod());
 
 		List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
 		List<OrderItemDTO> itemDTOs = items.stream().map(item -> {

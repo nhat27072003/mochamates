@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mochamates.web.dto.cart.CartItemRequestDTO;
-import com.mochamates.web.dto.cart.CartItemUpdateRequestDTO;
 import com.mochamates.web.dto.cart.CartResponseDTO;
 import com.mochamates.web.response.ApiResponse;
 import com.mochamates.web.services.CartService;
@@ -59,8 +58,8 @@ public class CartController {
 	 */
 	@PutMapping("/{itemId}")
 	public ResponseEntity<ApiResponse<CartResponseDTO>> updateCartItem(@PathVariable Long itemId,
-			@RequestBody CartItemUpdateRequestDTO request) {
-		CartResponseDTO responseDTO = cartService.updateCartItem(itemId, request);
+			@RequestBody Integer quantity) {
+		CartResponseDTO responseDTO = cartService.updateCartItem(itemId, quantity);
 		ApiResponse<CartResponseDTO> response = new ApiResponse<>("1000", "Item updated", responseDTO);
 		return ResponseEntity.ok(response);
 	}
