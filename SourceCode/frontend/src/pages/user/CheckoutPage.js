@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { clearCart, fetchCart } from "../../redux/cartSlice";
 import { formatPrice } from "../../utils/helpers";
 import { placeOrder } from "../../services/OrderService";
+import { getOptionDisplayName, getOptionValueDisplay } from "../../utils/displayOption";
 
 const CheckoutPage = () => {
   const dispatch = useDispatch();
@@ -25,12 +26,12 @@ const CheckoutPage = () => {
     cardNumber: "",
     cardExpiry: "",
     cvv: "",
+    ipAddress: "127.0.0.1", // Default for testing; get from client in production
   });
 
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Calculate totals
   const calculateSubtotal = () => {
     return cartItems.reduce((sum, item) => {
       const qty = item.quantity || 1;
@@ -38,8 +39,8 @@ const CheckoutPage = () => {
     }, 0);
   };
 
-  const shipping = 10000; // As per CartPage
-  const discount = 0; // Assume discount is handled in CartPage; adjust if needed
+  const shipping = 10000;
+  const discount = 0;
   const total = calculateSubtotal() + shipping - discount;
 
   const handleInputChange = (e) => {
@@ -116,19 +117,17 @@ const CheckoutPage = () => {
 
     setIsLoading(true);
     try {
-      console.log('check form data', formData)
       const result = await placeOrder(formData);
-      console.log(result);
-      // await dispatch(clearCart()).unwrap();
-      if (result.statusCode === "1000") {
+      if (result.statusCode === "1000" && result.data?.paymentUrl) {
+        // Redirect to VNPay payment gateway
+        window.location.href = result.data?.paymentUrl;
+      } else {
         toast.success("Đặt hàng thành công!");
-        dispatch(fetchCart()).unwrap();
+        await dispatch(fetchCart());
         navigate('/order');
       }
-      else toast.info(result.message)
-      // navigate("/order-confirmation"); // Redirect to confirmation page
     } catch (err) {
-      toast.error("Có lỗi xảy ra, vui lòng thử lại sau!");
+      toast.error("Có lỗi xảy ra, vui lòng thử lại!");
       console.error("Order placement error:", err);
     } finally {
       setIsLoading(false);
@@ -144,14 +143,15 @@ const CheckoutPage = () => {
       formData.paymentMethod &&
       (formData.paymentMethod !== "card" ||
         (formData.cardNumber && formData.cardExpiry && formData.cvv)) &&
+      (formData.paymentMethod !== "VNPay" || formData.ipAddress) &&
       Object.values(errors).every((error) => !error)
     );
   };
 
   return (
-    <div className="checkout-page min-vh-100 bg-light py-2">
-      <div className="container">
-        <h1 className="text-center mb-2">Thanh Toán</h1>
+    <div className="checkout-page min-vh-100 bg-light py-5">
+      <div className="container-fluid">
+        <h1 className="text-center mb-4">Thanh Toán</h1>
         {cartItems.length === 0 ? (
           <div className="text-center py-5">
             <h2 className="text-muted">Giỏ hàng của bạn đang trống</h2>
@@ -172,7 +172,7 @@ const CheckoutPage = () => {
                         src={item.imageUrl || "https://via.placeholder.com/80?text=Product+Image"}
                         alt={item.name}
                         className="rounded me-3"
-                        style={{ width: "60px", height: "60px", objectFit: "cover" }}
+                        style={{ width: "80px", height: "80px", objectFit: "cover" }}
                         onError={(e) => {
                           e.target.src = "https://via.placeholder.com/80?text=Product+Image";
                         }}
@@ -182,24 +182,16 @@ const CheckoutPage = () => {
                         <p className="text-muted small mb-0">
                           Số lượng: {item.quantity || 1}
                         </p>
-                        {item.selectedOptions?.map((opt) => (
-                          <p key={opt.id} className="text-muted small mb-0">
-                            <strong>{opt.name}:</strong>{" "}
-                            {opt.values.map((val) => val.value).join(", ")}
-                            {opt.values.some((val) => val.additionalPrice > 0) &&
-                              ` (+${formatPrice(
-                                opt.values.reduce(
-                                  (sum, val) => sum + (val.additionalPrice || 0),
-                                  0
-                                )
-                              )})`}
-                          </p>
-                        ))}
+                        {item.selectedOptions &&
+                          Object.entries(item.selectedOptions).map(([optionName, values]) => (
+                            <p key={optionName} className="text-muted small mb-0">
+                              <strong>{getOptionDisplayName(optionName)}:</strong>{" "}
+                              {values.map((value) => getOptionValueDisplay(optionName, value)).join(", ")}
+                            </p>
+                          ))}
                       </div>
                       <span className="fw-medium">
-                        {formatPrice(
-                          (item.totalPrice || item.price || 0) * (item.quantity || 1)
-                        )}
+                        {formatPrice((item.totalPrice || item.price || 0) * (item.quantity || 1))}
                       </span>
                     </div>
                   ))}
@@ -231,16 +223,15 @@ const CheckoutPage = () => {
               <div className="card shadow-sm p-4">
                 <form onSubmit={handleSubmit}>
                   {/* Shipping Address */}
-                  <h2 className="h4 mb-4">Thông Tin Giao Hàng</h2>
+                  <h2 className="h4 mb-3">Thông Tin Giao Hàng</h2>
                   <div className="row g-3 mb-4">
                     <div className="col-12">
                       <label htmlFor="fullName" className="form-label">
-                        Họ và Tên
+                        Họ và tên
                       </label>
                       <input
                         type="text"
-                        className={`form-control ${errors.fullName ? "is-invalid" : ""
-                          }`}
+                        className={`form-control ${errors.fullName ? "is-invalid" : ""}`}
                         id="fullName"
                         name="fullName"
                         value={formData.fullName}
@@ -251,15 +242,13 @@ const CheckoutPage = () => {
                         <div className="invalid-feedback">{errors.fullName}</div>
                       )}
                     </div>
-
                     <div className="col-12">
                       <label htmlFor="phoneNumber" className="form-label">
                         Số Điện Thoại
                       </label>
                       <input
                         type="tel"
-                        className={`form-control ${errors.phoneNumber ? "is-invalid" : ""
-                          }`}
+                        className={`form-control ${errors.phoneNumber ? "is-invalid" : ""}`}
                         id="phoneNumber"
                         name="phoneNumber"
                         value={formData.phoneNumber}
@@ -270,15 +259,13 @@ const CheckoutPage = () => {
                         <div className="invalid-feedback">{errors.phoneNumber}</div>
                       )}
                     </div>
-
                     <div className="col-12">
                       <label htmlFor="streetAddress" className="form-label">
                         Địa Chỉ Đường Phố
                       </label>
                       <input
                         type="text"
-                        className={`form-control ${errors.streetAddress ? "is-invalid" : ""
-                          }`}
+                        className={`form-control ${errors.streetAddress ? "is-invalid" : ""}`}
                         id="streetAddress"
                         name="streetAddress"
                         value={formData.streetAddress}
@@ -289,7 +276,6 @@ const CheckoutPage = () => {
                         <div className="invalid-feedback">{errors.streetAddress}</div>
                       )}
                     </div>
-
                     <div className="col-md-4">
                       <label htmlFor="city" className="form-label">
                         Thành Phố
@@ -307,7 +293,6 @@ const CheckoutPage = () => {
                         <div className="invalid-feedback">{errors.city}</div>
                       )}
                     </div>
-
                     <div className="col-md-4">
                       <label htmlFor="district" className="form-label">
                         Quận/Huyện
@@ -321,7 +306,6 @@ const CheckoutPage = () => {
                         onChange={handleInputChange}
                       />
                     </div>
-
                     <div className="col-md-4">
                       <label htmlFor="ward" className="form-label">
                         Phường/Xã
@@ -335,15 +319,13 @@ const CheckoutPage = () => {
                         onChange={handleInputChange}
                       />
                     </div>
-
                     <div className="col-md-4">
                       <label htmlFor="postalCode" className="form-label">
                         Mã Bưu Điện
                       </label>
                       <input
                         type="text"
-                        className={`form-control ${errors.postalCode ? "is-invalid" : ""
-                          }`}
+                        className={`form-control ${errors.postalCode ? "is-invalid" : ""}`}
                         id="postalCode"
                         name="postalCode"
                         value={formData.postalCode}
@@ -374,7 +356,6 @@ const CheckoutPage = () => {
                         Thanh Toán Khi Nhận Hàng
                       </label>
                     </div>
-
                     <div className="form-check mb-2">
                       <input
                         className="form-check-input"
@@ -383,14 +364,13 @@ const CheckoutPage = () => {
                         id="card"
                         value="card"
                         onChange={handleInputChange}
-                        aria-label="Thẻ tín dụng/thẻ ghi nợ"
+                        aria-label="Thẻ tín dụng/thẻ ghi nhận"
                       />
                       <label className="form-check-label d-flex align-items-center" htmlFor="card">
                         <FaCreditCard className="me-2 text-primary" />
                         Thẻ Tín Dụng/Thẻ Ghi Nợ
                       </label>
                     </div>
-
                     <div className="form-check mb-2">
                       <input
                         className="form-check-input"
@@ -404,6 +384,21 @@ const CheckoutPage = () => {
                       <label className="form-check-label d-flex align-items-center" htmlFor="wallet">
                         <FaWallet className="me-2 text-purple" />
                         Ví Điện Tử
+                      </label>
+                    </div>
+                    <div className="form-check mb-2">
+                      <input
+                        className="form-check-input"
+                        type="radio"
+                        name="paymentMethod"
+                        id="VNPay"
+                        value="VNPay"
+                        onChange={handleInputChange}
+                        aria-label="VNPay"
+                      />
+                      <label className="form-check-label d-flex align-items-center" htmlFor="VNPay">
+                        {/* <SiVnpay className="me-2 text-danger" /> */}
+                        VNPay
                       </label>
                     </div>
                     {errors.paymentMethod && (
@@ -420,8 +415,7 @@ const CheckoutPage = () => {
                         </label>
                         <input
                           type="text"
-                          className={`form-control ${errors.cardNumber ? "is-invalid" : ""
-                            }`}
+                          className={`form-control ${errors.cardNumber ? "is-invalid" : ""}`}
                           id="cardNumber"
                           name="cardNumber"
                           value={formData.cardNumber}
@@ -433,15 +427,13 @@ const CheckoutPage = () => {
                           <div className="invalid-feedback">{errors.cardNumber}</div>
                         )}
                       </div>
-
                       <div className="col-md-6">
                         <label htmlFor="cardExpiry" className="form-label">
                           Ngày Hết Hạn (MM/YY)
                         </label>
                         <input
                           type="text"
-                          className={`form-control ${errors.cardExpiry ? "is-invalid" : ""
-                            }`}
+                          className={`form-control ${errors.cardExpiry ? "is-invalid" : ""}`}
                           id="cardExpiry"
                           name="cardExpiry"
                           value={formData.cardExpiry}
@@ -453,7 +445,6 @@ const CheckoutPage = () => {
                           <div className="invalid-feedback">{errors.cardExpiry}</div>
                         )}
                       </div>
-
                       <div className="col-md-6">
                         <label htmlFor="cvv" className="form-label">
                           CVV

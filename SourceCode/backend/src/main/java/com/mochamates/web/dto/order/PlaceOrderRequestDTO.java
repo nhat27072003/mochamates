@@ -9,10 +9,9 @@ public class PlaceOrderRequestDTO {
 	private String ward;
 	private String postalCode;
 	private String paymentMethod;
-	private String cardNumber;
-	private String cardExpiry;
-	private String cvv;
+	private String ipAddress; // Added for VNPay
 
+	// Getters and setters
 	public String getFullName() {
 		return fullName;
 	}
@@ -77,28 +76,11 @@ public class PlaceOrderRequestDTO {
 		this.paymentMethod = paymentMethod;
 	}
 
-	public String getCardNumber() {
-		return cardNumber;
+	public String getIpAddress() {
+		return ipAddress;
 	}
 
-	public void setCardNumber(String cardNumber) {
-		this.cardNumber = cardNumber;
+	public void setIpAddress(String ipAddress) {
+		this.ipAddress = ipAddress;
 	}
-
-	public String getCardExpiry() {
-		return cardExpiry;
-	}
-
-	public void setCardExpiry(String cardExpiry) {
-		this.cardExpiry = cardExpiry;
-	}
-
-	public String getCvv() {
-		return cvv;
-	}
-
-	public void setCvv(String cvv) {
-		this.cvv = cvv;
-	}
-
 }

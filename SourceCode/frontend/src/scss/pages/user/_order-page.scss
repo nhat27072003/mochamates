@@ -107,15 +107,10 @@
       tbody {
         tr {
           border-bottom: 1px solid lighten($gray-600, 40%);
-          height: 150px;
 
-          /* Chiều cao cố định cho mỗi hàng */
           .items-column {
-
-            max-height: 120px;
-            /* Chiều cao tối đa cho cột items */
+            max-height: 150px;
             overflow-y: auto;
-            /* Thanh cuộn dọc */
             padding: 0.5rem;
 
             &::-webkit-scrollbar {

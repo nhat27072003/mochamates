@@ -1,6 +1,7 @@
 package com.mochamates.web.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,10 +35,11 @@ public class OrderController {
 	 * @return ResponseEntity with order details
 	 */
 	@PostMapping
-	public ResponseEntity<ApiResponse<OrderResponseDTO>> createOrder(
+	public ResponseEntity<ApiResponse<Map<String, Object>>> createOrder(
 			@RequestBody PlaceOrderRequestDTO placeOrderRequestDTO) {
-		OrderResponseDTO responseDTO = orderService.createOrder(placeOrderRequestDTO);
-		ApiResponse<OrderResponseDTO> response = new ApiResponse<>("1000", "Order created successfully", responseDTO);
+		Map<String, Object> responseDTO = orderService.createOrder(placeOrderRequestDTO);
+		ApiResponse<Map<String, Object>> response = new ApiResponse<>("1000", "Order created successfully",
+				responseDTO);
 		return ResponseEntity.ok(response);
 
 	}

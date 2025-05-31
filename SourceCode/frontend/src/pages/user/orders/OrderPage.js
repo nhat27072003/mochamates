@@ -4,6 +4,7 @@ import { Container, Row, Col, Table, Form, Modal } from 'react-bootstrap';
 import { getOrdersForUser } from '../../../services/OrderService';
 import { useNavigate } from 'react-router-dom';
 import Button from '../../../components/Button/Button';
+import { formatPrice } from '../../../utils/helpers';
 
 const OrdersPage = () => {
   const [viewMode, setViewMode] = useState('table');
@@ -214,7 +215,7 @@ const OrdersPage = () => {
                           ))}
                         </div>
 
-                        <td>${order.total?.toFixed(2) || '0.00'}</td>
+                        <td>{formatPrice(order.total)}</td>
                         <td>
                           <span className={`status-badge ${getStatusColor(order.status)}`}>
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
@@ -267,7 +268,7 @@ const OrdersPage = () => {
                           ))}
                         </div>
                         <div className="order-footer">
-                          <span className="total">${order.total?.toFixed(2) || '0.00'}</span>
+                          <span className="total">{formatPrice(order.total)}</span>
                           <Button
                             className="action-btn"
                             onClick={() => {

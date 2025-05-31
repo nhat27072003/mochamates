@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,8 @@ import com.mochamates.web.exception.VerificationCodeException;
 import com.mochamates.web.repository.RefreshTokenRepository;
 import com.mochamates.web.repository.UserRepository;
 import com.mochamates.web.validators.UserValidator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service that handles user authentication and registration logic, including
@@ -39,6 +42,7 @@ public class AuthService {
 	private UserValidator userValidator;
 	private TokenService tokenService;
 	private RefreshTokenRepository refreshTokenRepository;
+	private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
 	/**
 	 * Constructor to initialize the AuthService with required dependencies.
@@ -102,11 +106,12 @@ public class AuthService {
 	@Transactional
 	public void registerUser(UserRegistrationRequest userRegistrationRequest) {
 		userValidator.validateUser(userRegistrationRequest);
-
+		logger.info("check registerv " + userRegistrationRequest.getUsername());
 		if (userRepository.findByEmail(userRegistrationRequest.getEmail()) != null)
 			throw new UserAlreadyExistException("Email already exists!");
 
-		if (userRepository.findByUsername(userRegistrationRequest.getUsername()) != null)
+		Optional<User> user = userRepository.findByUsername(userRegistrationRequest.getUsername());
+		if (user.isPresent())
 			throw new UserAlreadyExistException("Username already exists!");
 
 		User newUser = new User(userRegistrationRequest.getUsername(),

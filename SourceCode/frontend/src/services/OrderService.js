@@ -7,6 +7,7 @@ const getOrdersForUser = async () => {
 }
 const placeOrder = async (data) => {
   const response = await axiosClient.post('/api/v1/orders', data);
+  console.log('check response checkout', response);
   return response;
 }
 const getAllOrders = async (data) => {

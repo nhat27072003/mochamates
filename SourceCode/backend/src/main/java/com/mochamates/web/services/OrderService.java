@@ -1,10 +1,19 @@
 package com.mochamates.web.services;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,7 +24,6 @@ import com.mochamates.web.dto.cart.CartResponseDTO;
 import com.mochamates.web.dto.order.OrderItemDTO;
 import com.mochamates.web.dto.order.OrderResponseDTO;
 import com.mochamates.web.dto.order.PlaceOrderRequestDTO;
-import com.mochamates.web.dto.product.OptionDTO;
 import com.mochamates.web.entities.User;
 import com.mochamates.web.entities.order.Order;
 import com.mochamates.web.entities.order.OrderItem;
@@ -38,6 +46,18 @@ public class OrderService {
 	private final UserRepository userRepository;
 	private final ObjectMapper objectMapper;
 
+	@Value("${vnpay.tmnCode}")
+	private String vnp_TmnCode;
+
+	@Value("${vnpay.hashSecret}")
+	private String vnp_HashSecret;
+
+	@Value("${vnpay.paymentUrl}")
+	private String vnp_PayUrl;
+
+	@Value("${vnpay.returnUrl}")
+	private String vnp_ReturnUrl;
+
 	public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository,
 			CartService cartService, UserRepository userRepository) {
 		this.orderRepository = orderRepository;
@@ -48,8 +68,7 @@ public class OrderService {
 	}
 
 	@Transactional
-	public OrderResponseDTO createOrder(PlaceOrderRequestDTO placeOrderRequestDTO) {
-		System.out.println("come here order");
+	public Map<String, Object> createOrder(PlaceOrderRequestDTO placeOrderRequestDTO) {
 		User user = getAuthenticatedUser();
 		CartResponseDTO cart = cartService.getCart();
 
@@ -83,29 +102,135 @@ public class OrderService {
 			orderItem.setTotalPrice(cartItem.getTotalPrice());
 			orderItem.setImageUrl(cartItem.getImageUrl());
 			orderItem.setQuantity(cartItem.getQuantity());
-//			try {
-//				orderItem.setSelectedOptions(objectMapper.writeValueAsString(cartItem.getSelectedAttributes()));
-//			} catch (Exception e) {
-//				throw new RuntimeException("Error serializing options: " + e.getMessage(), e);
-//			}
+			try {
+				orderItem.setSelectedOptions(objectMapper.writeValueAsString(cartItem.getSelectedOptions()));
+			} catch (Exception e) {
+				throw new RuntimeException("Error serializing options: " + e.getMessage(), e);
+			}
 			return orderItem;
 		}).collect(Collectors.toList());
 
 		order.setItems(orderItems);
-		System.out.println("check orders" + order.getUserId());
 		orderRepository.save(order);
 
-		cartService.clearCart();
+		Map<String, Object> response = new HashMap<>();
+		response.put("order", toOrderResponseDTO(order));
 
+		if ("VNPAY".equalsIgnoreCase(placeOrderRequestDTO.getPaymentMethod())) {
+			try {
+				String paymentUrl = createVNPayPaymentUrl(order, placeOrderRequestDTO.getIpAddress());
+				response.put("paymentUrl", paymentUrl);
+			} catch (Exception e) {
+				throw new OrderCreateException("Error creating VNPay payment URL: " + e.getMessage());
+			}
+		} else {
+			cartService.clearCart();
+		}
+
+		return response;
+	}
+
+	public String createVNPayPaymentUrl(Order order, String ipAddress) throws UnsupportedEncodingException {
+		String vnp_Version = "2.1.0";
+		String vnp_Command = "pay";
+		String vnp_OrderInfo = "Thanh toan don hang #" + order.getId();
+		String vnp_OrderType = "billpayment";
+		String vnp_TxnRef = String.valueOf(order.getId());
+		String vnp_IpAddr = ipAddress;
+		String vnp_CreateDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+		String vnp_ExpireDate = LocalDateTime.now().plusMinutes(15)
+				.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+
+		long amount = (long) (order.getTotal() * 100); // VNPay requires amount in VND * 100
+
+		Map<String, String> vnp_Params = new HashMap<>();
+		vnp_Params.put("vnp_Version", vnp_Version);
+		vnp_Params.put("vnp_Command", vnp_Command);
+		vnp_Params.put("vnp_TmnCode", vnp_TmnCode);
+		vnp_Params.put("vnp_Amount", String.valueOf(amount));
+		vnp_Params.put("vnp_CurrCode", "VND");
+		vnp_Params.put("vnp_TxnRef", vnp_TxnRef);
+		vnp_Params.put("vnp_OrderInfo", vnp_OrderInfo);
+		vnp_Params.put("vnp_OrderType", vnp_OrderType);
+		vnp_Params.put("vnp_Locale", "vn");
+		vnp_Params.put("vnp_ReturnUrl", vnp_ReturnUrl);
+		vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
+		vnp_Params.put("vnp_CreateDate", vnp_CreateDate);
+		vnp_Params.put("vnp_ExpireDate", vnp_ExpireDate);
+
+		StringBuilder query = new StringBuilder();
+		vnp_Params.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+			try {
+				query.append(URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII.toString())).append("=")
+						.append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII.toString())).append("&");
+			} catch (UnsupportedEncodingException e) {
+				throw new RuntimeException("Error encoding URL parameters", e);
+			}
+		});
+
+		String queryUrl = query.toString();
+		String vnp_SecureHash = hmacSHA512(vnp_HashSecret, queryUrl.substring(0, queryUrl.length() - 1));
+		queryUrl += "vnp_SecureHash=" + vnp_SecureHash;
+
+		return vnp_PayUrl + "?" + queryUrl;
+	}
+
+	@Transactional
+	public OrderResponseDTO processVNPayCallback(Map<String, String> params) {
+		String vnp_SecureHash = params.get("vnp_SecureHash");
+		params.remove("vnp_SecureHash");
+
+		StringBuilder signData = new StringBuilder();
+		params.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+			try {
+				signData.append(entry.getKey()).append("=")
+						.append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII.toString())).append("&");
+			} catch (UnsupportedEncodingException e) {
+				throw new RuntimeException("Error encoding callback parameters", e);
+			}
+		});
+
+		String computedHash = hmacSHA512(vnp_HashSecret, signData.toString().substring(0, signData.length() - 1));
+		if (!computedHash.equals(vnp_SecureHash)) {
+			throw new OrderStatusException("Invalid VNPay signature");
+		}
+
+		Long orderId = Long.parseLong(params.get("vnp_TxnRef"));
+		Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException());
+
+		if ("00".equals(params.get("vnp_ResponseCode"))) {
+			order.setStatus(OrderStatus.PAID);
+			cartService.clearCart();
+		} else {
+			order.setStatus(OrderStatus.FAILED);
+		}
+
+		orderRepository.save(order);
 		return toOrderResponseDTO(order);
 	}
 
+	private String hmacSHA512(String key, String data) {
+		try {
+			Mac mac = Mac.getInstance("HmacSHA512");
+			SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
+			mac.init(secretKey);
+			byte[] hmacData = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
+			StringBuilder result = new StringBuilder();
+			for (byte b : hmacData) {
+				result.append(String.format("%02x", b));
+			}
+			return result.toString();
+		} catch (Exception e) {
+			throw new RuntimeException("Error computing HMAC SHA512", e);
+		}
+	}
+
 	public OrderResponseDTO getOrder(Long orderId) {
-		Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+		Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException());
 		User user = getAuthenticatedUser();
-//		if (!order.getUserId().equals(user.getId())) {
-//			throw new RuntimeException("Unauthorized access to order");
-//		}
+		if (!order.getUserId().equals(user.getId())) {
+			throw new OrderStatusException("Unauthorized access to order");
+		}
 		return toOrderResponseDTO(order);
 	}
 
@@ -124,10 +249,10 @@ public class OrderService {
 
 	@Transactional
 	public OrderResponseDTO updateOrderStatusForUser(Long orderId, OrderStatus newStatus) {
-		Order order = orderRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found"));
+		Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException());
 		User user = getAuthenticatedUser();
 		if (!order.getUserId().equals(user.getId())) {
-			throw new RuntimeException("Unauthorized access to order");
+			throw new OrderStatusException("Unauthorized access to order");
 		}
 
 		if (order.getStatus() == OrderStatus.PENDING && newStatus == OrderStatus.CANCELLED) {
@@ -135,7 +260,7 @@ public class OrderService {
 		} else if (order.getStatus() == OrderStatus.SHIPPED && newStatus == OrderStatus.DELIVERED) {
 			order.setStatus(OrderStatus.DELIVERED);
 		} else {
-			throw new OrderStatusException("Invalid status transition for user cannot change order from "
+			throw new OrderStatusException("Invalid status transition for user: cannot change order from "
 					+ order.getStatus() + " to " + newStatus);
 		}
 
@@ -151,7 +276,6 @@ public class OrderService {
 		order.setStatus(newStatus);
 		orderRepository.save(order);
 		return toOrderResponseDTO(order);
-
 	}
 
 	private void validateAdminStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
@@ -199,11 +323,13 @@ public class OrderService {
 			dto.setImageUrl(item.getImageUrl());
 			dto.setQuantity(item.getQuantity());
 			try {
-				List<OptionDTO> options = objectMapper.readValue(item.getSelectedOptions(),
-						objectMapper.getTypeFactory().constructCollectionType(List.class, OptionDTO.class));
+				@SuppressWarnings("unchecked")
+				Map<String, List<String>> options = item.getSelectedOptions() != null
+						? objectMapper.readValue(item.getSelectedOptions(), Map.class)
+						: null;
 				dto.setSelectedOptions(options);
 			} catch (Exception e) {
-				dto.setSelectedOptions(new ArrayList<>());
+				dto.setSelectedOptions(null);
 			}
 			return dto;
 		}).collect(Collectors.toList());
@@ -211,5 +337,4 @@ public class OrderService {
 		response.setItems(itemDTOs);
 		return response;
 	}
-
 }

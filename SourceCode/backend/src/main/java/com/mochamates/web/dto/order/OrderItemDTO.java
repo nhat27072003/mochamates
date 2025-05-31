@@ -1,8 +1,7 @@
 package com.mochamates.web.dto.order;
 
 import java.util.List;
-
-import com.mochamates.web.dto.product.OptionDTO;
+import java.util.Map;
 
 public class OrderItemDTO {
 	private Long id;
@@ -12,7 +11,7 @@ public class OrderItemDTO {
 	private Double totalPrice;
 	private String imageUrl;
 	private Integer quantity;
-	private List<OptionDTO> selectedOptions;
+	private Map<String, List<String>> selectedOptions;
 
 	public Long getId() {
 		return id;
@@ -70,12 +69,11 @@ public class OrderItemDTO {
 		this.quantity = quantity;
 	}
 
-	public List<OptionDTO> getSelectedOptions() {
+	public Map<String, List<String>> getSelectedOptions() {
 		return selectedOptions;
 	}
 
-	public void setSelectedOptions(List<OptionDTO> selectedOptions) {
+	public void setSelectedOptions(Map<String, List<String>> selectedOptions) {
 		this.selectedOptions = selectedOptions;
 	}
-
 }
