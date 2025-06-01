@@ -15,7 +15,9 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,7 @@ import com.mochamates.web.dto.cart.CartResponseDTO;
 import com.mochamates.web.dto.order.OrderItemDTO;
 import com.mochamates.web.dto.order.OrderResponseDTO;
 import com.mochamates.web.dto.order.PlaceOrderRequestDTO;
+import com.mochamates.web.dto.statistics.RevenueByTimeDTO;
 import com.mochamates.web.entities.User;
 import com.mochamates.web.entities.order.Order;
 import com.mochamates.web.entities.order.OrderItem;
@@ -65,6 +68,18 @@ public class OrderService {
 		this.cartService = cartService;
 		this.userRepository = userRepository;
 		this.objectMapper = new ObjectMapper();
+	}
+
+	/**
+	 * Retrieves the most recent orders.
+	 *
+	 * @param limit the maximum number of orders to return (default is 5)
+	 * @return List of recent orders
+	 */
+	public List<OrderResponseDTO> getRecentOrders(int limit) {
+		Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createAt"));
+		Page<Order> recentOrders = orderRepository.findAll(pageable);
+		return recentOrders.getContent().stream().map(this::toOrderResponseDTO).collect(Collectors.toList());
 	}
 
 	@Transactional
@@ -234,16 +249,32 @@ public class OrderService {
 		return toOrderResponseDTO(order);
 	}
 
+	public OrderResponseDTO getOrderForAdmin(Long orderId) {
+		Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException());
+		return toOrderResponseDTO(order);
+	}
+
 	public List<OrderResponseDTO> getUserOrders() {
 		User user = getAuthenticatedUser();
 		List<Order> orders = orderRepository.findByUserId(user.getId());
 		return orders.stream().map(this::toOrderResponseDTO).collect(Collectors.toList());
 	}
 
-	public Page<OrderResponseDTO> getAllOrders(String query, OrderStatus status, LocalDateTime dateFrom,
+	public Page<OrderResponseDTO> getAllOrders(String query, String status, LocalDateTime dateFrom,
 			LocalDateTime dateTo, Double totalMin, Pageable pageable) {
+		// Handle "all" status by setting status to null to fetch all orders
+		OrderStatus orderStatus = null;
+		if (status != null && !"all".equalsIgnoreCase(status)) {
+			try {
+				orderStatus = OrderStatus.valueOf(status.toUpperCase());
+			} catch (IllegalArgumentException e) {
+				throw new OrderStatusException("Invalid order status: " + status);
+			}
+		}
+
 		Page<Order> orders = orderRepository.findOrdersWithFilters(query != null && !query.isBlank() ? query : null,
-				status, dateFrom, dateTo, totalMin, pageable);
+				orderStatus, // Use null for "all" to disable status filtering
+				dateFrom, dateTo, totalMin, pageable);
 		return orders.map(this::toOrderResponseDTO);
 	}
 
@@ -270,12 +301,50 @@ public class OrderService {
 
 	@Transactional
 	public OrderResponseDTO updateOrderStatusForAdmin(Long orderId, OrderStatus newStatus) {
+		System.out.println("come here");
 		Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException());
-		validateAdminStatusTransition(order.getStatus(), newStatus);
+		try {
+			validateAdminStatusTransition(order.getStatus(), newStatus);
 
-		order.setStatus(newStatus);
-		orderRepository.save(order);
+			order.setStatus(newStatus);
+			orderRepository.save(order);
+		} catch (Exception e) {
+			System.out.println("check e " + e);
+		}
 		return toOrderResponseDTO(order);
+
+	}
+
+	public long getTotalOrders() {
+		return orderRepository.count();
+	}
+
+	public double getTotalRevenue() {
+		return orderRepository.findAll().stream()
+				.filter(order -> order.getStatus() == OrderStatus.PAID || order.getStatus() == OrderStatus.DELIVERED)
+				.mapToDouble(Order::getTotal).sum();
+	}
+
+	public List<RevenueByTimeDTO> getRevenueByPeriod(LocalDateTime startDate, LocalDateTime endDate,
+			String periodType) {
+		List<Object[]> results;
+		if ("DAY".equalsIgnoreCase(periodType)) {
+			results = orderRepository.findRevenueByDay(startDate, endDate);
+		} else if ("MONTH".equalsIgnoreCase(periodType)) {
+			results = orderRepository.findRevenueByMonth(startDate, endDate);
+		} else if ("YEAR".equalsIgnoreCase(periodType)) {
+			results = orderRepository.findRevenueByYear(startDate, endDate);
+		} else {
+			throw new OrderStatusException("Invalid period type: " + periodType);
+		}
+
+		return results.stream().map(row -> {
+			RevenueByTimeDTO dto = new RevenueByTimeDTO();
+			dto.setPeriodStart((LocalDateTime) row[0]);
+			dto.setRevenue((Double) row[1]);
+			dto.setOrderCount((Long) row[2]);
+			return dto;
+		}).collect(Collectors.toList());
 	}
 
 	private void validateAdminStatusTransition(OrderStatus currentStatus, OrderStatus newStatus) {
@@ -302,7 +371,7 @@ public class OrderService {
 		response.setShipping(order.getShipping());
 		response.setTotal(order.getTotal());
 		response.setStatus(order.getStatus().name());
-
+		response.setCreateAt(order.getCreateAt());
 		response.setFullName(order.getFullName());
 		response.setPhoneNumber(order.getPhoneNumber());
 		response.setStreetAddress(order.getStreetAddress());

@@ -15,11 +15,29 @@ import com.mochamates.web.entities.order.OrderStatus;
 public interface OrderRepository extends JpaRepository<Order, Long> {
 	List<Order> findByUserId(Long userId);
 
-	@Query("SELECT o FROM Order o WHERE "
-			+ "(:q IS NULL OR CAST(o.id AS string) LIKE %:q% OR CAST(o.userId AS string) LIKE %:q%) "
-			+ "AND (:status IS NULL OR o.status = :status) " + "AND (:dateFrom IS NULL OR o.createAt >= :dateFrom) "
-			+ "AND (:dateTo IS NULL OR o.createAt <= :dateTo) " + "AND (:totalMin IS NULL OR o.total >= :totalMin)")
-	Page<Order> findOrdersWithFilters(@Param("q") String query, @Param("status") OrderStatus status,
+	@Query("SELECT DATE_TRUNC('day', o.createAt) as period, SUM(o.total) as revenue, COUNT(o) as orderCount "
+			+ "FROM Order o WHERE o.createAt BETWEEN :startDate AND :endDate "
+			+ "AND o.status IN ('PAID', 'DELIVERED') " + "GROUP BY DATE_TRUNC('day', o.createAt)")
+	List<Object[]> findRevenueByDay(@Param("startDate") LocalDateTime startDate,
+			@Param("endDate") LocalDateTime endDate);
+
+	@Query("SELECT DATE_TRUNC('month', o.createAt) as period, SUM(o.total) as revenue, COUNT(o) as orderCount "
+			+ "FROM Order o WHERE o.createAt BETWEEN :startDate AND :endDate "
+			+ "AND o.status IN ('PAID', 'DELIVERED') " + "GROUP BY DATE_TRUNC('month', o.createAt)")
+	List<Object[]> findRevenueByMonth(@Param("startDate") LocalDateTime startDate,
+			@Param("endDate") LocalDateTime endDate);
+
+	@Query("SELECT DATE_TRUNC('year', o.createAt) as period, SUM(o.total) as revenue, COUNT(o) as orderCount "
+			+ "FROM Order o WHERE o.createAt BETWEEN :startDate AND :endDate "
+			+ "AND o.status IN ('PAID', 'DELIVERED') " + "GROUP BY DATE_TRUNC('year', o.createAt)")
+	List<Object[]> findRevenueByYear(@Param("startDate") LocalDateTime startDate,
+			@Param("endDate") LocalDateTime endDate);
+
+	@Query("SELECT o FROM Order o WHERE " + "(:query IS NULL OR o.fullName LIKE %:query% OR o.id = :query) AND "
+			+ "(:status IS NULL OR o.status = :status) AND " + "(:dateFrom IS NULL OR o.createAt >= :dateFrom) AND "
+			+ "(:dateTo IS NULL OR o.createAt <= :dateTo) AND " + "(:totalMin IS NULL OR o.total >= :totalMin)")
+	Page<Order> findOrdersWithFilters(@Param("query") String query, @Param("status") OrderStatus status,
 			@Param("dateFrom") LocalDateTime dateFrom, @Param("dateTo") LocalDateTime dateTo,
 			@Param("totalMin") Double totalMin, Pageable pageable);
+
 }

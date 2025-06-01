@@ -1,5 +1,6 @@
 package com.mochamates.web.dto.order;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class OrderResponseDTO {
@@ -10,7 +11,7 @@ public class OrderResponseDTO {
 	private Double shipping;
 	private Double total;
 	private String status;
-
+	private LocalDateTime createAt;
 	private String fullName;
 	private String phoneNumber;
 	private String streetAddress;
@@ -97,6 +98,14 @@ public class OrderResponseDTO {
 
 	public String getStreetAddress() {
 		return streetAddress;
+	}
+
+	public LocalDateTime getCreateAt() {
+		return createAt;
+	}
+
+	public void setCreateAt(LocalDateTime createAt) {
+		this.createAt = createAt;
 	}
 
 	public void setStreetAddress(String streetAddress) {

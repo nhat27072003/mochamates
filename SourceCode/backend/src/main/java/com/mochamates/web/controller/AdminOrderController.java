@@ -41,7 +41,7 @@ public class AdminOrderController {
 	public ResponseEntity<ApiResponse<PaginatedResponseDTO<OrderResponseDTO>>> getAllOrders(
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size,
 			@RequestParam(defaultValue = "id,desc") String sort, @RequestParam(required = false) String q,
-			@RequestParam(required = false) OrderStatus status,
+			@RequestParam(required = false) String status,
 			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateFrom,
 			@RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dateTo,
 			@RequestParam(required = false) Double totalMin) {
@@ -74,7 +74,7 @@ public class AdminOrderController {
 	@GetMapping("/{orderId}")
 	public ResponseEntity<ApiResponse<OrderResponseDTO>> getOrder(@PathVariable Long orderId) {
 		try {
-			OrderResponseDTO responseDTO = orderService.getOrder(orderId);
+			OrderResponseDTO responseDTO = orderService.getOrderForAdmin(orderId);
 			ApiResponse<OrderResponseDTO> response = new ApiResponse<>("1000", "Order retrieved successfully",
 					responseDTO);
 			return ResponseEntity.ok(response);

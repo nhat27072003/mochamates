@@ -1,5 +1,5 @@
 package com.mochamates.web.entities.order;
 
 public enum OrderStatus {
-	PENDING, PAID, SHIPPED, DELIVERED, CANCELLED, FAILED, REFUNDED
+	PENDING, CONFIRMED, PAID, SHIPPED, DELIVERED, CANCELLED, FAILED, REFUNDED
 }

@@ -1,47 +1,111 @@
-.admin-order-management {
-  padding: 20px 0;
+// Define theme variables (replace with your actual values if defined elsewhere)
+$primary-brown: #4a2c2a; // A rich coffee brown
+$primary-green: #28a745; // A fresh green for actions
+$gray-600: #6c757d; // Bootstrap gray for secondary elements
+$white: #ffffff;
+$pending: #ffc107; // Yellow for pending status
+$processing: #17a2b8; // Cyan for processing status
+$shipped: #007bff; // Blue for shipped status
+$delivered: #28a745; // Green for delivered status
+$confirmed: #105f22;
+$cancelled: #dc3545; // Red for cancelled status
+$border-radius: 8px;
+$transition: all 0.3s ease;
 
+// Main container
+.admin-order-management {
+  padding: 30px 15px;
+  background-color: #f8f9fa; // Light gray background for the dashboard
+  min-height: 100vh;
+
+  // Header section
   .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.5rem;
 
     h4 {
       color: $primary-brown;
-      font-size: 1.5rem;
-    }
-
-    .search-filter {
+      font-size: 1.75rem;
+      font-weight: 600;
       display: flex;
-      gap: 0.625rem;
       align-items: center;
+
+      i {
+        font-size: 1.5rem;
+        margin-right: 10px;
+      }
+    }
+  }
+
+  // Tabs styling
+  .nav-tabs {
+    border-bottom: 2px solid $gray-600;
+
+    .nav-link {
+      color: $gray-600;
+      font-weight: 500;
+      padding: 10px 20px;
+      border: none;
+      border-bottom: 2px solid transparent;
+      transition: $transition;
+
+      &.active {
+        color: $primary-brown;
+        border-bottom: 2px solid $primary-brown;
+        background-color: transparent;
+      }
+
+      &:hover {
+        color: $primary-brown;
+      }
+    }
+  }
+
+  // Search and filter section
+  .search-filter {
+    background: $white;
+    padding: 15px;
+    border-radius: $border-radius;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 2rem;
+
+    .row {
+      align-items: center;
+
+      .form-control,
+      .form-select {
+        border: 1px solid #ced4da;
+        border-radius: 5px;
+        padding: 8px 12px;
+        font-size: 0.95rem;
+        transition: $transition;
+
+        &:focus {
+          border-color: $primary-brown;
+          box-shadow: 0 0 5px rgba($primary-brown, 0.2);
+        }
+      }
 
       .search-input {
         position: relative;
 
         .search-icon {
           position: absolute;
-          right: 10px;
+          right: 12px;
           top: 50%;
           transform: translateY(-50%);
           color: $gray-600;
+          font-size: 1.1rem;
         }
       }
+    }
 
-      .status-filter,
-      .date-filter,
-      .total-filter {
-        width: 150px;
-      }
-
-      @media (max-width: 768px) {
+    @media (max-width: 768px) {
+      .row {
         flex-direction: column;
         gap: 1rem;
 
-        .status-filter,
-        .date-filter,
-        .total-filter {
+        .col-md-4,
+        .col-md-2 {
           width: 100%;
         }
       }
@@ -52,35 +116,55 @@
   .table-container {
     background: $white;
     border-radius: $border-radius;
-    padding: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 
     .table {
+      margin-bottom: 0;
 
-      th,
+      th {
+        background-color: #e9ecef;
+        color: $primary-brown;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.9rem;
+        padding: 12px 15px;
+        border-bottom: 2px solid #dee2e6;
+      }
+
       td {
         vertical-align: middle;
+        padding: 12px 15px;
+        font-size: 0.95rem;
       }
 
       .item-container {
         display: flex;
         align-items: center;
-        gap: 0.625rem;
-        margin: 0.3125rem 0;
+        gap: 12px;
+        margin: 5px 0;
 
         img {
           width: 40px;
           height: 40px;
           object-fit: cover;
           border-radius: 4px;
+          border: 1px solid #e9ecef;
+        }
+
+        span {
+          color: #343a40;
         }
       }
 
       .status-badge {
         display: inline-block;
-        padding: 0.125rem 0.5rem;
+        padding: 5px 12px;
         border-radius: 12px;
         color: $white;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-transform: capitalize;
 
         &.pending {
           background-color: $pending;
@@ -101,13 +185,22 @@
         &.cancelled {
           background-color: $cancelled;
         }
+
+        &.confirmed {
+          background-color: $confirmed;
+        }
       }
 
       .action-btn {
         color: $primary-green !important;
         text-decoration: none;
+        font-weight: 500;
+        padding: 5px 10px;
+        border-radius: 4px;
+        transition: $transition;
 
         &:hover {
+          background-color: rgba($primary-green, 0.1);
           color: darken($primary-green, 10%) !important;
         }
       }
@@ -116,16 +209,40 @@
 
   // Pagination
   .pagination {
+    margin-top: 2rem;
+
     .btn {
+      padding: 8px 20px;
+      font-size: 0.95rem;
+      border-radius: 5px;
       transition: $transition;
 
       &:disabled {
-        opacity: 0.6;
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      &:not(:disabled):hover {
+        background-color: $primary-brown;
+        color: $white;
+        border-color: $primary-brown;
       }
     }
 
-    .ms-3 {
+    span {
+      font-size: 1rem;
+      color: $gray-600;
+    }
+
+    .form-select {
       width: 100px;
+      border-radius: 5px;
+      font-size: 0.95rem;
+
+      &:focus {
+        border-color: $primary-brown;
+        box-shadow: 0 0 5px rgba($primary-brown, 0.2);
+      }
     }
   }
 
@@ -135,102 +252,88 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100vh;
+    min-height: 50vh;
 
-    .spinner {
-      width: 40px;
-      height: 40px;
-
-      border-top: 4px solid $primary-green;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+    .spinner-border {
+      width: 50px;
+      height: 50px;
+      border-width: 4px;
+      border-top-color: $primary-brown;
     }
 
     p {
-      margin-top: 0.625rem;
-    }
-  }
-
-  @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-
-    100% {
-      transform: rotate(360deg);
+      margin-top: 1rem;
+      color: $gray-600;
+      font-size: 1.1rem;
     }
   }
 
   // No orders state
   .no-orders {
     text-align: center;
-    padding: 3rem;
+    padding: 4rem 2rem;
     background: $white;
     border-radius: $border-radius;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 
-  }
-
-  // Custom text color
-  .text-primary-brown {
-    color: $primary-brown !important;
-  }
-
-  // Modal adjustments
-  .modal-content {
-    border-radius: $border-radius;
-    border: none;
-
-    .modal-header {
-      border-bottom: 1px solid gray;
-
-      .modal-title {
-        color: $primary-brown;
-      }
-
-      .btn-close {
-        background: none;
-        opacity: 0.7;
-
-        &:hover {
-          opacity: 1;
-        }
-      }
+    h2 {
+      color: $primary-brown;
+      font-size: 1.75rem;
+      margin-bottom: 1rem;
     }
 
-    .modal-body {
-      .detail-row {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 1rem;
-      }
-
-      .font-weight-bold {
-        font-weight: 600;
-      }
-
-      .item-container {
-        display: flex;
-        align-items: center;
-        gap: 0.625rem;
-        margin-bottom: 0.625rem;
-
-        img {
-          width: 50px;
-          height: 50px;
-          object-fit: cover;
-          border-radius: 4px;
-        }
-      }
+    p {
+      color: $gray-600;
+      font-size: 1.1rem;
     }
   }
 
+  // Responsive adjustments
   @media (max-width: 768px) {
+    padding: 20px 10px;
+
+    .header h4 {
+      font-size: 1.5rem;
+    }
+
     .table {
       font-size: 0.9rem;
+
+      th,
+      td {
+        padding: 10px;
+      }
 
       .item-container img {
         width: 30px;
         height: 30px;
+      }
+
+      .status-badge {
+        font-size: 0.8rem;
+        padding: 4px 10px;
+      }
+
+      .action-btn {
+        font-size: 0.9rem;
+        padding: 4px 8px;
+      }
+    }
+
+    .pagination {
+      flex-wrap: wrap;
+      gap: 10px;
+
+      .btn {
+        padding: 6px 15px;
+      }
+
+      span {
+        font-size: 0.9rem;
+      }
+
+      .form-select {
+        width: 80px;
       }
     }
   }

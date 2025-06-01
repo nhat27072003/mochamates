@@ -5,6 +5,15 @@ public class CreateReviewRequestDTO {
 	private Long orderId;
 	private Integer rating;
 	private String comment;
+	private Long orderItemId;
+
+	public Long getOrderItemId() {
+		return orderItemId;
+	}
+
+	public void setOrderItemId(Long orderItemId) {
+		this.orderItemId = orderItemId;
+	}
 
 	public Long getProductId() {
 		return productId;

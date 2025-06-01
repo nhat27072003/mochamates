@@ -19,12 +19,6 @@ import com.mochamates.web.dto.user.UserUpdateRequestDTO;
 import com.mochamates.web.response.ApiResponse;
 import com.mochamates.web.services.UserService;
 
-/**
- * REST controller for managing user-related operations for admin users.
- * Provides endpoints for creating, updating, retrieving, and deleting users.
- * 
- * Base path: /api/v1/admin/users
- */
 @RestController
 @RequestMapping("/api/v1/admin/users")
 @PreAuthorize("hasRole('ADMIN')")
@@ -35,13 +29,6 @@ public class AdminUserController {
 		this.userService = userService;
 	}
 
-	/**
-	 * Creates a new user with the provided user data.
-	 * 
-	 * @param request the UserCreateRequestDTO containing user information
-	 * @return a ResponseEntity containing an ApiResponse with the created user
-	 *         details
-	 */
 	@PostMapping()
 	public ResponseEntity<ApiResponse<UserDetailResponse>> createUser(@RequestBody UserCreateRequestDTO request) {
 		UserDetailResponse createdUser = userService.createUser(request);
@@ -49,14 +36,6 @@ public class AdminUserController {
 		return ResponseEntity.status(201).body(response);
 	}
 
-	/**
-	 * Updates an existing user.
-	 * 
-	 * @param id      the ID of the user to update
-	 * @param request the UserUpdateRequestDTO with updated fields
-	 * @return a ResponseEntity containing an ApiResponse with the updated user
-	 *         details
-	 */
 	@PutMapping("/{id}")
 	public ResponseEntity<ApiResponse<UserDetailResponse>> updateUser(@PathVariable Long id,
 			@RequestBody UserUpdateRequestDTO request) {
@@ -65,13 +44,6 @@ public class AdminUserController {
 		return ResponseEntity.status(200).body(response);
 	}
 
-	/**
-	 * Retrieves a paginated list of users for admin.
-	 * 
-	 * @param page the page number to retrieve (default is 0)
-	 * @param size the number of items per page (default is 10)
-	 * @return a ResponseEntity containing an ApiResponse with the user list
-	 */
 	@GetMapping()
 	public ResponseEntity<ApiResponse<GetUsersResponseDTO>> getListUsers(@RequestParam(defaultValue = "0") int page,
 			@RequestParam(defaultValue = "10") int size) {
@@ -80,12 +52,14 @@ public class AdminUserController {
 		return ResponseEntity.ok(response);
 	}
 
-	/**
-	 * Retrieves a user by their ID.
-	 * 
-	 * @param id the ID of the user to retrieve
-	 * @return a ResponseEntity containing an ApiResponse with the user details
-	 */
+	@GetMapping("/by-role")
+	public ResponseEntity<ApiResponse<GetUsersResponseDTO>> getUsersByRole(@RequestParam(required = false) String role,
+			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+		GetUsersResponseDTO responseDTO = userService.getUsersByRole(role, page, size);
+		ApiResponse<GetUsersResponseDTO> response = new ApiResponse<>("1000", "Ok", responseDTO);
+		return ResponseEntity.ok(response);
+	}
+
 	@GetMapping("/{id}")
 	public ResponseEntity<ApiResponse<UserDetailResponse>> getUserById(@PathVariable Long id) {
 		UserDetailResponse user = userService.getUserById(id);
@@ -93,13 +67,6 @@ public class AdminUserController {
 		return ResponseEntity.status(200).body(response);
 	}
 
-	/**
-	 * Deletes a user by their ID.
-	 * 
-	 * @param id the ID of the user to delete
-	 * @return a ResponseEntity containing an ApiResponse with the deleted user
-	 *         details
-	 */
 	@DeleteMapping("/{id}")
 	public ResponseEntity<ApiResponse<UserDetailResponse>> deleteUser(@PathVariable Long id) {
 		UserDetailResponse deletedUser = userService.deleteUser(id);

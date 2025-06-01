@@ -1,7 +1,8 @@
 package com.mochamates.web.entities;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -20,23 +21,27 @@ public class User {
 	private String email;
 	private String phone;
 	private String role;
-	private Date create_at;
-	private Date update_at;
+
+	@Column(name = "create_at")
+	private LocalDateTime createAt;
+
+	@Column(name = "update_at")
+	private LocalDateTime updateAt;
+
 	private boolean isVerify;
 
 	public User() {
-
 	}
 
-	public User(String username, String password, String email, String phone, String role, Date create_at,
-			Date update_at) {
+	public User(String username, String password, String email, String phone, String role, LocalDateTime createAt,
+			LocalDateTime updateAt) {
 		this.username = username;
 		this.password = password;
 		this.email = email;
 		this.phone = phone;
 		this.role = role;
-		this.create_at = create_at;
-		this.update_at = update_at;
+		this.createAt = createAt;
+		this.updateAt = updateAt;
 	}
 
 	public Long getId() {
@@ -83,20 +88,20 @@ public class User {
 		this.role = role;
 	}
 
-	public Date getCreate_at() {
-		return create_at;
+	public LocalDateTime getCreateAt() {
+		return createAt;
 	}
 
-	public void setCreate_at(Date create_at) {
-		this.create_at = create_at;
+	public void setCreateAt(LocalDateTime createAt) {
+		this.createAt = createAt;
 	}
 
-	public Date getUpdate_at() {
-		return update_at;
+	public LocalDateTime getUpdateAt() {
+		return updateAt;
 	}
 
-	public void setUpdate_at(Date update_at) {
-		this.update_at = update_at;
+	public void setUpdateAt(LocalDateTime updateAt) {
+		this.updateAt = updateAt;
 	}
 
 	public boolean isVerify() {
@@ -106,5 +111,4 @@ public class User {
 	public void setVerify(boolean isVerify) {
 		this.isVerify = isVerify;
 	}
-
 }

@@ -80,6 +80,15 @@ public class ReviewController {
 		}
 	}
 
+	@GetMapping("/has-reviewed")
+	@PreAuthorize("hasRole('USER')")
+	public ResponseEntity<ApiResponse<Boolean>> hasReviewed(@RequestParam Long orderItemId, @RequestParam Long orderId,
+			@RequestParam Long productId) {
+		boolean hasReviewed = reviewService.hasReviewed(orderItemId, orderId, productId);
+		ApiResponse<Boolean> response = new ApiResponse<Boolean>("1000", "Ok", hasReviewed);
+		return ResponseEntity.ok(response);
+	}
+
 	@DeleteMapping("/{reviewId}")
 	@PreAuthorize("hasRole('USER')")
 	public ResponseEntity<ApiResponse<Void>> deleteReview(@PathVariable Long reviewId) {

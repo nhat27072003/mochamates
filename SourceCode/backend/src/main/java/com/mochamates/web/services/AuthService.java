@@ -1,10 +1,12 @@
 package com.mochamates.web.services;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,8 +28,6 @@ import com.mochamates.web.exception.VerificationCodeException;
 import com.mochamates.web.repository.RefreshTokenRepository;
 import com.mochamates.web.repository.UserRepository;
 import com.mochamates.web.validators.UserValidator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Service that handles user authentication and registration logic, including
@@ -118,7 +118,7 @@ public class AuthService {
 
 		User newUser = new User(userRegistrationRequest.getUsername(),
 				hashPassword(userRegistrationRequest.getPassword()), userRegistrationRequest.getEmail(), null,
-				"CUSTOMER", new Date(), null);
+				"CUSTOMER", LocalDateTime.now(), null);
 
 		userRepository.save(newUser);
 

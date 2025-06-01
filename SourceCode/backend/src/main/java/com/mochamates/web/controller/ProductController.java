@@ -82,7 +82,7 @@ public class ProductController {
 	/**
 	 * Retrieves a paginated list of products by type.
 	 *
-	 * @param type the product type (e.g., GROUND_COFFEE, PACKAGED_COFFEE,
+	 * @param type the product type (e.g., ROASTED_COFFEE, INSTANT_COFFEE,
 	 *             READY_TO_DRINK_COFFEE)
 	 * @param page the page number (default is 0)
 	 * @param size the number of items per page (default is 10)
@@ -91,9 +91,10 @@ public class ProductController {
 	@GetMapping("/by-type")
 	public ResponseEntity<ApiResponse<GetProductsResponseDTO>> getProductsByType(@RequestParam String type,
 			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+
+		System.out.println("check type" + type);
 		GetProductsResponseDTO responseDTO = productService.getProductsByType(type, page, size);
 		ApiResponse<GetProductsResponseDTO> response = new ApiResponse<>("1000", "Ok", responseDTO);
 		return ResponseEntity.ok(response);
 	}
-
 }

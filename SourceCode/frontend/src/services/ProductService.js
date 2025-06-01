@@ -87,6 +87,13 @@ const deleteProduct = async (id) => {
   const response = await axiosClient.delete(`/api/v1/admin/products/${id}`);
   return response;
 }
+const getProductsByType = async (type, page = 0, size = 10) => {
+  const response = await axiosClient.get('/api/v1/products/by-type', {
+    params: { type, page, size },
+  });
+  return response.data;
+};
+
 export {
   fetchProducts,
   fetchNewestProducts,
@@ -96,5 +103,6 @@ export {
   uploadImage,
   fetchProductsForAdmin,
   fetchProductById,
-  deleteProduct
+  deleteProduct,
+  getProductsByType
 }

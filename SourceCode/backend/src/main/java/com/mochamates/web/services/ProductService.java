@@ -19,6 +19,7 @@ import com.mochamates.web.dto.product.OptionValueDTO;
 import com.mochamates.web.dto.product.ProductDTO;
 import com.mochamates.web.dto.product.ProductResponseDTO;
 import com.mochamates.web.dto.product.SpecificAttributesDTO;
+import com.mochamates.web.dto.statistics.TopProductDTO;
 import com.mochamates.web.entities.products.CoffeeFactory;
 import com.mochamates.web.entities.products.CoffeeProduct;
 import com.mochamates.web.entities.products.InstantCoffee;
@@ -37,6 +38,7 @@ import com.mochamates.web.repository.OptionRepository;
 import com.mochamates.web.repository.OptionValueRepository;
 import com.mochamates.web.repository.ProductOptionRepository;
 import com.mochamates.web.repository.ProductRepository;
+import com.mochamates.web.repository.ReviewRepository;
 import com.mochamates.web.validators.ProductValidator;
 
 import jakarta.transaction.Transactional;
@@ -48,13 +50,16 @@ public class ProductService {
 	private OptionRepository optionRepository;
 	private OptionValueRepository optionValueRepository;
 	private ProductOptionRepository productOptionRepository;
+	private ReviewRepository reviewRepository;
 
 	public ProductService(ProductRepository productRepository, OptionRepository optionRepository,
-			OptionValueRepository optionValueRepository, ProductOptionRepository productOptionRepository) {
+			OptionValueRepository optionValueRepository, ProductOptionRepository productOptionRepository,
+			ReviewRepository reviewRepository) {
 		this.productRepository = productRepository;
 		this.optionRepository = optionRepository;
 		this.optionValueRepository = optionValueRepository;
 		this.productOptionRepository = productOptionRepository;
+		this.reviewRepository = reviewRepository;
 	}
 
 	public GetProductsResponseForAdmin getProductsForAdmin(int page, int size) {
@@ -84,6 +89,20 @@ public class ProductService {
 	public ProductResponseDTO getProductById(Long id) {
 		CoffeeProduct product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException());
 		return mapToProductResponseDTO(product);
+	}
+
+	public List<TopProductDTO> getTopSellingProducts(LocalDateTime startDate, LocalDateTime endDate, int limit) {
+		List<Object[]> results = productRepository.findTopSellingProducts(startDate, endDate, limit);
+		return results.stream().map(row -> {
+			TopProductDTO dto = new TopProductDTO();
+			dto.setProductId((Long) row[0]);
+			dto.setProductName((String) row[1]);
+			dto.setTotalSold((Long) row[2]);
+			dto.setTotalRevenue((Double) row[3]);
+			Double avgRating = reviewRepository.findAverageRatingByProductId(dto.getProductId());
+			dto.setAverageRating(avgRating != null ? avgRating : 0.0);
+			return dto;
+		}).collect(Collectors.toList());
 	}
 
 	private ProductResponseDTO mapToProductResponseDTO(CoffeeProduct product) {
@@ -359,19 +378,28 @@ public class ProductService {
 		if (page < 0 || size <= 0) {
 			throw new InvalidProductInfoException("Page index must be >= 0 and size > 0.");
 		}
-		if (!List.of("ROASTED_COFFEE", "PACKAGED_COFFEE", "READY_TO_DRINK_COFFEE").contains(type)) {
+		// Updated to support INSTANT_COFFEE
+		if (!List.of("ROASTED_COFFEE", "INSTANT_COFFEE", "READY_TO_DRINK_COFFEE").contains(type)) {
 			throw new InvalidProductInfoException("Invalid product type: " + type);
 		}
+
 		GetProductsResponseDTO response = new GetProductsResponseDTO();
 		try {
 			Pageable pageable = PageRequest.of(page, size);
 			Page<CoffeeProduct> coffeePage;
-			if (type.equals("ROASTED_COFFEE")) {
-				coffeePage = productRepository.findByType(RoastedCoffee.class, pageable);
-			} else if (type.equals("PACKAGED_COFFEE")) {
-				coffeePage = productRepository.findByType(InstantCoffee.class, pageable);
-			} else {
-				coffeePage = productRepository.findByType(ReadyToDrinkCoffee.class, pageable);
+
+			switch (type) {
+			case "ROASTED_COFFEE":
+				coffeePage = productRepository.findByType("ROASTED_COFFEE", pageable);
+				break;
+			case "INSTANT_COFFEE":
+				coffeePage = productRepository.findByType("INSTANT_COFFEE", pageable);
+				break;
+			case "READY_TO_DRINK_COFFEE":
+				coffeePage = productRepository.findByType("READY_TO_DRINK_COFFEE", pageable);
+				break;
+			default:
+				throw new InvalidProductInfoException("Unexpected product type: " + type);
 			}
 
 			List<ProductResponseDTO> productDTOs = coffeePage.getContent().stream().map(this::mapToProductResponseDTO)
@@ -382,6 +410,7 @@ public class ProductService {
 			response.setTotalItems(coffeePage.getTotalElements());
 			response.setTotalPage(coffeePage.getTotalPages());
 		} catch (Exception e) {
+			System.out.println(e);
 			throw new InvalidProductInfoException("Failed to retrieve products by type: " + e.getMessage());
 		}
 		return response;
@@ -401,11 +430,11 @@ public class ProductService {
 			if (type == null) {
 				coffeePage = productRepository.findAll(pageable);
 			} else if (type.equals("ROASTED_COFFEE")) {
-				coffeePage = productRepository.findByType(RoastedCoffee.class, pageable);
-			} else if (type.equals("PACKAGED_COFFEE")) {
-				coffeePage = productRepository.findByType(InstantCoffee.class, pageable);
+				coffeePage = productRepository.findByType("ROASTED_COFFEE", pageable);
+			} else if (type.equals("INSTANT_COFFEE")) {
+				coffeePage = productRepository.findByType("INSTANT_COFFEE", pageable);
 			} else {
-				coffeePage = productRepository.findByType(ReadyToDrinkCoffee.class, pageable);
+				coffeePage = productRepository.findByType("READY_TO_DRINK_COFFEE", pageable);
 			}
 
 			List<ProductResponseDTO> productDTOs = coffeePage.getContent().stream().map(this::mapToProductResponseDTO)

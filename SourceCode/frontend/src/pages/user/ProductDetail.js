@@ -380,7 +380,7 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
-      <Comment />
+      <Comment productId={id} />
     </div>
   );
 };

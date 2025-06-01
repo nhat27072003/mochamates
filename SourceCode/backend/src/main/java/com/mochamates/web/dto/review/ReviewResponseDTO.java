@@ -7,12 +7,21 @@ public class ReviewResponseDTO {
 	private Long id;
 	private Long productId;
 	private String userId;
+	private String username;
 	private Long orderId;
 	private Integer rating;
 	private String comment;
 	private LocalDateTime createdAt;
 	private LocalDateTime updatedAt;
 	private List<ReviewReplyDTO> replies;
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
 
 	public Long getId() {
 		return id;

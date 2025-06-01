@@ -31,6 +31,19 @@ const updateOrderStatus = async (orderId, status) => {
   const response = await axiosClient.put(`/api/v1/orders/${orderId}/status`, status)
   return response;
 }
+const getOrdersByStatus = async (status, page = 0, size = 10, sort = 'id,desc') => {
+  const response = await axiosClient.get('/api/v1/orders/by-status', {
+    params: { status, page, size, sort },
+  });
+  return response.data;
+};
+
+const getRecentOrders = async (limit = 5) => {
+  const response = await axiosClient.get('/api/v1/orders/recent', {
+    params: { limit },
+  });
+  return response.data;
+}
 export {
   getOrdersForUser,
   placeOrder,
@@ -38,5 +51,7 @@ export {
   getOrder,
   updateOrderStatus,
   updateOrderStatusForAdmin,
-  getOrderForUser
+  getOrderForUser,
+  getOrdersByStatus,
+  getRecentOrders
 }

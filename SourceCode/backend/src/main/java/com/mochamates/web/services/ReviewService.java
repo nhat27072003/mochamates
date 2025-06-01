@@ -2,6 +2,7 @@ package com.mochamates.web.services;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -15,6 +16,7 @@ import com.mochamates.web.dto.review.CreateReviewRequestDTO;
 import com.mochamates.web.dto.review.ProductReviewResponseDTO;
 import com.mochamates.web.dto.review.ReviewReplyDTO;
 import com.mochamates.web.dto.review.ReviewResponseDTO;
+import com.mochamates.web.dto.statistics.ReviewStatisticsDTO;
 import com.mochamates.web.entities.User;
 import com.mochamates.web.entities.order.Order;
 import com.mochamates.web.entities.order.OrderStatus;
@@ -50,11 +52,33 @@ public class ReviewService {
 		this.objectMapper = new ObjectMapper();
 	}
 
+	/**
+	 * Check if a review exists for a specific order item, order, product, and user.
+	 * 
+	 * @param orderItemId The ID of the order item
+	 * @param orderId     The ID of the order
+	 * @param productId   The ID of the product
+	 * @param user        The authenticated user
+	 * @return true if a review exists, false otherwise
+	 */
+	public boolean hasReviewed(Long orderItemId, Long orderId, Long productId) {
+		try {
+			User user = getAuthenticatedUser();
+
+			boolean hasReview = reviewRepository.existsByOrderItemIdAndOrderIdAndProductIdAndUserId(orderItemId,
+					orderId, productId, user.getId());
+			return hasReview;
+		} catch (Exception e) {
+			// TODO: handle exception
+			System.out.println("loi o day nay " + e);
+		}
+		return true;
+	}
+
 	@Transactional
 	public ReviewResponseDTO createReview(CreateReviewRequestDTO request) {
 		User user = getAuthenticatedUser();
 
-		// Validate order
 		Order order = orderRepository.findById(request.getOrderId())
 				.orElseThrow(() -> new ReviewException("Order not found"));
 		if (!order.getUserId().equals(user.getId())) {
@@ -64,23 +88,19 @@ public class ReviewService {
 			throw new ReviewException("Order must be delivered to submit a review");
 		}
 
-		// Validate product
 		CoffeeProduct product = productRepository.findById(request.getProductId())
 				.orElseThrow(() -> new ReviewException("Product not found"));
 
-		// Check if product is in the order
 		boolean productInOrder = order.getItems().stream()
 				.anyMatch(item -> item.getProductId().equals(product.getId()));
 		if (!productInOrder) {
 			throw new ReviewException("Product not found in this order");
 		}
 
-		// Validate rating
 		if (request.getRating() < 1 || request.getRating() > 5) {
 			throw new ReviewException("Rating must be between 1 and 5");
 		}
 
-		// Check if review already exists for this product and order
 		if (reviewRepository.existsByProductIdAndUserIdAndOrderId(product.getId(), user.getId(), order.getId())) {
 			throw new ReviewException("User has already reviewed this product for this order");
 		}
@@ -88,6 +108,7 @@ public class ReviewService {
 		Review review = new Review();
 		review.setProduct(product);
 		review.setUser(user);
+		review.setOrderItemId(request.getOrderItemId());
 		review.setOrderId(order.getId());
 		review.setRating(request.getRating());
 		review.setComment(request.getComment());
@@ -109,6 +130,22 @@ public class ReviewService {
 		return reviews.map(this::toReviewResponseDTO);
 	}
 
+	public ReviewStatisticsDTO getReviewStatistics(LocalDateTime dateFrom, LocalDateTime dateTo) {
+		ReviewStatisticsDTO stats = new ReviewStatisticsDTO();
+
+		List<Review> reviews = reviewRepository.findByCreatedAtBetween(dateFrom, dateTo);
+		stats.setTotalReviews(reviews.size());
+
+		double averageRating = reviews.stream().mapToInt(Review::getRating).average().orElse(0.0);
+		stats.setAverageRating(averageRating);
+
+		Map<Integer, Long> ratingsDistribution = reviews.stream()
+				.collect(Collectors.groupingBy(Review::getRating, Collectors.counting()));
+		stats.setRatingsDistribution(ratingsDistribution);
+
+		return stats;
+	}
+
 	@Transactional
 	public ReviewResponseDTO updateReview(Long reviewId, CreateReviewRequestDTO request) {
 		User user = getAuthenticatedUser();
@@ -122,7 +159,6 @@ public class ReviewService {
 			throw new ReviewException("Rating must be between 1 and 5");
 		}
 
-		// Validate order and product consistency
 		if (!review.getOrderId().equals(request.getOrderId())
 				|| !review.getProduct().getId().equals(request.getProductId())) {
 			throw new ReviewException("Cannot change order or product in review update");
@@ -175,7 +211,9 @@ public class ReviewService {
 
 	private ReviewResponseDTO toReviewResponseDTO(Review review) {
 		ReviewResponseDTO response = new ReviewResponseDTO();
+
 		response.setId(review.getId());
+		response.setUsername(review.getUser().getUsername());
 		response.setProductId(review.getProduct().getId());
 		response.setUserId(review.getUser().getId().toString());
 		response.setOrderId(review.getOrderId());

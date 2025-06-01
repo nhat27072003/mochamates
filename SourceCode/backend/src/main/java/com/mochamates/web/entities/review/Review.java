@@ -13,15 +13,19 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "reviews")
+@Table(name = "reviews", uniqueConstraints = {
+		@UniqueConstraint(columnNames = { "order_item_id", "order_id", "product_id", "user_id" }) }, indexes = {
+				@Index(columnList = "order_item_id, order_id, product_id, user_id") })
 public class Review {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,11 +34,13 @@ public class Review {
 	@ManyToOne
 	@JoinColumn(name = "product_id", nullable = false)
 	private CoffeeProduct product;
-
+	@Column(name = "order_item_id", nullable = false)
+	private Long orderItemId;
 	@ManyToOne
 	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
 	@Column(name = "order_id", nullable = false)
+
 	private Long orderId;
 
 	@OneToMany(mappedBy = "review", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -132,6 +138,14 @@ public class Review {
 
 	public void setReplies(List<ReviewReply> replies) {
 		this.replies = replies;
+	}
+
+	public Long getOrderItemId() {
+		return orderItemId;
+	}
+
+	public void setOrderItemId(Long orderItemId) {
+		this.orderItemId = orderItemId;
 	}
 
 }
