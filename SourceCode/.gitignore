@@ -1,3 +1,6 @@
 # Ignore all .env files
 .env
 **/.env
+backend/target/
+frontend/build/
+*.log

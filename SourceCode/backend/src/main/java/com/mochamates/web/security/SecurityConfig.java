@@ -49,6 +49,7 @@ public class SecurityConfig {
 		config.setAllowCredentials(true);
 		config.addAllowedOrigin("http://localhost");
 		config.addAllowedOrigin("http://localhost:80");
+		config.addAllowedOrigin("http://localhost:3000");
 		config.addAllowedOriginPattern("https://*.ngrok.io");
 		config.addAllowedOrigin("https://your-frontend.onrender.com"); // Replace with actual Render URL
 		config.addAllowedHeader("*");

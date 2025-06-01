@@ -119,8 +119,8 @@ const CheckoutPage = () => {
     try {
       const result = await placeOrder(formData);
       if (result.statusCode === "1000" && result.data?.paymentUrl) {
-        // Redirect to VNPay payment gateway
-        window.location.href = result.data?.paymentUrl;
+        console.log('check url ', result.data)
+        // window.location.href = result.data?.paymentUrl;
       } else {
         toast.success("Đặt hàng thành công!");
         await dispatch(fetchCart());

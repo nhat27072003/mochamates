@@ -111,8 +111,10 @@ public class AuthService {
 			throw new UserAlreadyExistException("Email already exists!");
 
 		Optional<User> user = userRepository.findByUsername(userRegistrationRequest.getUsername());
-		if (user.isPresent())
+		if (user.isPresent()) {
+			logger.info("check user " + user.get().getUsername());
 			throw new UserAlreadyExistException("Username already exists!");
+		}
 
 		User newUser = new User(userRegistrationRequest.getUsername(),
 				hashPassword(userRegistrationRequest.getPassword()), userRegistrationRequest.getEmail(), null,

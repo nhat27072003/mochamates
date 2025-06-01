@@ -6,6 +6,25 @@ public class UserDetailResponse {
 	private String name;
 	private String role;
 	private String address;
+	private String phone;
+
+	private boolean verify;
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
+	public boolean isVerify() {
+		return verify;
+	}
+
+	public void setVerify(boolean verify) {
+		this.verify = verify;
+	}
 
 	public String getUsername() {
 		return username;
