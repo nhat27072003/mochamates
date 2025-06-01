@@ -81,6 +81,19 @@ public class AdminUserController {
 	}
 
 	/**
+	 * Retrieves a user by their ID.
+	 * 
+	 * @param id the ID of the user to retrieve
+	 * @return a ResponseEntity containing an ApiResponse with the user details
+	 */
+	@GetMapping("/{id}")
+	public ResponseEntity<ApiResponse<UserDetailResponse>> getUserById(@PathVariable Long id) {
+		UserDetailResponse user = userService.getUserById(id);
+		ApiResponse<UserDetailResponse> response = new ApiResponse<>("1000", "Ok", user);
+		return ResponseEntity.status(200).body(response);
+	}
+
+	/**
 	 * Deletes a user by their ID.
 	 * 
 	 * @param id the ID of the user to delete

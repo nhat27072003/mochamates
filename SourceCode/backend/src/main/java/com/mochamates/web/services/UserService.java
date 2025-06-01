@@ -8,12 +8,15 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.mochamates.web.dto.user.ChangePasswordRequestDTO;
 import com.mochamates.web.dto.user.GetUsersResponseDTO;
 import com.mochamates.web.dto.user.UserCreateRequestDTO;
 import com.mochamates.web.dto.user.UserDetailResponse;
+import com.mochamates.web.dto.user.UserProfileUpdateRequestDTO;
 import com.mochamates.web.dto.user.UserUpdateRequestDTO;
 import com.mochamates.web.entities.User;
 import com.mochamates.web.exception.InvalidUserInfoException;
@@ -34,13 +37,14 @@ public class UserService {
 		User user = userRepository.findByUsername(username)
 				.orElseThrow(() -> new UserNotFoundException("User not found: " + username));
 
-		UserDetailResponse userRes = new UserDetailResponse();
-		userRes.setUsername(user.getUsername());
-		userRes.setEmail(user.getEmail());
-		userRes.setPhone(user.getPhone());
-		userRes.setRole(user.getRole());
-		userRes.setVerify(user.isVerify());
-		return userRes;
+		return mapToUserDetailResponse(user);
+	}
+
+	public UserDetailResponse getUserById(Long id) {
+		User user = userRepository.findById(id)
+				.orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
+
+		return mapToUserDetailResponse(user);
 	}
 
 	public boolean isUserExist(Long userId) {
@@ -75,14 +79,7 @@ public class UserService {
 
 		userRepository.save(user);
 
-		// Return response
-		UserDetailResponse response = new UserDetailResponse();
-		response.setUsername(user.getUsername());
-		response.setEmail(user.getEmail());
-		response.setPhone(user.getPhone());
-		response.setRole(user.getRole());
-		response.setVerify(user.isVerify());
-		return response;
+		return mapToUserDetailResponse(user);
 	}
 
 	public UserDetailResponse updateUser(Long id, UserUpdateRequestDTO request) {
@@ -122,14 +119,70 @@ public class UserService {
 
 		userRepository.save(user);
 
-		// Return response
-		UserDetailResponse response = new UserDetailResponse();
-		response.setUsername(user.getUsername());
-		response.setEmail(user.getEmail());
-		response.setPhone(user.getPhone());
-		response.setRole(user.getRole());
-		response.setVerify(user.isVerify());
-		return response;
+		return mapToUserDetailResponse(user);
+	}
+
+	public UserDetailResponse updateUserProfile(UserProfileUpdateRequestDTO request) {
+		// Get current user
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByUsername(username)
+				.orElseThrow(() -> new UserNotFoundException("User not found: " + username));
+
+		// Validate request
+		if (request.getEmail() != null && request.getEmail().isBlank()) {
+			throw new InvalidUserInfoException("Email cannot be empty");
+		}
+		if (request.getPhone() != null && request.getPhone().isBlank()) {
+			throw new InvalidUserInfoException("Phone cannot be empty");
+		}
+
+		// Check if new email is taken
+		if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
+			User existingUser = userRepository.findByEmail(request.getEmail());
+			if (existingUser != null && !existingUser.getId().equals(user.getId())) {
+				throw new InvalidUserInfoException("Email already exists: " + request.getEmail());
+			}
+			user.setEmail(request.getEmail());
+		}
+
+		// Update fields
+		if (request.getPhone() != null) {
+			user.setPhone(request.getPhone());
+		}
+		user.setUpdate_at(new Date());
+
+		userRepository.save(user);
+
+		return mapToUserDetailResponse(user);
+	}
+
+	public void changePassword(ChangePasswordRequestDTO request) {
+		// Get current user
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+		User user = userRepository.findByUsername(username)
+				.orElseThrow(() -> new UserNotFoundException("User not found: " + username));
+
+		// Validate request
+		if (request.getOldPassword() == null || request.getOldPassword().isBlank()) {
+			throw new InvalidUserInfoException("Old password is required");
+		}
+		if (request.getNewPassword() == null || request.getNewPassword().isBlank()) {
+			throw new InvalidUserInfoException("New password is required");
+		}
+		if (request.getNewPassword().length() < 8) {
+			throw new InvalidUserInfoException("New password must be at least 8 characters");
+		}
+
+		// Verify old password
+		if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+			throw new InvalidUserInfoException("Old password is incorrect");
+		}
+
+		// Update password
+		user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+		user.setUpdate_at(new Date());
+
+		userRepository.save(user);
 	}
 
 	public GetUsersResponseDTO getUsers(int page, int size) {
