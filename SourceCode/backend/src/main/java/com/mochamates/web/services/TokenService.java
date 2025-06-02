@@ -40,7 +40,7 @@ public class TokenService {
 
 	public String generateAccessToken(String username, String role) {
 		Instant nowInstant = Instant.now();
-		Instant expiration = nowInstant.plus(15, ChronoUnit.MINUTES);
+		Instant expiration = nowInstant.plus(60, ChronoUnit.MINUTES);
 
 		String tokenString = Jwts.builder().subject(username).claim("role", role) // Thêm role vào payload
 				.issuedAt(Date.from(nowInstant)).expiration(Date.from(expiration)).signWith(key).compact();

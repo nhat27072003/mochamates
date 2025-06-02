@@ -27,12 +27,12 @@ const Category = () => {
 
   // Map URL category to product type
   const categoryMap = {
-    packaged: "PACKAGED_COFFEE",
-    ground: "GROUND_COFFEE",
+    packaged: "INSTANT_COFFEE",
+    ground: "ROASTED_COFFEE",
     ready: "READY_TO_DRINK_COFFEE",
   };
 
-  const selectedCategory = categoryMap[category] || "PACKAGED_COFFEE"; // Default to PACKAGED_COFFEE if invalid
+  const selectedCategory = categoryMap[category] || "ROASTED_COFFEE"; // Default to PACKAGED_COFFEE if invalid
 
   useEffect(() => {
     setSelectedFilters((prev) => ({ ...prev, type: [selectedCategory] }));

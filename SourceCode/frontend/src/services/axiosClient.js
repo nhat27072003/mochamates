@@ -42,35 +42,35 @@ axiosClient.interceptors.response.use(
     const originalRequest = error.config;
 
     // Xử lý lỗi 401 (token hết hạn)
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      try {
-        if (!getStore) {
-          throw new Error('Store not initialized');
-        }
-        const store = getStore();
-        const result = await store.dispatch(refreshToken()).unwrap();
-        const newToken = result.accessToken;
+    // if (error.response?.status === 401 && !originalRequest._retry) {
+    //   originalRequest._retry = true;
+    //   try {
+    //     if (!getStore) {
+    //       throw new Error('Store not initialized');
+    //     }
+    //     const store = getStore();
+    //     const result = await store.dispatch(refreshToken()).unwrap();
+    //     const newToken = result.accessToken;
 
-        // Cập nhật localStorage
-        localStorage.setItem('accessToken', newToken);
-        localStorage.setItem('user', JSON.stringify({
-          userId: result.userId,
-          username: result.userId.toString(),
-          role: result.role,
-        }));
+    //     // Cập nhật localStorage
+    //     localStorage.setItem('accessToken', newToken);
+    //     localStorage.setItem('user', JSON.stringify({
+    //       userId: result.userId,
+    //       username: result.userId.toString(),
+    //       role: result.role,
+    //     }));
 
-        // Cập nhật header
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return axiosClient(originalRequest);
-      } catch (refreshErr) {
-        console.error('Refresh token failed:', refreshErr);
-        if (getStore) {
-          getStore().dispatch(logout());
-        }
-        return Promise.reject(error);
-      }
-    }
+    //     // Cập nhật header
+    //     originalRequest.headers.Authorization = `Bearer ${newToken}`;
+    //     return axiosClient(originalRequest);
+    //   } catch (refreshErr) {
+    //     console.error('Refresh token failed:', refreshErr);
+    //     if (getStore) {
+    //       getStore().dispatch(logout());
+    //     }
+    //     return Promise.reject(error);
+    //   }
+    // }
 
     if (error.response?.status === 403 && !originalRequest._retry) {
       originalRequest._retry = true;

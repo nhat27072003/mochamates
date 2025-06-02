@@ -98,6 +98,7 @@ const MenuPreview = () => {
                         price={product.price.toFixed(2)}
                         description={product.description || 'No description available'}
                         badge={getBadge(product)}
+                        options={product.options}
                       />
                     </div>
                   ))}

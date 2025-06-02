@@ -22,9 +22,7 @@ const OrderDetails = () => {
   const fetchOrderDetails = async () => {
     try {
       setLoading(true);
-      console.log("check order id", id);
       const response = await getOrder(id);
-      console.log("check order", response);
       setOrder(response.data);
       setOrderStatus(response.data.status);
       setNewStatus(response.data.status);
@@ -43,16 +41,14 @@ const OrderDetails = () => {
 
   const confirmStatusUpdate = async () => {
     try {
-      console.log("check update ", newStatus);
-      const result = await updateOrderStatusForAdmin(id, { status: newStatus });
-      console.log("check update ", result);
+      await updateOrderStatusForAdmin(id, { status: newStatus });
       setOrderStatus(newStatus);
       toast.success("Order status updated successfully!");
       fetchOrderDetails();
       setShowConfirmation(false);
     } catch (error) {
-      console.log(error);
       toast.error("Error updating order status: " + (error.response?.data?.message || error.message));
+      console.error("Error updating order status:", error);
     }
   };
 
@@ -105,7 +101,7 @@ const OrderDetails = () => {
                 <div className="col-md-6 mb-3">
                   <label className="form-label text-gray-600">Current Status</label>
                   <p className="fw-medium mb-2">{orderStatus}</p>
-                  <div className="d-flex gap-2">
+                  <div className="d-flex gap-2 flex-wrap">
                     {orderStatus === "PENDING" && (
                       <>
                         <BSButton
@@ -124,28 +120,70 @@ const OrderDetails = () => {
                       </>
                     )}
                     {orderStatus === "CONFIRMED" && (
-                      <BSButton
-                        variant="primary"
-                        onClick={() => handleStatusChange("SHIPPED")}
-                      >
-                        Shipped
-                      </BSButton>
+                      <>
+                        <BSButton
+                          variant="primary"
+                          onClick={() => handleStatusChange("PAID")}
+                          className="me-2"
+                        >
+                          Paid
+                        </BSButton>
+                        <BSButton
+                          variant="danger"
+                          onClick={() => handleStatusChange("CANCELLED")}
+                        >
+                          Cancelled
+                        </BSButton>
+                      </>
+                    )}
+                    {orderStatus === "PAID" && (
+                      <>
+                        <BSButton
+                          variant="primary"
+                          onClick={() => handleStatusChange("SHIPPED")}
+                          className="me-2"
+                        >
+                          Shipped
+                        </BSButton>
+                        <BSButton
+                          variant="warning"
+                          onClick={() => handleStatusChange("REFUNDED")}
+                        >
+                          Refunded
+                        </BSButton>
+                      </>
                     )}
                     {orderStatus === "SHIPPED" && (
-                      <BSButton
-                        variant="primary"
-                        onClick={() => handleStatusChange("DELIVERED")}
-                      >
-                        Delivered
-                      </BSButton>
+                      <>
+                        <BSButton
+                          variant="primary"
+                          onClick={() => handleStatusChange("DELIVERED")}
+                          className="me-2"
+                        >
+                          Delivered
+                        </BSButton>
+                        <BSButton
+                          variant="danger"
+                          onClick={() => handleStatusChange("FAILED")}
+                        >
+                          Failed
+                        </BSButton>
+                      </>
                     )}
+                    {(orderStatus === "DELIVERED" ||
+                      orderStatus === "CANCELLED" ||
+                      orderStatus === "FAILED" ||
+                      orderStatus === "REFUNDED") && (
+                        <p className="text-muted">No further status changes allowed.</p>
+                      )}
                   </div>
                 </div>
                 <div className="col-md-6">
                   <p className="text-gray-600 mb-2">Timestamps</p>
                   <div>
                     <p className="mb-1">
-                      Created: {new Date(order.createAt).toLocaleString("en-US", {
+                      Created:{" "}
+                      {new Date(order.createAt).toLocaleString("en-US", {
                         month: "2-digit",
                         day: "2-digit",
                         year: "numeric",
@@ -154,7 +192,8 @@ const OrderDetails = () => {
                       })}
                     </p>
                     <p className="mb-1">
-                      Last Updated: {new Date(order.updatedAt).toLocaleString("en-US", {
+                      Last Updated:{" "}
+                      {new Date(order.updatedAt).toLocaleString("en-US", {
                         month: "2-digit",
                         day: "2-digit",
                         year: "numeric",
@@ -167,6 +206,7 @@ const OrderDetails = () => {
               </div>
             </div>
           </div>
+
           {/* Customer Information */}
           <div className="card card-style mb-2">
             <div className="card-body p-3">
@@ -210,10 +250,18 @@ const OrderDetails = () => {
             <table className="table table-hover">
               <thead className="bg-gray-100">
                 <tr>
-                  <th scope="col" className="px-4 py-3 text-start text-gray-600">Product</th>
-                  <th scope="col" className="px-4 py-3 text-end text-gray-600">Quantity</th>
-                  <th scope="col" className="px-4 py-3 text-end text-gray-600">Price</th>
-                  <th scope="col" className="px-4 py-3 text-end text-gray-600">Total</th>
+                  <th scope="col" className="px-4 py-3 text-start text-gray-600">
+                    Product
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-end text-gray-600">
+                    Quantity
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-end text-gray-600">
+                    Price
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-end text-gray-600">
+                    Total
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -275,19 +323,15 @@ const OrderDetails = () => {
                 <h5 className="modal-title">Confirm Status Update</h5>
               </div>
               <div className="modal-body">
-                <p className="text-gray-600">Are you sure you want to update the order status to {newStatus}?</p>
+                <p className="text-gray-600">
+                  Are you sure you want to update the order status to {newStatus}?
+                </p>
               </div>
               <div className="modal-footer">
-                <button
-                  className="btn btn-outline-secondary"
-                  onClick={() => setShowConfirmation(false)}
-                >
+                <button className="btn btn-outline-secondary" onClick={() => setShowConfirmation(false)}>
                   Cancel
                 </button>
-                <button
-                  className="btn btn-primary-brown"
-                  onClick={confirmStatusUpdate}
-                >
+                <button className="btn btn-primary-brown" onClick={confirmStatusUpdate}>
                   Confirm
                 </button>
               </div>

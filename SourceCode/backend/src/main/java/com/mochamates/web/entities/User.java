@@ -1,5 +1,6 @@
 package com.mochamates.web.entities;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -22,12 +23,23 @@ public class User {
 	private String phone;
 	private String role;
 
+	@Column(name = "full_name")
+	private String fullName;
+
+	@Column(name = "date_of_birth")
+	private LocalDate dateOfBirth;
+
+	private String gender;
+
+	private String address;
+
 	@Column(name = "create_at")
 	private LocalDateTime createAt;
 
 	@Column(name = "update_at")
 	private LocalDateTime updateAt;
 
+	@Column(name = "is_verify")
 	private boolean isVerify;
 
 	public User() {
@@ -44,6 +56,22 @@ public class User {
 		this.updateAt = updateAt;
 	}
 
+	public User(String username, String password, String email, String phone, String role, String fullName,
+			LocalDate dateOfBirth, String gender, String address, LocalDateTime createAt, LocalDateTime updateAt) {
+		this.username = username;
+		this.password = password;
+		this.email = email;
+		this.phone = phone;
+		this.role = role;
+		this.fullName = fullName;
+		this.dateOfBirth = dateOfBirth;
+		this.gender = gender;
+		this.address = address;
+		this.createAt = createAt;
+		this.updateAt = updateAt;
+	}
+
+	// Getters and Setters
 	public Long getId() {
 		return id;
 	}
@@ -86,6 +114,38 @@ public class User {
 
 	public void setRole(String role) {
 		this.role = role;
+	}
+
+	public String getFullName() {
+		return fullName;
+	}
+
+	public void setFullName(String fullName) {
+		this.fullName = fullName;
+	}
+
+	public LocalDate getDateOfBirth() {
+		return dateOfBirth;
+	}
+
+	public void setDateOfBirth(LocalDate dateOfBirth) {
+		this.dateOfBirth = dateOfBirth;
+	}
+
+	public String getGender() {
+		return gender;
+	}
+
+	public void setGender(String gender) {
+		this.gender = gender;
+	}
+
+	public String getAddress() {
+		return address;
+	}
+
+	public void setAddress(String address) {
+		this.address = address;
 	}
 
 	public LocalDateTime getCreateAt() {

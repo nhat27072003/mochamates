@@ -45,6 +45,7 @@ const ProductList = () => {
                 description={product.description}
                 rating={product.rating}
                 badge={product.type === 'Pha Sẵn' ? 'New' : ''}
+                options={product.options}
               />
             </div>
           ))}

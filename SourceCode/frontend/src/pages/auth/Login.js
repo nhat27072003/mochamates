@@ -50,7 +50,8 @@ const Login = () => {
         navigate('/');
       }
     } catch (err) {
-      if (err === "OTP verification required") { // Backend message for 1006
+      console.log("check erro", err)
+      if (err === "User not verified by email verification code") { // Backend message for 1006
         try {
           await dispatch(getVerifyOTP({ usernameOrEmail: formLogin.usernameOrEmail })).unwrap();
           navigate('/verify-otp', { state: { usernameOrEmail: formLogin.usernameOrEmail } });

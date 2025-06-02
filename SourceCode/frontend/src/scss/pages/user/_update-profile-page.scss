@@ -1,0 +1,92 @@
+.update-profile-page {
+  background: #f8f9fc;
+  min-height: 100vh;
+  padding: 2rem 0;
+  font-family: 'Arial', sans-serif;
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+
+    h4 {
+      color: #5a3e2b;
+      font-weight: 700;
+    }
+
+    .btn-back {
+      border-color: #6c757d;
+      color: #6c757d;
+
+      &:hover {
+        background: #6c757d;
+        color: #fff;
+      }
+    }
+  }
+
+  .alert-danger {
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+  }
+
+  .card {
+    border-radius: 0.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background: #fff;
+
+    .card-body {
+      padding: 2rem;
+    }
+  }
+
+  .btn-primary {
+    background: linear-gradient(45deg, #5a3e2b, #28a745);
+    border: none;
+    padding: 0.75rem;
+    font-weight: 500;
+
+    &:hover {
+      background: #fd7e14;
+    }
+
+    &:disabled {
+      opacity: 0.65;
+      cursor: not-allowed;
+    }
+  }
+
+  .loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+
+    .spinner {
+      border: 4px solid #f3e5d8;
+      border-top: 4px solid #5a3e2b;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+
+    p {
+      margin-top: 1rem;
+      color: #5a3e2b;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  }
+}

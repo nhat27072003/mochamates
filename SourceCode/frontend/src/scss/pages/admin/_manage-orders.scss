@@ -8,7 +8,9 @@ $processing: #17a2b8; // Cyan for processing status
 $shipped: #007bff; // Blue for shipped status
 $delivered: #28a745; // Green for delivered status
 $confirmed: #105f22;
-$cancelled: #dc3545; // Red for cancelled status
+$cancelled: #dc3545;
+$paid: #dcd935;
+$fail: #e94454;
 $border-radius: 8px;
 $transition: all 0.3s ease;
 
@@ -188,6 +190,14 @@ $transition: all 0.3s ease;
 
         &.confirmed {
           background-color: $confirmed;
+        }
+
+        &.paid {
+          background-color: $paid;
+        }
+
+        &.fail {
+          background-color: $fail;
         }
       }
 

@@ -2,6 +2,8 @@ package com.mochamates.web.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,12 +15,6 @@ import com.mochamates.web.dto.user.UserProfileUpdateRequestDTO;
 import com.mochamates.web.response.ApiResponse;
 import com.mochamates.web.services.UserService;
 
-/**
- * REST controller for managing user-related operations for authenticated users.
- * Provides endpoints for updating user profile and changing password.
- * 
- * Base path: /api/v1/users
- */
 @RestController
 @RequestMapping("/api/v1/users")
 @PreAuthorize("isAuthenticated()")
@@ -29,14 +25,15 @@ public class UserController {
 		this.userService = userService;
 	}
 
-	/**
-	 * Updates the authenticated user's profile information.
-	 * 
-	 * @param request the UserProfileUpdateRequestDTO containing updated email and
-	 *                phone
-	 * @return a ResponseEntity containing an ApiResponse with the updated user
-	 *         details
-	 */
+	@GetMapping("/me")
+	public ResponseEntity<ApiResponse<UserDetailResponse>> getCurrentUser() {
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();
+		UserDetailResponse user = userService.getUserProfile(username);
+		ApiResponse<UserDetailResponse> response = new ApiResponse<>("1000", "User profile retrieved successfully",
+				user);
+		return ResponseEntity.status(200).body(response);
+	}
+
 	@PutMapping("/profile")
 	public ResponseEntity<ApiResponse<UserDetailResponse>> updateProfile(
 			@RequestBody UserProfileUpdateRequestDTO request) {
@@ -46,12 +43,6 @@ public class UserController {
 		return ResponseEntity.status(200).body(response);
 	}
 
-	/**
-	 * Changes the authenticated user's password.
-	 * 
-	 * @param request the ChangePasswordRequestDTO containing old and new password
-	 * @return a ResponseEntity containing an ApiResponse with a success message
-	 */
 	@PutMapping("/password")
 	public ResponseEntity<ApiResponse<String>> changePassword(@RequestBody ChangePasswordRequestDTO request) {
 		userService.changePassword(request);

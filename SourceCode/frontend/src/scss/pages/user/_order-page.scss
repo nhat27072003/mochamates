@@ -125,7 +125,6 @@
             &::-webkit-scrollbar-track {
               background: lighten($gray-600, 50%);
             }
-
           }
 
           &:hover {
@@ -136,9 +135,6 @@
           .items-column {
             padding: 1rem;
             vertical-align: top;
-            /* Căn đỉnh để items không bị lệch */
-
-
 
             .status-badge {
               padding: 0.5rem 1rem;
@@ -147,28 +143,48 @@
               text-transform: capitalize;
 
               &.pending {
-                background: lighten(#FFC107, 40%);
-                color: #FFC107;
+                background: #ffeeba;
+                color: #856404;
               }
 
-              &.processing {
-                background: lighten(#17A2B8, 40%);
-                color: #17A2B8;
+              &.confirmed {
+                background: #b8daff;
+                color: #004085;
+              }
+
+              &.paid {
+                background: #c3e6cb;
+                color: #155724;
               }
 
               &.shipped {
-                background: lighten(#007BFF, 40%);
-                color: #007BFF;
+                background: #bee5eb;
+                color: #0c5460;
               }
 
               &.delivered {
-                background: lighten($primary-green, 40%);
-                color: $primary-green;
+                background: #d4edda;
+                color: #155724;
               }
 
               &.cancelled {
-                background: lighten($danger, 40%);
-                color: $danger;
+                background: #f8d7da;
+                color: #721c24;
+              }
+
+              &.failed {
+                background: #f5c6cb;
+                color: #721c24;
+              }
+
+              &.refunded {
+                background: #fff3cd;
+                color: #856404;
+              }
+
+              &.default {
+                background: #e2e3e5;
+                color: #383d41;
               }
             }
 
@@ -233,28 +249,48 @@
           text-transform: capitalize;
 
           &.pending {
-            background: lighten(#FFC107, 40%);
-            color: #FFC107;
+            background: #ffeeba;
+            color: #856404;
           }
 
-          &.processing {
-            background: lighten(#17A2B8, 40%);
-            color: #17A2B8;
+          &.confirmed {
+            background: #b8daff;
+            color: #004085;
+          }
+
+          &.paid {
+            background: #c3e6cb;
+            color: #155724;
           }
 
           &.shipped {
-            background: lighten(#007BFF, 40%);
-            color: #007BFF;
+            background: #bee5eb;
+            color: #0c5460;
           }
 
           &.delivered {
-            background: lighten($primary-green, 40%);
-            color: $primary-green;
+            background: #d4edda;
+            color: #155724;
           }
 
           &.cancelled {
-            background: lighten($danger, 40%);
-            color: $danger;
+            background: #f8d7da;
+            color: #721c24;
+          }
+
+          &.failed {
+            background: #f5c6cb;
+            color: #721c24;
+          }
+
+          &.refunded {
+            background: #fff3cd;
+            color: #856404;
+          }
+
+          &.default {
+            background: #e2e3e5;
+            color: #383d41;
           }
         }
       }

@@ -218,9 +218,9 @@ public class ProductService {
 		product.setImageUrl(productDTO.getImageUrl());
 
 		product.updateFromDTO(productDTO);
-		if (productDTO.getOptions() != null) {
-			processOptions(product, productDTO.getOptions());
-		}
+//		if (productDTO.getOptions() != null) {
+//			processOptions(product, productDTO.getOptions());
+//		}
 		productRepository.save(product);
 		return mapToProductResponseDTO(product);
 	}
@@ -229,16 +229,16 @@ public class ProductService {
 	public CoffeeProduct deleteProduct(Long id) {
 		CoffeeProduct product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException());
 
-		List<ProductOption> productOptions = productOptionRepository.findByCoffeeProductId(id);
-
-		for (ProductOption productOption : productOptions) {
-			Long optionId = productOption.getOption().getId();
-			productOptionRepository.delete(productOption);
-			boolean stillUsed = productOptionRepository.existsByOptionId(optionId);
-			if (!stillUsed) {
-				optionRepository.findById(optionId).ifPresent(optionRepository::delete);
-			}
-		}
+//		List<ProductOption> productOptions = productOptionRepository.findByCoffeeProductId(id);
+//
+//		for (ProductOption productOption : productOptions) {
+//			Long optionId = productOption.getOption().getId();
+//			productOptionRepository.delete(productOption);
+//			boolean stillUsed = productOptionRepository.existsByOptionId(optionId);
+//			if (!stillUsed) {
+//				optionRepository.findById(optionId).ifPresent(optionRepository::delete);
+//			}
+//		}
 
 		productRepository.deleteById(id);
 		return product;

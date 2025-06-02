@@ -32,7 +32,7 @@ const Searchpage = () => {
 
         const products = result.products.map((product) => ({
           ...product,
-          rating: Math.random() * (5 - 3) + 3,
+          rating: (Math.random() * (5 - 4) + 4).toFixed(2),
         }));
         setCoffeeProducts(products);
         setTotalPages(result.totalPage);
@@ -156,7 +156,7 @@ const Searchpage = () => {
               <h4 className="card-title h5 mb-3">Bộ lọc</h4>
               <div className="mb-3">
                 <h5 className="h6">Loại cà phê</h5>
-                {["READY_TO_DRINK_COFFEE", "GROUND_COFFEE", "PACKAGED_COFFEE"].map((type) => (
+                {["READY_TO_DRINK_COFFEE", "ROASTED_COFFEE", "INSTANT_COFFEE"].map((type) => (
                   <div key={type} className="form-check">
                     <input
                       className="form-check-input"
@@ -223,7 +223,7 @@ const Searchpage = () => {
             <div className="offcanvas-body">
               <div className="mb-3">
                 <h5 className="h6">Loại cà phê</h5>
-                {["READY_TO_DRINK_COFFEE", "GROUND_COFFEE", "PACKAGED_COFFEE"].map((type) => (
+                {["READY_TO_DRINK_COFFEE", "ROASTED_COFFEE", "INSTANT_COFFEE"].map((type) => (
                   <div key={type} className="form-check">
                     <input
                       className="form-check-input"

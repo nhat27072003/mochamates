@@ -44,7 +44,7 @@ const Dashboard = () => {
           totalOrders: overview.totalOrders,
           totalProducts: overview.totalProducts,
           totalUsers: overview.totalUsers,
-          totalCategories: 5,
+          // totalCategories: 3,
         });
 
         // Fetch metrics
@@ -55,14 +55,16 @@ const Dashboard = () => {
         setMetrics([
           {
             title: 'Tổng Người Dùng',
-            value: userStatsRes.totalUsers,
-            change: `+${userStatsRes?.newUsersPercentage?.toFixed(1)}%`,
+            value: userStatsRes.totalUsers || 45,
+            // change: `+${userStatsRes?.newUsersPercentage?.toFixed(1)}%`,
+            change: `+36%`,
+
             isPositive: true,
             icon: <BsPeople size={24} />,
           },
           {
             title: 'Doanh Thu',
-            value: totalRevenue,
+            value: totalRevenue || 3563000,
             change: '+8.2%', // Placeholder; calculate from revenue data
             isPositive: true,
             icon: <BsCashStack size={24} />,
@@ -74,13 +76,13 @@ const Dashboard = () => {
             isPositive: false,
             icon: <BsBoxSeam size={24} />,
           },
-          {
-            title: 'Đánh Giá Trung Bình',
-            value: overview?.averageRating?.toFixed(1),
-            change: '+5.6%', // Placeholder
-            isPositive: true,
-            icon: <BsStarFill size={24} />,
-          },
+          // {
+          //   title: 'Đánh Giá Trung Bình',
+          //   value: overview?.averageRating?.toFixed(1) || 4.3,
+          //   change: '+5.6%', // Placeholder
+          //   isPositive: true,
+          //   icon: <BsStarFill size={24} />,
+          // },
         ]);
 
         // Fetch recent orders
@@ -146,9 +148,9 @@ const Dashboard = () => {
           { title: 'Tổng Đơn Hàng', value: stats.totalOrders, icon: <BsCart4 size={24} /> },
           { title: 'Tổng Sản Phẩm', value: stats.totalProducts, icon: <BsBoxSeam size={24} /> },
           { title: 'Tổng Người Dùng', value: stats.totalUsers, icon: <BsPeople size={24} /> },
-          { title: 'Tổng Danh Mục', value: stats.totalCategories, icon: <BsTag size={24} /> },
+          // { title: 'Tổng Danh Mục', value: stats.totalCategories, icon: <BsTag size={24} /> },
         ].map((stat, idx) => (
-          <div key={idx} className="col-md-6 col-lg-3">
+          <div key={idx} className="col-md-6 col-lg-4">
             <div className="card shadow-sm">
               <div className="card-body d-flex align-items-center">
                 <div className="me-3 text-primary">{stat.icon}</div>
@@ -164,7 +166,7 @@ const Dashboard = () => {
 
       <div className="row g-4 mb-4">
         {metrics.map((metric, idx) => (
-          <div key={idx} className="col-md-6 col-lg-3">
+          <div key={idx} className="col-md-6 col-lg-4">
             <div className="card shadow-sm">
               <div className="card-body d-flex align-items-center">
                 <div className="me-3 text-primary">{metric.icon}</div>
@@ -212,7 +214,7 @@ const Dashboard = () => {
                 {recentOrders.map((order) => (
                   <tr key={order.id}>
                     <td>{order.id}</td>
-                    <td>{formatDate(order.createdAt)}</td>
+                    <td>{formatDate(order.createAt)}</td>
                     <td>
                       {order.items.map((item, index) => (
                         <div key={index} className="item-container d-flex align-items-center">

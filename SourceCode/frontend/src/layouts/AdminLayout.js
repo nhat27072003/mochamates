@@ -25,7 +25,7 @@ const AdminLayout = () => {
     },
     { icon: <FiList />, label: "Quản lý sản phẩm", link: "/admin/products" },
     { icon: <FiUsers />, label: "Quản lý khách hàng", link: "/admin/users" },
-    { icon: <FiDollarSign />, label: "Báo cáo doanh thu", link: "/admin/revenu" },
+    // { icon: <FiDollarSign />, label: "Báo cáo doanh thu", link: "/admin/revenu" },
   ];
 
   useEffect(() => {

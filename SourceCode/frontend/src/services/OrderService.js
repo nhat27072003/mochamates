@@ -37,7 +37,16 @@ const getOrdersByStatus = async (status, page = 0, size = 10, sort = 'id,desc') 
   });
   return response.data;
 };
+const checkOrderStatus = async (orderId) => {
+  try {
+    const response = await axiosClient.get(`/api/orders/${orderId}`);
 
+    return response.data;
+  } catch (error) {
+    console.error("Error checking order status:", error);
+    throw error;
+  }
+};
 const getRecentOrders = async (limit = 5) => {
   const response = await axiosClient.get('/api/v1/orders/recent', {
     params: { limit },
@@ -53,5 +62,6 @@ export {
   updateOrderStatusForAdmin,
   getOrderForUser,
   getOrdersByStatus,
-  getRecentOrders
+  getRecentOrders,
+  checkOrderStatus
 }

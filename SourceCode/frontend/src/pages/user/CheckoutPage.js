@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { clearCart, fetchCart } from "../../redux/cartSlice";
 import { formatPrice } from "../../utils/helpers";
-import { placeOrder } from "../../services/OrderService";
+import { checkOrderStatus, getOrderForUser, placeOrder } from "../../services/OrderService";
 import { getOptionDisplayName, getOptionValueDisplay } from "../../utils/displayOption";
 
 const CheckoutPage = () => {
@@ -119,17 +119,39 @@ const CheckoutPage = () => {
     try {
       const result = await placeOrder(formData);
       if (result.statusCode === "1000" && result.data?.paymentUrl) {
-        console.log('check url ', result.data)
-        // window.location.href = result.data?.paymentUrl;
+        const paymentWindow = window.open(result.data.paymentUrl, "_blank", "width=600,height=800");
+        dispatch(fetchCart());
+        if (!paymentWindow) {
+          toast.error("Vui lòng cho phép popup để tiếp tục thanh toán!");
+          return;
+        }
+
+        const checkPaymentStatus = setInterval(async () => {
+          if (paymentWindow.closed) {
+            clearInterval(checkPaymentStatus);
+            const orderId = result.data?.order?.id;
+            const updatedOrder = await getOrderForUser(Number(orderId));
+            console.log('check updateorder', updatedOrder);
+            if (updatedOrder?.data?.status === "PAID") {
+              toast.success("Thanh toán thành công!");
+              dispatch(clearCart());
+              navigate("/order");
+            } else if (updatedOrder?.data.status === "FAILED") {
+              toast.error("Thanh toán thất bại!");
+            } else {
+              toast.info("Thanh toán đang xử lý hoặc bị hủy!");
+            }
+            setIsLoading(false);
+          }
+        }, 500);
       } else {
         toast.success("Đặt hàng thành công!");
         await dispatch(fetchCart());
-        navigate('/order');
+        navigate("/order");
       }
     } catch (err) {
       toast.error("Có lỗi xảy ra, vui lòng thử lại!");
       console.error("Order placement error:", err);
-    } finally {
       setIsLoading(false);
     }
   };
@@ -356,7 +378,7 @@ const CheckoutPage = () => {
                         Thanh Toán Khi Nhận Hàng
                       </label>
                     </div>
-                    <div className="form-check mb-2">
+                    {/* <div className="form-check mb-2">
                       <input
                         className="form-check-input"
                         type="radio"
@@ -385,7 +407,7 @@ const CheckoutPage = () => {
                         <FaWallet className="me-2 text-purple" />
                         Ví Điện Tử
                       </label>
-                    </div>
+                    </div> */}
                     <div className="form-check mb-2">
                       <input
                         className="form-check-input"

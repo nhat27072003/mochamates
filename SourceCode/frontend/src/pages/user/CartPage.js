@@ -335,7 +335,7 @@ const CartPage = () => {
                       <span>{formatPrice(total)}</span>
                     </div>
                   </div>
-                  <div className="input-group mb-3">
+                  {/* <div className="input-group mb-3">
                     <input
                       type="text"
                       className="form-control"
@@ -350,7 +350,7 @@ const CartPage = () => {
                     >
                       Áp dụng
                     </button>
-                  </div>
+                  </div> */}
                   <div className="d-grid gap-2">
                     <button
                       className="btn btn-primary"

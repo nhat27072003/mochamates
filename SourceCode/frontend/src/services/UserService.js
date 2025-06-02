@@ -33,3 +33,15 @@ export const getUsersByRole = async (role, page = 0, size = 10) => {
   });
   return response.data; // Adjust to access ApiResponse.data
 };
+export const updateUserProfile = async (data) => {
+  const response = await axiosClient.put('/api/v1/users/profile', data);
+  return response.data; // Adjust to access ApiResponse.data
+};
+export const changePassord = async (data) => {
+  const response = await axiosClient.put('/api/v1/users/password', data);
+  return response.data;
+};
+export const getUserProfile = async () => {
+  const response = await axiosClient.get('/api/v1/users/me');
+  return response.data;
+};

@@ -39,7 +39,7 @@ const Textarea = memo(({ label, name, rows = 2, value, onChange }) => (
   </div>
 ));
 
-const CheckboxGroup = memo(({ label, name, options, selectedValues, onChange }) => (
+const CheckboxGroup = memo(({ label, name, options, selectedValues }) => (
   <div className="mb-2 col">
     <label className="form-label small">{label}</label>
     <div className="d-flex flex-wrap">
@@ -50,13 +50,8 @@ const CheckboxGroup = memo(({ label, name, options, selectedValues, onChange }) 
             id={`${name}-${option.value}`}
             className="form-check-input"
             value={option.value}
-            checked={selectedValues.includes(option.value)}
-            onChange={(e) => {
-              const newValues = e.target.checked
-                ? [...selectedValues, e.target.value]
-                : selectedValues.filter((v) => v !== e.target.value);
-              onChange(newValues);
-            }}
+            checked={true} // Đặt mặc định tất cả checkbox được chọn
+            disabled={true} // Vô hiệu hóa để không thể thay đổi
           />
           <label htmlFor={`${name}-${option.value}`} className="form-check-label small">{option.label}</label>
         </div>
@@ -394,8 +389,8 @@ const ProductForm = () => {
                       required
                     >
                       <option value="READY_TO_DRINK_COFFEE">Cà phê pha sẵn</option>
-                      <option value="ROASTED_COFFEE">Cà phê hạt/xay</option>
-                      <option value="INSTANT_COFFEE">Cà Phê Đóng Gói</option>
+                      <option value="ROASTED_COFFEE">Cà phê rang</option>
+                      <option value="INSTANT_COFFEE">Cà Phê hòa tan</option>
                     </select>
                   </div>
                 </div>
@@ -517,7 +512,7 @@ const ProductForm = () => {
                       />
                     </div>
                   )}
-                  {product.type === 'PACKAGED_COFFEE' && (
+                  {product.type === 'INSTANT_COFFEE' && (
                     <div className="row">
                       <Input
                         label="Bao Bì"
@@ -548,7 +543,7 @@ const ProductForm = () => {
                   )}
                 </div>
 
-                <div className="option-section mt-3">
+                {/* <div className="option-section mt-3">
                   <label className="form-label small me-3">Tùy Chọn</label>
                   {product.options.map((option, optionIndex) => (
                     <div key={option.id || `option-${optionIndex}`} className="option-section border p-2 mb-2 rounded">
@@ -629,7 +624,7 @@ const ProductForm = () => {
                   <button type="button" className="btn btn-primary btn-sm" onClick={addOption}>
                     Thêm Tùy Chọn
                   </button>
-                </div>
+                </div> */}
 
                 <button
                   type="submit"

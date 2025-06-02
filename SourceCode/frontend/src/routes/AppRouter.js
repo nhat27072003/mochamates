@@ -24,6 +24,8 @@ import { ToastContainer } from 'react-toastify'
 import CheckoutPage from '../pages/user/CheckoutPage'
 import OrderDetailsUser from '../pages/user/OrderDetailsUser'
 import Category from '../pages/user/Category'
+import UpdateProfilePage from '../pages/user/UpdateProfilePage'
+import ChangePasswordPage from '../pages/user/ChangePasswordPage'
 
 export const AppRouter = () => {
   const user = useSelector((state) => state.user.currentUser)
@@ -55,6 +57,8 @@ export const AppRouter = () => {
             <Route path='order/:id' element={<OrderDetailsUser />} />
             <Route path="about" element={<About />} />
             <Route path="contact" element={<Contact />} />
+            <Route path="profile" element={<UpdateProfilePage />} />
+            <Route path="change-password" element={<ChangePasswordPage />} />
           </Route>
 
           <Route

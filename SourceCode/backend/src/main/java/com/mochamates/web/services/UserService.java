@@ -1,8 +1,10 @@
 package com.mochamates.web.services;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -11,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.mochamates.web.dto.statistics.UserStatsDTO;
 import com.mochamates.web.dto.user.ChangePasswordRequestDTO;
@@ -34,23 +37,27 @@ public class UserService {
 		this.passwordEncoder = passwordEncoder;
 	}
 
-	// Existing methods (unchanged, included for context)
+	// Get user profile by username
 	public UserDetailResponse getUserProfile(String username) {
 		User user = userRepository.findByUsername(username)
 				.orElseThrow(() -> new UserNotFoundException("User not found: " + username));
 		return mapToUserDetailResponse(user);
 	}
 
+	// Get user by ID
 	public UserDetailResponse getUserById(Long id) {
 		User user = userRepository.findById(id)
 				.orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
 		return mapToUserDetailResponse(user);
 	}
 
+	// Check if user exists
 	public boolean isUserExist(Long userId) {
 		return userRepository.findById(userId).isPresent();
 	}
 
+	// Create a new user
+	@Transactional
 	public UserDetailResponse createUser(UserCreateRequestDTO request) {
 		validateCreateRequest(request);
 
@@ -78,6 +85,8 @@ public class UserService {
 		return mapToUserDetailResponse(user);
 	}
 
+	// Update user by admin
+	@Transactional
 	public UserDetailResponse updateUser(Long id, UserUpdateRequestDTO request) {
 		User user = userRepository.findById(id)
 				.orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
@@ -113,19 +122,21 @@ public class UserService {
 		return mapToUserDetailResponse(user);
 	}
 
+	// Update authenticated user's profile
+	@Transactional
 	public UserDetailResponse updateUserProfile(UserProfileUpdateRequestDTO request) {
 		String username = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUsername(username)
 				.orElseThrow(() -> new UserNotFoundException("User not found: " + username));
 
-		if (request.getEmail() != null && request.getEmail().isBlank()) {
-			throw new InvalidUserInfoException("Email cannot be empty");
+		// Validate email
+		if (request.getEmail() == null || request.getEmail().isBlank()) {
+			throw new InvalidUserInfoException("Email is required");
 		}
-		if (request.getPhone() != null && request.getPhone().isBlank()) {
-			throw new InvalidUserInfoException("Phone cannot be empty");
+		if (!isValidEmail(request.getEmail())) {
+			throw new InvalidUserInfoException("Invalid email format");
 		}
-
-		if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
+		if (!request.getEmail().equals(user.getEmail())) {
 			User existingUser = userRepository.findByEmail(request.getEmail());
 			if (existingUser != null && !existingUser.getId().equals(user.getId())) {
 				throw new InvalidUserInfoException("Email already exists: " + request.getEmail());
@@ -133,15 +144,57 @@ public class UserService {
 			user.setEmail(request.getEmail());
 		}
 
-		if (request.getPhone() != null) {
+		// Validate phone
+		if (request.getPhone() != null && !request.getPhone().isBlank()) {
+			if (!isValidPhone(request.getPhone())) {
+				throw new InvalidUserInfoException("Phone number must be 10 digits");
+			}
 			user.setPhone(request.getPhone());
+		} else {
+			user.setPhone(null);
 		}
+
+		// Validate fullName
+		if (request.getFullName() == null || request.getFullName().trim().isBlank()) {
+			throw new InvalidUserInfoException("Full name is required");
+		}
+		user.setFullName(request.getFullName().trim());
+
+		// Validate dateOfBirth
+		if (request.getDateOfBirth() != null) {
+			if (request.getDateOfBirth().isAfter(LocalDate.now())) {
+				throw new InvalidUserInfoException("Date of birth cannot be in the future");
+			}
+			user.setDateOfBirth(request.getDateOfBirth());
+		} else {
+			user.setDateOfBirth(null);
+		}
+
+		// Validate gender
+		if (request.getGender() != null && !request.getGender().isBlank()) {
+			if (!isValidGender(request.getGender())) {
+				throw new InvalidUserInfoException("Gender must be MALE, FEMALE, or OTHER");
+			}
+			user.setGender(request.getGender());
+		} else {
+			user.setGender(null);
+		}
+
+		// Validate address
+		if (request.getAddress() != null && !request.getAddress().isBlank()) {
+			user.setAddress(request.getAddress().trim());
+		} else {
+			user.setAddress(null);
+		}
+
 		user.setUpdateAt(LocalDateTime.now());
 
 		userRepository.save(user);
 		return mapToUserDetailResponse(user);
 	}
 
+	// Change password
+	@Transactional
 	public void changePassword(ChangePasswordRequestDTO request) {
 		String username = SecurityContextHolder.getContext().getAuthentication().getName();
 		User user = userRepository.findByUsername(username)
@@ -167,6 +220,7 @@ public class UserService {
 		userRepository.save(user);
 	}
 
+	// Get paginated list of users
 	public GetUsersResponseDTO getUsers(int page, int size) {
 		if (page < 0 || size <= 0) {
 			throw new InvalidUserInfoException("Page index must be >= 0 and size > 0.");
@@ -191,6 +245,7 @@ public class UserService {
 		return response;
 	}
 
+	// Get paginated list of users by role
 	public GetUsersResponseDTO getUsersByRole(String role, int page, int size) {
 		if (page < 0 || size <= 0) {
 			throw new InvalidUserInfoException("Page index must be >= 0 and size > 0.");
@@ -219,6 +274,8 @@ public class UserService {
 		return response;
 	}
 
+	// Delete user
+	@Transactional
 	public UserDetailResponse deleteUser(Long id) {
 		User user = userRepository.findById(id)
 				.orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
@@ -229,6 +286,7 @@ public class UserService {
 		return response;
 	}
 
+	// Get user statistics
 	public UserStatsDTO getUserStats(LocalDateTime startDate) {
 		UserStatsDTO stats = new UserStatsDTO();
 		stats.setTotalUsers(userRepository.count());
@@ -237,18 +295,14 @@ public class UserService {
 		return stats;
 	}
 
+	// Map User entity to UserDetailResponse
 	private UserDetailResponse mapToUserDetailResponse(User user) {
-		UserDetailResponse response = new UserDetailResponse();
-		response.setId(user.getId());
-		response.setCreateAt(user.getCreateAt());
-		response.setUsername(user.getUsername());
-		response.setEmail(user.getEmail());
-		response.setPhone(user.getPhone());
-		response.setRole(user.getRole());
-		response.setVerify(user.isVerify());
-		return response;
+		return new UserDetailResponse(user.getId(), user.getUsername(), user.getEmail(), user.getPhone(),
+				user.getFullName(), user.getDateOfBirth(), user.getGender(), user.getAddress(), user.getRole(),
+				user.getCreateAt(), user.getUpdateAt(), user.isVerify());
 	}
 
+	// Validate create request
 	private void validateCreateRequest(UserCreateRequestDTO request) {
 		if (request.getUsername() == null || request.getUsername().isBlank()) {
 			throw new InvalidUserInfoException("Username is required");
@@ -264,6 +318,7 @@ public class UserService {
 		}
 	}
 
+	// Validate update request
 	private void validateUpdateRequest(UserUpdateRequestDTO request, Long id) {
 		if (request.getEmail() != null && request.getEmail().isBlank()) {
 			throw new InvalidUserInfoException("Email cannot be empty");
@@ -271,5 +326,19 @@ public class UserService {
 		if (request.getPhone() != null && request.getPhone().isBlank()) {
 			throw new InvalidUserInfoException("Phone cannot be empty");
 		}
+	}
+
+	// Validation helper methods
+	private boolean isValidEmail(String email) {
+		String emailRegex = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$";
+		return Pattern.matches(emailRegex, email);
+	}
+
+	private boolean isValidPhone(String phone) {
+		return phone.matches("^[0-9]{10}$");
+	}
+
+	private boolean isValidGender(String gender) {
+		return Set.of("MALE", "FEMALE", "OTHER").contains(gender);
 	}
 }

@@ -16,7 +16,7 @@ export const login = createAsyncThunk(
         role: decoded.role,
       };
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "Login failed");
+      return rejectWithValue(error?.response?.data.message || "Login failed");
     }
   }
 );

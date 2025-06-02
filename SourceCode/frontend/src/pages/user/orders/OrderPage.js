@@ -24,7 +24,11 @@ const OrdersPage = () => {
     try {
       setLoading(true);
       const response = await getOrdersForUser();
-      setOrders(response.data);
+      // Sắp xếp theo createAt giảm dần
+      const sortedOrders = response.data.sort((a, b) =>
+        new Date(b.createAt) - new Date(a.createAt)
+      );
+      setOrders(sortedOrders);
     } catch (error) {
       console.error('Error fetching orders:', error);
     } finally {
@@ -41,19 +45,23 @@ const OrdersPage = () => {
   };
 
   const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case 'pending': return 'pending';
-      case 'processing': return 'processing';
-      case 'shipped': return 'shipped';
-      case 'delivered': return 'delivered';
-      case 'cancelled': return 'cancelled';
-      default: return '';
+    switch (status.toUpperCase()) {
+      case 'PENDING': return 'pending';
+      case 'CONFIRMED': return 'confirmed';
+      case 'PAID': return 'paid';
+      case 'SHIPPED': return 'shipped';
+      case 'DELIVERED': return 'delivered';
+      case 'CANCELLED': return 'cancelled';
+      case 'FAILED': return 'failed';
+      case 'REFUNDED': return 'refunded';
+      default: return 'default';
     }
   };
 
   const filteredOrders = orders.filter(order => {
     const matchesSearch = order.id.toString().toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || order.status.toLowerCase() === filterStatus.toLowerCase();
+    const matchesStatus = filterStatus === 'all' ||
+      order.status.toUpperCase() === filterStatus.toUpperCase();
     return matchesSearch && matchesStatus;
   });
 
@@ -61,7 +69,7 @@ const OrdersPage = () => {
     <Modal show={true} onHide={onClose} centered className="modal">
       <div className="modal-content">
         <div className="modal-header">
-          <h3>Order Details</h3>
+          <h3>Order Details #{order.id}</h3>
           <button className="close-btn" onClick={onClose}><FaTimes /></button>
         </div>
         <div className="modal-body">
@@ -72,38 +80,41 @@ const OrdersPage = () => {
             </div>
             <div>
               <p className="font-weight-bold">Order Date:</p>
-              <p>{formatDate(order.createdAt)}</p>
+              <p>{formatDate(order.createAt)}</p>
             </div>
           </div>
           <div>
             <p className="font-weight-bold">Shipping Address:</p>
-            <p>{order.address || 'N/A'}</p>
+            <p>{order.streetAddress || 'N/A'}, {order.ward || ''}, {order.district || ''}, {order.city || ''}</p>
           </div>
           <div>
             <p className="font-weight-bold">Items:</p>
             {order.items.map((item, index) => (
               <div key={index} className="item-container">
                 <img
-                  src={item.imageUrl || 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd'}
+                  src={item.imageUrl || 'https://via.placeholder.com/48'}
                   alt={item.name}
-                  onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd'}
+                  onError={(e) => e.target.src = 'https://via.placeholder.com/48'}
                 />
                 <div>
                   <p>{item.name}</p>
                   <p className="text-muted">Quantity: {item.quantity}</p>
+                  <p className="text-muted">Price: {formatPrice(item.price)}</p>
                 </div>
               </div>
             ))}
           </div>
           <div>
-            <p className="font-weight-bold">Tracking Information:</p>
-            <p>{order.tracking || 'N/A'}</p>
+            <p className="font-weight-bold">Status:</p>
+            <p className={`status-badge ${getStatusColor(order.status)}`}>
+              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+            </p>
           </div>
           <div>
             <p className="font-weight-bold">Total Amount:</p>
-            <p className="text-primary-brown">${order.total?.toFixed(2) || '0.00'}</p>
+            <p className="text-primary-brown">{formatPrice(order.total)}</p>
           </div>
-          {order.status.toLowerCase() === 'delivered' && (
+          {order.status.toUpperCase() === 'DELIVERED' && (
             <div>
               <p className="font-weight-bold">Write a Review:</p>
               {order.items.map((item, index) => (
@@ -112,7 +123,7 @@ const OrdersPage = () => {
                   variant="link"
                   className="action-btn"
                   onClick={() => {
-                    window.location.href = `/products/${item.productId}/review?orderId=${order.id}`;
+                    navigate(`/products/${item.productId}/review?orderId=${order.id}`);
                   }}
                 >
                   Review {item.name}
@@ -133,6 +144,7 @@ const OrdersPage = () => {
       </div>
     );
   }
+
   return (
     <div className="orders-page">
       <Container fluid>
@@ -154,11 +166,14 @@ const OrdersPage = () => {
               className="status-filter"
             >
               <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="processing">Processing</option>
-              <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
+              <option value="PENDING">Pending</option>
+              <option value="CONFIRMED">Confirmed</option>
+              <option value="PAID">Paid</option>
+              <option value="SHIPPED">Shipped</option>
+              <option value="DELIVERED">Delivered</option>
+              <option value="CANCELLED">Cancelled</option>
+              <option value="FAILED">Failed</option>
+              <option value="REFUNDED">Refunded</option>
             </Form.Select>
             <div className="view-toggle">
               <button
@@ -201,20 +216,21 @@ const OrdersPage = () => {
                     {filteredOrders.map((order) => (
                       <tr key={order.id}>
                         <td>{order.id}</td>
-                        <td>{formatDate(order.createdAt)}</td>
-                        <div className='items-column'>
-                          {order.items.map((item, index) => (
-                            <div key={index} className="item-container">
-                              <img
-                                src={item.imageUrl || 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd'}
-                                alt={item.name}
-                                onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd'}
-                              />
-                              <span>{item.name} (x{item.quantity})</span>
-                            </div>
-                          ))}
-                        </div>
-
+                        <td>{formatDate(order.createAt)}</td>
+                        <td>
+                          <div className="items-column">
+                            {order.items.map((item, index) => (
+                              <div key={index} className="item-container">
+                                <img
+                                  src={item.imageUrl || 'https://via.placeholder.com/48'}
+                                  alt={item.name}
+                                  onError={(e) => e.target.src = 'https://via.placeholder.com/48'}
+                                />
+                                <span>{item.name} (x{item.quantity})</span>
+                              </div>
+                            ))}
+                          </div>
+                        </td>
                         <td>{formatPrice(order.total)}</td>
                         <td>
                           <span className={`status-badge ${getStatusColor(order.status)}`}>
@@ -226,7 +242,8 @@ const OrdersPage = () => {
                             variant="link"
                             className="action-btn"
                             onClick={() => {
-                              navigate(`/order/${order.id}`);
+                              setSelectedOrder(order);
+                              setShowModal(true);
                             }}
                           >
                             View Details
@@ -245,8 +262,8 @@ const OrdersPage = () => {
                       <div className="order-card">
                         <div className="order-header">
                           <div>
-                            <h3 className="order-id">{order.id}</h3>
-                            <p className="text-muted">{formatDate(order.createdAt)}</p>
+                            <h3 className="order-id">Order #{order.id}</h3>
+                            <p className="text-muted">{formatDate(order.createAt)}</p>
                           </div>
                           <span className={`status-badge ${getStatusColor(order.status)}`}>
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
@@ -256,9 +273,9 @@ const OrdersPage = () => {
                           {order.items.map((item, index) => (
                             <div key={index} className="item-container">
                               <img
-                                src={item.imageUrl || 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd'}
+                                src={item.imageUrl || 'https://via.placeholder.com/48'}
                                 alt={item.name}
-                                onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd'}
+                                onError={(e) => e.target.src = 'https://via.placeholder.com/48'}
                               />
                               <div>
                                 <p>{item.name}</p>
@@ -272,12 +289,12 @@ const OrdersPage = () => {
                           <Button
                             className="action-btn"
                             onClick={() => {
-                              navigate(`/order/${order.id}`);
+                              setSelectedOrder(order);
+                              setShowModal(true);
                             }}
                           >
                             View Details
                           </Button>
-
                         </div>
                       </div>
                     </Col>
@@ -285,7 +302,9 @@ const OrdersPage = () => {
                 </Row>
               </div>
             )}
-
+            {showModal && selectedOrder && (
+              <OrderModal order={selectedOrder} onClose={() => setShowModal(false)} />
+            )}
           </>
         )}
       </Container>

@@ -5,6 +5,7 @@ import { addToCart, fetchCart } from "../../redux/cartSlice";
 import Comment from "../../components/Comment";
 import { toast } from "react-toastify";
 import { getProductById } from "../../services/ProductService";
+import NewArrivals from "../../components/newArrivals/NewArrivals";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -380,6 +381,7 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
+      <NewArrivals />
       <Comment productId={id} />
     </div>
   );

@@ -7,7 +7,7 @@ import { addToCart, fetchCart } from "../../redux/cartSlice";
 import { formatPrice } from "../../utils/helpers";
 import { toast } from "react-toastify";
 
-const Item = ({ id, name, imageUrl, price, rating = 4.5, description, badge = "New" }) => {
+const Item = ({ id, name, imageUrl, price, rating = 4.5, description, badge = "New", options = [] }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated } = useSelector((state) => state.user);
@@ -20,21 +20,36 @@ const Item = ({ id, name, imageUrl, price, rating = 4.5, description, badge = "N
         navigate("/signin");
         return;
       }
+
+      // Tạo selectedOptions với giá trị mặc định từ options
+      const selectedOptions = options.reduce((acc, option) => {
+        if (option && option.name && Array.isArray(option.values) && option.values.length > 0) {
+          acc[option.name] = option.values[0].value || ""; // Chọn giá trị đầu tiên
+        }
+        return acc;
+      }, {});
+
       const cartItem = {
         productId: id,
         name: name,
         price: price,
         imageUrl: imageUrl,
-        selectedOptions: [],
+        selectedOptions: Object.keys(selectedOptions).reduce((acc, optionName) => {
+          if (selectedOptions[optionName]) {
+            acc[optionName] = [selectedOptions[optionName]]; // Định dạng theo yêu cầu API
+          }
+          return acc;
+        }, {}),
         quantity: 1,
       };
 
       console.log("Adding to cart:", cartItem);
       await dispatch(addToCart(cartItem)).unwrap();
-      toast.success("Đã thêm sản phẩm vào giỏ hàng")
+      toast.success("Đã thêm sản phẩm vào giỏ hàng");
       dispatch(fetchCart());
     } catch (err) {
-      toast.error("Có lỗi xảy ra vui lòng thử lại sau ít phút")
+      console.error("Error adding to cart:", err);
+      toast.error("Có lỗi xảy ra, vui lòng thử lại sau ít phút");
     }
   };
 
@@ -42,8 +57,7 @@ const Item = ({ id, name, imageUrl, price, rating = 4.5, description, badge = "N
     <Link to={`/products/${id}`} className="item-card-link text-decoration-none">
       <div className="card item-product-card h-100 position-relative">
         <span
-          className={`badge ${badge === "New" ? "bg-danger" : "bg-success"
-            } position-absolute top-0 end-0 m-2`}
+          className={`badge ${badge === "New" ? "bg-danger" : "bg-success"} position-absolute top-0 end-0 m-2`}
         >
           {badge}
         </span>

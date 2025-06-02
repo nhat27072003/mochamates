@@ -87,6 +87,10 @@ const ManageOrders = () => {
         return "delivered";
       case "cancelled":
         return "cancelled";
+      case "paid":
+        return "paid";
+      case "failed":
+        return "fail"
       default:
         return "";
     }
@@ -190,9 +194,11 @@ const ManageOrders = () => {
                   >
                     <option value="all">All Status</option>
                     <option value="pending">Pending</option>
-                    <option value="processing">Processing</option>
+                    <option value="paid">Paid</option>
+                    <option value="confirmed">Confirmed</option>
                     <option value="shipped">Shipped</option>
                     <option value="delivered">Delivered</option>
+                    <option value="failed">Failed</option>
                     <option value="cancelled">Cancelled</option>
                   </Form.Select>
                 </Col>

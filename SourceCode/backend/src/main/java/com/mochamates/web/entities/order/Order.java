@@ -42,6 +42,7 @@ public class Order {
 
 	@Column(name = "create_at", nullable = false, updatable = false)
 	private LocalDateTime createAt;
+	private LocalDateTime updatedAt;
 	private String fullName;
 	private String phoneNumber;
 	private String streetAddress;
@@ -56,6 +57,14 @@ public class Order {
 
 	public LocalDateTime getCreateAt() {
 		return createAt;
+	}
+
+	public LocalDateTime getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
 	}
 
 	public void setCreateAt(LocalDateTime createAt) {

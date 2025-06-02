@@ -21,21 +21,14 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-		http
-				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-				.csrf(csrf -> csrf.disable())
+		http.cors(cors -> cors.configurationSource(corsConfigurationSource())).csrf(csrf -> csrf.disable())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.authorizeHttpRequests(auth -> auth
-						.requestMatchers("/api/v1/auth/**").permitAll()
-						.requestMatchers(
-								"/api/v1/products",
-								"/api/v1/products/{id}",
-								"/api/v1/products/newest",
-								"/api/v1/products/by-type",
-								"/api/v1/reviews/product/**")
-						.permitAll()
-						.requestMatchers("/api/v1/cart/**", "/api/v1/orders").hasAnyRole("CUSTOMER", "ADMIN")
-						.requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+				.authorizeHttpRequests(auth -> auth.requestMatchers("/api/v1/auth/**").permitAll()
+						.requestMatchers("/api/vnpay/callback").permitAll()
+						.requestMatchers("/api/v1/products", "/api/v1/products/{id}", "/api/v1/products/newest",
+								"/api/v1/products/by-type", "/api/v1/reviews/product/**")
+						.permitAll().requestMatchers("/api/v1/cart/**", "/api/v1/orders")
+						.hasAnyRole("CUSTOMER", "ADMIN").requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 						.anyRequest().authenticated())
 				.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -50,6 +43,7 @@ public class SecurityConfig {
 		config.addAllowedOrigin("http://localhost");
 		config.addAllowedOrigin("http://localhost:80");
 		config.addAllowedOrigin("http://localhost:3000");
+		config.addAllowedOrigin("https://sandbox.vnpayment.vn");
 		config.addAllowedOriginPattern("https://*.ngrok.io");
 		config.addAllowedOrigin("https://your-frontend.onrender.com"); // Replace with actual Render URL
 		config.addAllowedHeader("*");

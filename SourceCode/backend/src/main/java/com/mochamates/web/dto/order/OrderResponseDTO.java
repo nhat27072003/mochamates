@@ -23,6 +23,15 @@ public class OrderResponseDTO {
 	private String cardNumber;
 	private String cardExpiry;
 	private String cvv;
+	private LocalDateTime updatedAt;
+
+	public LocalDateTime getUpdatedAt() {
+		return updatedAt;
+	}
+
+	public void setUpdatedAt(LocalDateTime updatedAt) {
+		this.updatedAt = updatedAt;
+	}
 
 	public Long getId() {
 		return id;

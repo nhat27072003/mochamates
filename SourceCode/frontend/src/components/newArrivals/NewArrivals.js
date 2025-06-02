@@ -59,6 +59,7 @@ const NewArrivals = () => {
                     price={product.price.toFixed(2)}
                     description={product.description || 'No description available'}
                     badge="New"
+                    options={product.options}
                   />
                 </div>
               ))
